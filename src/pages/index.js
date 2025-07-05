@@ -22,23 +22,53 @@ export default function Home() {
   return (
     <>
       <Head>
-        <title>Q Chat Session Viewer</title>
-        <meta name="description" content="View and analyze Amazon Q chat sessions" />
+        <title>SessionBase - AI Chat Session Viewer</title>
+        <meta name="description" content="View and analyze AI chat sessions from multiple tools like Q Chat, Claude Code, Cursor, and more" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
         <div className="container mx-auto px-4 py-16">
-          <div className="max-w-2xl mx-auto text-center">
+          <div className="max-w-4xl mx-auto text-center">
             {/* Header */}
             <div className="mb-12">
-              <h1 className="text-4xl font-bold text-gray-900 mb-4">
-                Q Chat Session Viewer
+              <h1 className="text-5xl font-bold text-gray-900 mb-4">
+                SessionBase
               </h1>
-              <p className="text-xl text-gray-600">
-                Visualize and analyze Amazon Q chat sessions with detailed conversation flows
+              <p className="text-xl text-gray-600 mb-6">
+                Universal AI Chat Session Viewer
               </p>
+              <p className="text-lg text-gray-500">
+                Visualize and analyze chat sessions from multiple AI tools with a unified interface
+              </p>
+            </div>
+
+            {/* Supported Formats */}
+            <div className="mb-12">
+              <h2 className="text-2xl font-semibold text-gray-900 mb-6">Supported AI Tools</h2>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="bg-white rounded-lg p-4 shadow-sm border border-gray-200">
+                  <div className="text-3xl mb-2">🤖</div>
+                  <div className="font-medium text-gray-900">Amazon Q Chat</div>
+                  <div className="text-sm text-gray-600">JSON Format</div>
+                </div>
+                <div className="bg-white rounded-lg p-4 shadow-sm border border-gray-200">
+                  <div className="text-3xl mb-2">🧠</div>
+                  <div className="font-medium text-gray-900">Claude Code</div>
+                  <div className="text-sm text-gray-600">JSONL Format</div>
+                </div>
+                <div className="bg-white rounded-lg p-4 shadow-sm border border-gray-200">
+                  <div className="text-3xl mb-2">⚡</div>
+                  <div className="font-medium text-gray-900">Cursor</div>
+                  <div className="text-sm text-gray-600">Coming Soon</div>
+                </div>
+                <div className="bg-white rounded-lg p-4 shadow-sm border border-gray-200">
+                  <div className="text-3xl mb-2">💎</div>
+                  <div className="font-medium text-gray-900">Gemini CLI</div>
+                  <div className="text-sm text-gray-600">Coming Soon</div>
+                </div>
+              </div>
             </div>
 
             {/* Session Input Form */}
@@ -79,41 +109,73 @@ export default function Home() {
                   onClick={handleExampleSession}
                   className="text-blue-600 hover:text-blue-700 font-medium text-sm underline"
                 >
-                  View Example Session
+                  View Example Q Chat Session
                 </button>
               </div>
             </div>
 
             {/* Features */}
-            <div className="grid md:grid-cols-3 gap-6">
+            <div className="grid md:grid-cols-3 gap-6 mb-12">
+              <div className="bg-white rounded-lg p-6 shadow-sm">
+                <div className="text-3xl mb-3">🔄</div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                  Auto-Detection
+                </h3>
+                <p className="text-gray-600 text-sm">
+                  Automatically detects and parses different AI chat formats without manual configuration
+                </p>
+              </div>
+
               <div className="bg-white rounded-lg p-6 shadow-sm">
                 <div className="text-3xl mb-3">💬</div>
                 <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                  Conversation View
+                  Unified Interface
                 </h3>
                 <p className="text-gray-600 text-sm">
-                  See the full conversation flow with user prompts, AI responses, and tool usage
+                  Single, consistent interface for viewing sessions from different AI tools
                 </p>
               </div>
 
               <div className="bg-white rounded-lg p-6 shadow-sm">
-                <div className="text-3xl mb-3">📝</div>
+                <div className="text-3xl mb-3">📊</div>
                 <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                  Transcript View
+                  Rich Analytics
                 </h3>
                 <p className="text-gray-600 text-sm">
-                  Clean, chronological transcript of the entire session
+                  Detailed statistics, tool usage analysis, and timeline views for all session types
                 </p>
               </div>
+            </div>
 
-              <div className="bg-white rounded-lg p-6 shadow-sm">
-                <div className="text-3xl mb-3">🔧</div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                  Tool Analysis
-                </h3>
-                <p className="text-gray-600 text-sm">
-                  Detailed view of tool usage, parameters, and execution results
-                </p>
+            {/* Views */}
+            <div className="bg-gray-50 rounded-xl p-8">
+              <h2 className="text-2xl font-semibold text-gray-900 mb-6">Available Views</h2>
+              <div className="grid md:grid-cols-2 lg:grid-cols-5 gap-4">
+                <div className="text-center">
+                  <div className="text-2xl mb-2">💬</div>
+                  <div className="font-medium text-gray-900">Conversation</div>
+                  <div className="text-sm text-gray-600">Message flow</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl mb-2">⏰</div>
+                  <div className="font-medium text-gray-900">Timeline</div>
+                  <div className="text-sm text-gray-600">Chronological view</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl mb-2">🔧</div>
+                  <div className="font-medium text-gray-900">Tools</div>
+                  <div className="text-sm text-gray-600">Tool usage analysis</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl mb-2">📈</div>
+                  <div className="font-medium text-gray-900">Statistics</div>
+                  <div className="text-sm text-gray-600">Session metrics</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl mb-2">📄</div>
+                  <div className="font-medium text-gray-900">Raw Data</div>
+                  <div className="text-sm text-gray-600">Original format</div>
+                </div>
               </div>
             </div>
 

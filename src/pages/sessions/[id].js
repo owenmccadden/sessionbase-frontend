@@ -1,8 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
-import SessionViewer from '../../components/SessionViewer';
-import JsonlSessionViewer from '../../components/JsonlSessionViewer';
-import { parseJsonl } from '../../utils/jsonlParser';
+import UnifiedSessionViewer from '../../components/UnifiedSessionViewer';
+import { parseSession, detectSessionFormat, SESSION_TYPES } from '../../utils/sessionParser';
 
 export default function SessionPage() {
   const router = useRouter();
@@ -10,7 +9,6 @@ export default function SessionPage() {
   const [session, setSession] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [dataFormat, setDataFormat] = useState(null); // 'json' or 'jsonl'
 
   useEffect(() => {
     if (!id) return;
@@ -31,49 +29,12 @@ export default function SessionPage() {
           throw new Error(`Failed to fetch session: ${response.status} ${response.statusText}`);
         }
         
-        const contentType = response.headers.get('content-type');
         const responseText = await response.text();
         
-        // Try to detect the data format
-        let sessionData;
-        let format;
+        // Use unified parser to detect format and normalize data
+        const normalizedSession = parseSession(responseText);
         
-        if (contentType && contentType.includes('application/x-jsonlines')) {
-          // Explicitly JSONL content type
-          format = 'jsonl';
-          sessionData = parseJsonl(responseText);
-        } else if (responseText.includes('\n{') && responseText.split('\n').length > 1) {
-          // Looks like JSONL (multiple JSON objects separated by newlines)
-          try {
-            format = 'jsonl';
-            sessionData = parseJsonl(responseText);
-          } catch (jsonlError) {
-            // If JSONL parsing fails, try JSON
-            try {
-              format = 'json';
-              sessionData = JSON.parse(responseText);
-            } catch (jsonError) {
-              throw new Error('Failed to parse response as either JSON or JSONL');
-            }
-          }
-        } else {
-          // Try JSON first
-          try {
-            format = 'json';
-            sessionData = JSON.parse(responseText);
-          } catch (jsonError) {
-            // If JSON fails, try JSONL
-            try {
-              format = 'jsonl';
-              sessionData = parseJsonl(responseText);
-            } catch (jsonlError) {
-              throw new Error('Failed to parse response as either JSON or JSONL');
-            }
-          }
-        }
-        
-        setDataFormat(format);
-        setSession(sessionData);
+        setSession(normalizedSession);
       } catch (err) {
         setError(err.message);
         console.error('Error fetching session:', err);
@@ -139,33 +100,55 @@ export default function SessionPage() {
     );
   }
 
+  const getFormatLabel = (sessionType) => {
+    switch (sessionType) {
+      case SESSION_TYPES.Q_CHAT:
+        return 'Q Chat JSON';
+      case SESSION_TYPES.CLAUDE_CODE:
+        return 'Claude Code JSONL';
+      case SESSION_TYPES.CURSOR:
+        return 'Cursor Format';
+      case SESSION_TYPES.GEMINI_CLI:
+        return 'Gemini CLI Format';
+      default:
+        return 'Unknown Format';
+    }
+  };
+
+  const getFormatColor = (sessionType) => {
+    switch (sessionType) {
+      case SESSION_TYPES.Q_CHAT:
+        return 'bg-blue-100 text-blue-800';
+      case SESSION_TYPES.CLAUDE_CODE:
+        return 'bg-purple-100 text-purple-800';
+      case SESSION_TYPES.CURSOR:
+        return 'bg-green-100 text-green-800';
+      case SESSION_TYPES.GEMINI_CLI:
+        return 'bg-yellow-100 text-yellow-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Data Format Indicator */}
+      {/* Format Indicator */}
       <div className="bg-blue-50 border-b border-blue-200 px-6 py-2">
         <div className="max-w-6xl mx-auto flex items-center justify-between">
           <div className="flex items-center space-x-2 text-sm">
-            <span className="text-blue-700">Data Format:</span>
-            <span className={`px-2 py-1 rounded text-xs font-medium ${
-              dataFormat === 'jsonl' 
-                ? 'bg-green-100 text-green-800' 
-                : 'bg-blue-100 text-blue-800'
-            }`}>
-              {dataFormat === 'jsonl' ? 'JSONL (JSON Lines)' : 'JSON'}
+            <span className="text-blue-700">Detected Format:</span>
+            <span className={`px-2 py-1 rounded text-xs font-medium ${getFormatColor(session.type)}`}>
+              {getFormatLabel(session.type)}
             </span>
           </div>
           <div className="text-xs text-blue-600">
-            Session ID: {session.sessionId || id}
+            Session ID: {session.id}
           </div>
         </div>
       </div>
 
-      {/* Render appropriate viewer based on data format */}
-      {dataFormat === 'jsonl' ? (
-        <JsonlSessionViewer session={session} />
-      ) : (
-        <SessionViewer session={session} />
-      )}
+      {/* Unified Session Viewer */}
+      <UnifiedSessionViewer session={session} />
     </div>
   );
 }

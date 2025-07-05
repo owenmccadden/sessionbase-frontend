@@ -1,0 +1,968 @@
+import { useState } from 'react';
+import { SESSION_TYPES } from '../utils/sessionParser';
+
+export default function UnifiedSessionViewer({ session }) {
+  const [activeView, setActiveView] = useState('conversation');
+  const [copySuccess, setCopySuccess] = useState(false);
+
+  const handleCopyRawData = async () => {
+    try {
+      const dataText = typeof session.rawData === 'string' 
+        ? session.rawData 
+        : JSON.stringify(session.rawData, null, 2);
+      
+      await navigator.clipboard.writeText(dataText);
+      setCopySuccess(true);
+      setTimeout(() => setCopySuccess(false), 2000);
+    } catch (err) {
+      console.error('Failed to copy:', err);
+      // Fallback for older browsers
+      const textArea = document.createElement('textarea');
+      textArea.value = typeof session.rawData === 'string' 
+        ? session.rawData 
+        : JSON.stringify(session.rawData, null, 2);
+      document.body.appendChild(textArea);
+      textArea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textArea);
+      setCopySuccess(true);
+      setTimeout(() => setCopySuccess(false), 2000);
+    }
+  };
+
+  return (
+    <div className="max-w-6xl mx-auto p-6">
+      {/* Session Header */}
+      <SessionHeader session={session} />
+      
+      {/* View Toggle and Copy Button */}
+      <div className="mb-6 flex items-center justify-between">
+        <div className="flex space-x-1 bg-gray-100 p-1 rounded-lg w-fit">
+          <ViewToggleButton
+            active={activeView === 'conversation'}
+            onClick={() => setActiveView('conversation')}
+            label="Conversation"
+          />
+          <ViewToggleButton
+            active={activeView === 'timeline'}
+            onClick={() => setActiveView('timeline')}
+            label="Timeline"
+          />
+          <ViewToggleButton
+            active={activeView === 'tools'}
+            onClick={() => setActiveView('tools')}
+            label={`Tools (${session.stats.toolCalls})`}
+          />
+          <ViewToggleButton
+            active={activeView === 'stats'}
+            onClick={() => setActiveView('stats')}
+            label="Statistics"
+          />
+          <ViewToggleButton
+            active={activeView === 'raw'}
+            onClick={() => setActiveView('raw')}
+            label="Raw Data"
+          />
+        </div>
+
+        {/* Copy Raw Data Button */}
+        <button
+          onClick={handleCopyRawData}
+          className={`flex items-center space-x-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+            copySuccess
+              ? 'bg-green-100 text-green-700 border border-green-200'
+              : 'bg-gray-100 text-gray-700 hover:bg-gray-200 border border-gray-200'
+          }`}
+        >
+          {copySuccess ? (
+            <>
+              <CheckIcon />
+              <span>Copied!</span>
+            </>
+          ) : (
+            <>
+              <CopyIcon />
+              <span>Copy Raw Data</span>
+            </>
+          )}
+        </button>
+      </div>
+
+      {/* Content Views */}
+      {activeView === 'conversation' && <ConversationView session={session} />}
+      {activeView === 'timeline' && <TimelineView session={session} />}
+      {activeView === 'tools' && <ToolsView session={session} />}
+      {activeView === 'stats' && <StatsView session={session} />}
+      {activeView === 'raw' && <RawDataView session={session} />}
+    </div>
+  );
+}
+
+function ViewToggleButton({ active, onClick, label }) {
+  return (
+    <button
+      onClick={onClick}
+      className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+        active
+          ? 'bg-white text-blue-600 shadow-sm'
+          : 'text-gray-600 hover:text-gray-900'
+      }`}
+    >
+      {label}
+    </button>
+  );
+}
+
+function SessionHeader({ session }) {
+  const getSessionIcon = (type) => {
+    switch (type) {
+      case SESSION_TYPES.Q_CHAT:
+        return '🤖';
+      case SESSION_TYPES.CLAUDE_CODE:
+        return '🧠';
+      case SESSION_TYPES.CURSOR:
+        return '⚡';
+      case SESSION_TYPES.GEMINI_CLI:
+        return '💎';
+      default:
+        return '❓';
+    }
+  };
+
+  const getSessionTypeLabel = (type) => {
+    switch (type) {
+      case SESSION_TYPES.Q_CHAT:
+        return 'Amazon Q Chat';
+      case SESSION_TYPES.CLAUDE_CODE:
+        return 'Claude Code';
+      case SESSION_TYPES.CURSOR:
+        return 'Cursor';
+      case SESSION_TYPES.GEMINI_CLI:
+        return 'Gemini CLI';
+      default:
+        return 'Unknown Format';
+    }
+  };
+
+  return (
+    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
+      <div className="flex items-start justify-between">
+        <div>
+          <div className="flex items-center space-x-3 mb-2">
+            <span className="text-2xl">{getSessionIcon(session.type)}</span>
+            <h1 className="text-2xl font-bold text-gray-900">
+              {session.title}
+            </h1>
+            <span className="bg-blue-100 text-blue-800 text-sm font-medium px-3 py-1 rounded-full">
+              {getSessionTypeLabel(session.type)}
+            </span>
+          </div>
+          
+          <div className="flex items-center space-x-4 text-sm text-gray-600 mb-2">
+            <span>ID: <code className="bg-gray-100 px-2 py-1 rounded text-xs">{session.id}</code></span>
+            {session.metadata.version && (
+              <>
+                <span>•</span>
+                <span>Version: {session.metadata.version}</span>
+              </>
+            )}
+            {session.metadata.duration && (
+              <>
+                <span>•</span>
+                <span>Duration: {session.metadata.duration}</span>
+              </>
+            )}
+          </div>
+          
+          {session.metadata.cwd && (
+            <div className="text-sm text-gray-600">
+              <span className="font-medium">Working Directory:</span>
+              <code className="ml-1 bg-gray-100 px-2 py-1 rounded">{session.metadata.cwd}</code>
+            </div>
+          )}
+        </div>
+        
+        <div className="text-right">
+          <div className="text-2xl font-bold text-blue-600">{session.stats.totalMessages}</div>
+          <div className="text-sm text-gray-600">Total Messages</div>
+        </div>
+      </div>
+      
+      {/* Quick Stats */}
+      <div className="mt-4 pt-4 border-t border-gray-200">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <StatCard
+            value={session.stats.userMessages}
+            label="User Messages"
+            color="text-green-600"
+          />
+          <StatCard
+            value={session.stats.assistantMessages}
+            label="Assistant Messages"
+            color="text-purple-600"
+          />
+          <StatCard
+            value={session.stats.toolCalls}
+            label="Tool Calls"
+            color="text-orange-600"
+          />
+          <StatCard
+            value={session.stats.totalTokens > 0 ? session.stats.totalTokens.toLocaleString() : 'N/A'}
+            label="Total Tokens"
+            color="text-blue-600"
+          />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function StatCard({ value, label, color }) {
+  return (
+    <div className="text-center">
+      <div className={`text-lg font-semibold ${color}`}>{value}</div>
+      <div className="text-sm text-gray-600">{label}</div>
+    </div>
+  );
+}
+
+function ConversationView({ session }) {
+  if (session.messages.length === 0) {
+    return (
+      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8 text-center">
+        <div className="text-gray-400 text-4xl mb-4">💬</div>
+        <h3 className="text-lg font-medium text-gray-900 mb-2">No Messages</h3>
+        <p className="text-gray-600">This session doesn't contain any messages to display.</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      {session.messages.map((message) => (
+        <UnifiedMessageBubble key={message.id} message={message} sessionType={session.type} />
+      ))}
+    </div>
+  );
+}
+
+function UnifiedMessageBubble({ message, sessionType }) {
+  const [showRawData, setShowRawData] = useState(false);
+  const [showToolDetails, setShowToolDetails] = useState(false);
+
+  // Determine message alignment and styling
+  const isUser = message.type === 'user';
+  const isAssistant = message.type === 'assistant';
+  const isSystem = message.type === 'system' || message.type === 'tool';
+
+  return (
+    <div className={`flex ${isUser ? 'justify-end' : 'justify-start'} mb-4`}>
+      <div className={`max-w-4xl ${isUser ? 'ml-12' : 'mr-12'}`}>
+        {/* Message Header */}
+        <div className={`flex items-center mb-2 ${isUser ? 'justify-end' : 'justify-start'}`}>
+          <div className="flex items-center space-x-2 text-sm text-gray-500">
+            <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-medium ${
+              isUser ? 'bg-blue-100 text-blue-700' : 
+              isSystem ? 'bg-orange-100 text-orange-700' :
+              'bg-green-100 text-green-700'
+            }`}>
+              {isUser ? '👤' : isSystem ? '🔧' : '🤖'}
+            </span>
+            <span className="font-medium capitalize">
+              {message.type}
+              {message.role && message.role !== message.type && ` (${message.role})`}
+            </span>
+            <span>•</span>
+            <span>{message.timestamp.toLocaleString()}</span>
+            {message.metadata?.model && (
+              <>
+                <span>•</span>
+                <span className="text-xs bg-gray-100 px-2 py-1 rounded">
+                  {message.metadata.model}
+                </span>
+              </>
+            )}
+          </div>
+        </div>
+
+        {/* Message Content */}
+        <div className={`rounded-lg p-4 ${
+          isUser 
+            ? 'bg-blue-600 text-white' 
+            : isSystem
+            ? 'bg-orange-50 border border-orange-200 shadow-sm'
+            : 'bg-white border border-gray-200 shadow-sm'
+        }`}>
+          {/* Main Content */}
+          <div className="whitespace-pre-wrap mb-3">
+            {message.content}
+          </div>
+          
+          {/* Tool Calls */}
+          {message.toolCalls && message.toolCalls.length > 0 && (
+            <div className="mt-3 space-y-2">
+              {message.toolCalls.map((tool, index) => (
+                <UnifiedToolUseDisplay 
+                  key={tool.id || index} 
+                  toolUse={tool} 
+                  isUser={isUser}
+                />
+              ))}
+            </div>
+          )}
+          
+          {/* Tool Results */}
+          {message.toolResults && message.toolResults.length > 0 && (
+            <UnifiedToolResultDisplay 
+              results={message.toolResults} 
+              showDetails={showToolDetails}
+              onToggleDetails={() => setShowToolDetails(!showToolDetails)}
+              isUser={isUser}
+            />
+          )}
+
+          {/* Usage Statistics */}
+          {message.metadata?.usage && (
+            <div className="mt-3 pt-3 border-t border-gray-100">
+              <UsageStats usage={message.metadata.usage} isUser={isUser} />
+            </div>
+          )}
+
+          {/* Additional Context for Q Chat */}
+          {message.metadata?.additional_context && (
+            <div className={`mt-3 p-3 rounded border-l-4 ${
+              isUser 
+                ? 'bg-blue-500 border-blue-300 text-blue-100' 
+                : 'bg-blue-100 border-blue-400 text-blue-800'
+            }`}>
+              <div className="text-xs font-medium mb-1">Additional Context</div>
+              <div className="text-xs whitespace-pre-wrap">
+                {message.metadata.additional_context}
+              </div>
+            </div>
+          )}
+          
+          {/* Environment Context */}
+          {message.metadata?.env_context?.env_state && (
+            <div className={`mt-3 p-3 rounded ${
+              isUser ? 'bg-blue-500 text-blue-100' : 'bg-gray-50 text-gray-700'
+            }`}>
+              <div className="text-xs font-medium mb-2">Environment Context</div>
+              <div className="text-xs space-y-1">
+                <div><strong>OS:</strong> {message.metadata.env_context.env_state.operating_system}</div>
+                <div><strong>Working Directory:</strong> {message.metadata.env_context.env_state.current_working_directory}</div>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Message Actions */}
+        <div className={`flex items-center mt-2 space-x-2 text-xs ${
+          isUser ? 'justify-end' : 'justify-start'
+        }`}>
+          <button
+            onClick={() => setShowRawData(!showRawData)}
+            className="text-gray-500 hover:text-gray-700 underline"
+          >
+            {showRawData ? 'Hide' : 'Show'} Raw Data
+          </button>
+          {message.id && (
+            <span className="text-gray-400">
+              ID: {message.id.toString().slice(0, 8)}...
+            </span>
+          )}
+        </div>
+
+        {/* Raw Data Display */}
+        {showRawData && (
+          <div className="mt-2 bg-gray-50 border border-gray-200 rounded p-3">
+            <pre className="text-xs text-gray-600 overflow-auto">
+              {JSON.stringify(message, null, 2)}
+            </pre>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function UnifiedToolUseDisplay({ toolUse, isUser }) {
+  const [showInput, setShowInput] = useState(false);
+
+  return (
+    <div className={`rounded-lg p-4 ${
+      isUser 
+        ? 'bg-blue-500 border border-blue-400' 
+        : 'bg-yellow-50 border border-yellow-200'
+    }`}>
+      <div className="flex items-center justify-between mb-2">
+        <div className="flex items-center space-x-2">
+          <span className={isUser ? 'text-blue-100' : 'text-yellow-600'}>🔧</span>
+          <span className={`font-medium ${
+            isUser ? 'text-blue-100' : 'text-yellow-900'
+          }`}>
+            Tool: {toolUse.name}
+          </span>
+        </div>
+        <button
+          onClick={() => setShowInput(!showInput)}
+          className={`text-xs underline ${
+            isUser 
+              ? 'text-blue-200 hover:text-blue-100' 
+              : 'text-yellow-600 hover:text-yellow-800'
+          }`}
+        >
+          {showInput ? 'Hide' : 'Show'} Input
+        </button>
+      </div>
+      
+      <div className="space-y-2">
+        {toolUse.id && (
+          <div className={`text-xs ${
+            isUser ? 'text-blue-200' : 'text-yellow-600'
+          }`}>
+            ID: {toolUse.id}
+          </div>
+        )}
+
+        {/* Show summary if available (Q Chat feature) */}
+        {toolUse.metadata?.summary && (
+          <div className={`text-sm ${
+            isUser ? 'text-blue-100' : 'text-yellow-800'
+          }`}>
+            <span className="font-medium">Summary:</span> {toolUse.metadata.summary}
+          </div>
+        )}
+
+        {/* Show original name if different (Q Chat feature) */}
+        {toolUse.metadata?.orig_name && toolUse.metadata.orig_name !== toolUse.name && (
+          <div className={`text-xs ${
+            isUser ? 'text-blue-200' : 'text-yellow-600'
+          }`}>
+            Original Name: {toolUse.metadata.orig_name}
+          </div>
+        )}
+      </div>
+
+      {showInput && toolUse.input && (
+        <div className={`mt-3 space-y-3`}>
+          {/* Main input parameters */}
+          <div className={`p-3 rounded ${
+            isUser 
+              ? 'bg-blue-400 text-blue-100' 
+              : 'bg-yellow-100 text-yellow-800'
+          }`}>
+            <div className="text-sm font-medium mb-2">Input Parameters:</div>
+            <pre className="text-xs overflow-auto">
+              {JSON.stringify(toolUse.input, null, 2)}
+            </pre>
+          </div>
+
+          {/* Original arguments if different (Q Chat feature) */}
+          {toolUse.metadata?.orig_args && 
+           JSON.stringify(toolUse.metadata.orig_args) !== JSON.stringify(toolUse.input) && (
+            <div className={`p-3 rounded ${
+              isUser 
+                ? 'bg-blue-300 text-blue-100' 
+                : 'bg-yellow-200 text-yellow-800'
+            }`}>
+              <div className="text-sm font-medium mb-2">Original Arguments:</div>
+              <pre className="text-xs overflow-auto">
+                {JSON.stringify(toolUse.metadata.orig_args, null, 2)}
+              </pre>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function UnifiedToolResultDisplay({ results, showDetails, onToggleDetails, isUser }) {
+  if (!results || results.length === 0) return null;
+
+  return (
+    <div className={`mt-3 pt-3 ${
+      isUser ? 'border-t border-blue-400' : 'border-t border-gray-200'
+    }`}>
+      <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center space-x-2">
+          <span className={isUser ? 'text-blue-100' : 'text-yellow-600'}>✅</span>
+          <span className={`font-medium text-sm ${
+            isUser ? 'text-blue-100' : 'text-gray-700'
+          }`}>
+            Tool Execution Results
+          </span>
+        </div>
+        <button
+          onClick={onToggleDetails}
+          className={`text-xs underline ml-4 ${
+            isUser 
+              ? 'text-blue-200 hover:text-blue-100' 
+              : 'text-gray-500 hover:text-gray-700'
+          }`}
+        >
+          {showDetails ? 'Hide' : 'Show'} Details
+        </button>
+      </div>
+
+      {showDetails && (
+        <div className="space-y-2">
+          {results.map((result, index) => (
+            <div key={index} className={`p-3 rounded ${
+              isUser 
+                ? 'bg-blue-500 text-blue-100' 
+                : 'bg-yellow-50 border border-yellow-200 text-yellow-800'
+            }`}>
+              <pre className="text-xs overflow-auto">
+                {JSON.stringify(result, null, 2)}
+              </pre>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function UsageStats({ usage, isUser }) {
+  return (
+    <div className={`flex items-center space-x-4 text-xs ${
+      isUser ? 'text-blue-200' : 'text-gray-500'
+    }`}>
+      {usage.input_tokens && (
+        <span>Input: {usage.input_tokens.toLocaleString()} tokens</span>
+      )}
+      {usage.output_tokens && (
+        <span>Output: {usage.output_tokens.toLocaleString()} tokens</span>
+      )}
+      {usage.cache_creation_input_tokens && (
+        <span>Cache Creation: {usage.cache_creation_input_tokens.toLocaleString()}</span>
+      )}
+      {usage.cache_read_input_tokens && (
+        <span>Cache Read: {usage.cache_read_input_tokens.toLocaleString()}</span>
+      )}
+      {usage.service_tier && (
+        <span className={`px-2 py-1 rounded ${
+          isUser 
+            ? 'bg-blue-500 text-blue-100' 
+            : 'bg-gray-100 text-gray-700'
+        }`}>
+          {usage.service_tier}
+        </span>
+      )}
+    </div>
+  );
+}
+
+function TimelineView({ session }) {
+  const sortedMessages = [...session.messages].sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+  
+  return (
+    <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+      <div className="p-4 border-b border-gray-200">
+        <h3 className="text-lg font-semibold text-gray-900">Session Timeline</h3>
+        <p className="text-sm text-gray-600">Chronological view of all session events</p>
+      </div>
+      
+      <div className="p-4">
+        {sortedMessages.length === 0 ? (
+          <div className="text-center py-8">
+            <div className="text-gray-400 text-4xl mb-4">⏰</div>
+            <p className="text-gray-600">No messages found</p>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {sortedMessages.map((message, index) => (
+              <div key={message.id} className="flex items-start space-x-3">
+                <div className="flex-shrink-0 w-2 h-2 bg-blue-500 rounded-full mt-2"></div>
+                <div className="flex-grow">
+                  <div className="flex items-center space-x-2 mb-1">
+                    <span className="text-sm font-medium text-gray-900 capitalize">
+                      {message.type}
+                    </span>
+                    <span className="text-xs text-gray-500">
+                      {message.timestamp.toLocaleString()}
+                    </span>
+                    {message.metadata?.model && (
+                      <span className="text-xs bg-purple-100 text-purple-700 px-2 py-1 rounded">
+                        {message.metadata.model}
+                      </span>
+                    )}
+                  </div>
+                  <div className="text-sm text-gray-600 line-clamp-3">
+                    {message.content}
+                  </div>
+                  {message.toolCalls && message.toolCalls.length > 0 && (
+                    <div className="text-xs text-orange-600 mt-1">
+                      🔧 {message.toolCalls.length} tool call{message.toolCalls.length !== 1 ? 's' : ''}
+                    </div>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function ToolsView({ session }) {
+  const toolCalls = [];
+  
+  session.messages.forEach(message => {
+    if (message.toolCalls && message.toolCalls.length > 0) {
+      message.toolCalls.forEach(tool => {
+        toolCalls.push({
+          ...tool,
+          messageId: message.id,
+          messageTimestamp: message.timestamp,
+          messageType: message.type
+        });
+      });
+    }
+  });
+  
+  return (
+    <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+      <div className="p-4 border-b border-gray-200">
+        <h3 className="text-lg font-semibold text-gray-900">Tool Usage</h3>
+        <p className="text-sm text-gray-600">
+          {toolCalls.length} tool call{toolCalls.length !== 1 ? 's' : ''} in this session
+        </p>
+      </div>
+      
+      <div className="p-4">
+        {toolCalls.length === 0 ? (
+          <div className="text-center py-8">
+            <div className="text-gray-400 text-4xl mb-4">🔧</div>
+            <p className="text-gray-600">No tools were used in this session</p>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {toolCalls.map((tool, index) => (
+              <ToolCallDetailCard key={tool.id || index} tool={tool} />
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function ToolCallDetailCard({ tool }) {
+  const [showInput, setShowInput] = useState(false);
+  const [showOriginalArgs, setShowOriginalArgs] = useState(false);
+
+  return (
+    <div className="border border-gray-200 rounded-lg p-4">
+      <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center space-x-2">
+          <span className="text-yellow-600">🔧</span>
+          <span className="font-medium text-gray-900">{tool.name}</span>
+          {tool.metadata?.orig_name && tool.metadata.orig_name !== tool.name && (
+            <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded">
+              orig: {tool.metadata.orig_name}
+            </span>
+          )}
+        </div>
+        <span className="text-xs text-gray-500">
+          {(tool.timestamp || tool.messageTimestamp).toLocaleString()}
+        </span>
+      </div>
+
+      {/* Tool ID */}
+      {tool.id && (
+        <div className="text-xs text-gray-600 mb-2">
+          ID: <code className="bg-gray-100 px-1 rounded">{tool.id}</code>
+        </div>
+      )}
+
+      {/* Summary (Q Chat feature) */}
+      {tool.metadata?.summary && (
+        <div className="mb-3 p-3 bg-blue-50 border border-blue-200 rounded">
+          <div className="text-sm font-medium text-blue-800 mb-1">Summary:</div>
+          <div className="text-sm text-blue-700">{tool.metadata.summary}</div>
+        </div>
+      )}
+
+      {/* Input Parameters */}
+      {tool.input && (
+        <div className="mb-3">
+          <div className="flex items-center justify-between mb-2">
+            <div className="text-sm font-medium text-gray-700">Input Parameters:</div>
+            <button
+              onClick={() => setShowInput(!showInput)}
+              className="text-xs text-yellow-600 hover:text-yellow-800 underline"
+            >
+              {showInput ? 'Hide' : 'Show'}
+            </button>
+          </div>
+          {showInput && (
+            <pre className="text-xs bg-gray-50 p-2 rounded border overflow-auto">
+              {JSON.stringify(tool.input, null, 2)}
+            </pre>
+          )}
+        </div>
+      )}
+
+      {/* Original Arguments (Q Chat feature) */}
+      {tool.metadata?.orig_args && 
+       JSON.stringify(tool.metadata.orig_args) !== JSON.stringify(tool.input) && (
+        <div className="mb-3">
+          <div className="flex items-center justify-between mb-2">
+            <div className="text-sm font-medium text-gray-700">Original Arguments:</div>
+            <button
+              onClick={() => setShowOriginalArgs(!showOriginalArgs)}
+              className="text-xs text-yellow-600 hover:text-yellow-800 underline"
+            >
+              {showOriginalArgs ? 'Hide' : 'Show'}
+            </button>
+          </div>
+          {showOriginalArgs && (
+            <pre className="text-xs bg-yellow-50 p-2 rounded border border-yellow-200 overflow-auto">
+              {JSON.stringify(tool.metadata.orig_args, null, 2)}
+            </pre>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function StatsView({ session }) {
+  return (
+    <div className="space-y-6">
+      {/* Overview Stats */}
+      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">Session Statistics</h3>
+        
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+          <div className="text-center">
+            <div className="text-3xl font-bold text-blue-600">{session.stats.totalMessages}</div>
+            <div className="text-sm text-gray-600 mt-1">Total Messages</div>
+          </div>
+          <div className="text-center">
+            <div className="text-3xl font-bold text-green-600">{session.stats.userMessages}</div>
+            <div className="text-sm text-gray-600 mt-1">User Messages</div>
+          </div>
+          <div className="text-center">
+            <div className="text-3xl font-bold text-purple-600">{session.stats.assistantMessages}</div>
+            <div className="text-sm text-gray-600 mt-1">Assistant Messages</div>
+          </div>
+          <div className="text-center">
+            <div className="text-3xl font-bold text-orange-600">{session.stats.toolCalls}</div>
+            <div className="text-sm text-gray-600 mt-1">Tool Calls</div>
+          </div>
+        </div>
+      </div>
+
+      {/* Additional Message Types (if any) */}
+      {(session.stats.toolMessages > 0 || session.stats.systemMessages > 0) && (
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Additional Message Types</h3>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {session.stats.toolMessages > 0 && (
+              <div className="text-center">
+                <div className="text-2xl font-bold text-yellow-600">{session.stats.toolMessages}</div>
+                <div className="text-sm text-gray-600 mt-1">Tool Messages</div>
+              </div>
+            )}
+            {session.stats.systemMessages > 0 && (
+              <div className="text-center">
+                <div className="text-2xl font-bold text-gray-600">{session.stats.systemMessages}</div>
+                <div className="text-sm text-gray-600 mt-1">System Messages</div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Token Usage */}
+      {session.stats.totalTokens > 0 && (
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Token Usage</h3>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="text-center">
+              <div className="text-2xl font-bold text-blue-600">{session.stats.inputTokens.toLocaleString()}</div>
+              <div className="text-sm text-gray-600 mt-1">Input Tokens</div>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl font-bold text-green-600">{session.stats.outputTokens.toLocaleString()}</div>
+              <div className="text-sm text-gray-600 mt-1">Output Tokens</div>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl font-bold text-purple-600">{session.stats.totalTokens.toLocaleString()}</div>
+              <div className="text-sm text-gray-600 mt-1">Total Tokens</div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Session Metadata */}
+      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">Session Metadata</h3>
+        
+        <div className="space-y-3">
+          {/* Session ID */}
+          <div className="flex justify-between">
+            <span className="text-gray-600">Session ID:</span>
+            <code className="text-sm bg-gray-100 px-2 py-1 rounded">{session.id}</code>
+          </div>
+          
+          {/* Session Type */}
+          <div className="flex justify-between">
+            <span className="text-gray-600">Session Type:</span>
+            <span className="font-medium">{getSessionTypeLabel(session.type)}</span>
+          </div>
+          
+          {/* Version (if available) */}
+          {session.metadata.version && (
+            <div className="flex justify-between">
+              <span className="text-gray-600">Version:</span>
+              <span className="font-medium">{session.metadata.version}</span>
+            </div>
+          )}
+          
+          {/* User Type (Claude Code) */}
+          {session.metadata.userType && (
+            <div className="flex justify-between">
+              <span className="text-gray-600">User Type:</span>
+              <span className="font-medium">{session.metadata.userType}</span>
+            </div>
+          )}
+          
+          {/* Duration */}
+          {session.metadata.duration && (
+            <div className="flex justify-between">
+              <span className="text-gray-600">Duration:</span>
+              <span className="font-medium">{session.metadata.duration}</span>
+            </div>
+          )}
+          
+          {/* Working Directory */}
+          {session.metadata.cwd && (
+            <div className="flex justify-between">
+              <span className="text-gray-600">Working Directory:</span>
+              <code className="text-sm bg-gray-100 px-2 py-1 rounded max-w-md truncate">
+                {session.metadata.cwd}
+              </code>
+            </div>
+          )}
+          
+          {/* Model (Q Chat) */}
+          {session.metadata.model && (
+            <div className="flex justify-between">
+              <span className="text-gray-600">Model:</span>
+              <span className="font-medium">{session.metadata.model}</span>
+            </div>
+          )}
+          
+          {/* Conversation ID (Q Chat) */}
+          {session.metadata.conversation_id && session.metadata.conversation_id !== session.id && (
+            <div className="flex justify-between">
+              <span className="text-gray-600">Conversation ID:</span>
+              <code className="text-sm bg-gray-100 px-2 py-1 rounded">{session.metadata.conversation_id}</code>
+            </div>
+          )}
+          
+          {/* Valid History Range (Q Chat) */}
+          {session.metadata.valid_history_range && (
+            <div className="flex justify-between">
+              <span className="text-gray-600">Valid History Range:</span>
+              <span className="font-medium">
+                [{session.metadata.valid_history_range[0]}, {session.metadata.valid_history_range[1]}]
+              </span>
+            </div>
+          )}
+          
+          {/* Total Messages (metadata) */}
+          {session.metadata.totalMessages && (
+            <div className="flex justify-between">
+              <span className="text-gray-600">Total Raw Messages:</span>
+              <span className="font-medium">{session.metadata.totalMessages}</span>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Q Chat Specific: Transcript Preview */}
+      {session.metadata.transcript && Array.isArray(session.metadata.transcript) && (
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Session Transcript Preview</h3>
+          <div className="text-sm text-gray-600 mb-3">
+            {session.metadata.transcript.length} transcript entries
+          </div>
+          <div className="bg-gray-50 p-4 rounded-lg max-h-40 overflow-y-auto">
+            {session.metadata.transcript.slice(0, 5).map((entry, index) => (
+              <div key={index} className="text-sm text-gray-700 mb-2 last:mb-0">
+                {entry.length > 100 ? `${entry.substring(0, 100)}...` : entry}
+              </div>
+            ))}
+            {session.metadata.transcript.length > 5 && (
+              <div className="text-xs text-gray-500 mt-2">
+                ... and {session.metadata.transcript.length - 5} more entries
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// Helper function to get session type label
+function getSessionTypeLabel(type) {
+  switch (type) {
+    case SESSION_TYPES.Q_CHAT:
+      return 'Amazon Q Chat';
+    case SESSION_TYPES.CLAUDE_CODE:
+      return 'Claude Code';
+    case SESSION_TYPES.CURSOR:
+      return 'Cursor';
+    case SESSION_TYPES.GEMINI_CLI:
+      return 'Gemini CLI';
+    default:
+      return 'Unknown Format';
+  }
+}
+
+function RawDataView({ session }) {
+  const rawText = typeof session.rawData === 'string' 
+    ? session.rawData 
+    : JSON.stringify(session.rawData, null, 2);
+  
+  return (
+    <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+      <div className="p-4 border-b border-gray-200">
+        <h3 className="text-lg font-semibold text-gray-900">Raw Session Data</h3>
+        <p className="text-sm text-gray-600">Complete raw data representation of the session</p>
+      </div>
+      <div className="p-4">
+        <pre className="bg-gray-50 p-4 rounded-lg overflow-auto text-xs max-h-96">
+          <code>{rawText}</code>
+        </pre>
+      </div>
+    </div>
+  );
+}
+
+// Icon components
+function CopyIcon() {
+  return (
+    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+    </svg>
+  );
+}
+
+function CheckIcon() {
+  return (
+    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+    </svg>
+  );
+}
