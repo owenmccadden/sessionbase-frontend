@@ -31,8 +31,26 @@ export default function SessionPage() {
         
         const responseText = await response.text();
         
+        // Parse the response to check if it's in the new wrapped format
+        let sessionData;
+        try {
+          const parsedResponse = JSON.parse(responseText);
+          
+          // Check if response has the new format with data property
+          if (parsedResponse && typeof parsedResponse === 'object' && parsedResponse.data) {
+            // Extract the actual session data from the data property
+            sessionData = JSON.stringify(parsedResponse.data);
+          } else {
+            // Use the response as-is for backward compatibility
+            sessionData = responseText;
+          }
+        } catch (parseError) {
+          // If JSON parsing fails, treat as raw text (backward compatibility)
+          sessionData = responseText;
+        }
+        
         // Use unified parser to detect format and normalize data
-        const normalizedSession = parseSession(responseText);
+        const normalizedSession = parseSession(sessionData);
         
         setSession(normalizedSession);
       } catch (err) {
