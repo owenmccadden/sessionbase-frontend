@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/router';
 import Head from 'next/head';
 import { useAuth } from '../contexts/AuthContext';
 import LoginButton from '../components/auth/LoginButton';
@@ -6,10 +7,54 @@ import UserProfile from '../components/auth/UserProfile';
 import SessionCard from '../components/sessions/SessionCard';
 import { mockSessions } from '../data/mockSessions';
 
+// Helper function to decode base64url (JWT uses base64url encoding)
+function base64UrlDecode(str) {
+  // Replace URL-safe characters with standard base64 characters
+  str = str.replace(/-/g, '+').replace(/_/g, '/');
+  
+  // Add padding if needed
+  while (str.length % 4) {
+    str += '=';
+  }
+  
+  return atob(str);
+}
+
 export default function Home() {
-  const { isAuthenticated, loading } = useAuth();
+  const { isAuthenticated, loading, login, checkAuthStatus } = useAuth();
+  const router = useRouter();
   const [sortBy, setSortBy] = useState('votes'); // votes, newest, views
   const [showAuthModal, setShowAuthModal] = useState(false);
+
+  // Handle OAuth token from URL parameter
+  useEffect(() => {
+    const { token } = router.query;
+    
+    if (token && typeof token === 'string') {
+      // Store the token in localStorage
+      localStorage.setItem('auth_token', token);
+      
+      // Update auth context
+      try {
+        // Decode JWT to get user info using base64url decoder
+        const payload = JSON.parse(base64UrlDecode(token.split('.')[1]));
+        const userInfo = {
+          id: payload.sub,
+          username: payload.username,
+          avatarUrl: payload.avatar_url,
+          exp: payload.exp
+        };
+        login(userInfo);
+      } catch (error) {
+        console.error('Failed to decode JWT token:', error);
+        // Clear invalid token from localStorage
+        localStorage.removeItem('auth_token');
+      }
+      
+      // Clean up URL by removing token parameter
+      router.replace('/', undefined, { shallow: true });
+    }
+  }, [router.query.token, router, login]);
 
   const handleAuthRequired = () => {
     setShowAuthModal(true);

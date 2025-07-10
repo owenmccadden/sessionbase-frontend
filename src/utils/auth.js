@@ -2,6 +2,19 @@
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_ENDPOINT_URL || 'https://api.sessionbase.ai';
 
+// Helper function to decode base64url (JWT uses base64url encoding)
+function base64UrlDecode(str) {
+  // Replace URL-safe characters with standard base64 characters
+  str = str.replace(/-/g, '+').replace(/_/g, '/');
+  
+  // Add padding if needed
+  while (str.length % 4) {
+    str += '=';
+  }
+  
+  return atob(str);
+}
+
 /**
  * Check if user is authenticated by verifying JWT token
  */
@@ -13,12 +26,14 @@ export function isAuthenticated() {
   
   try {
     // Basic JWT validation - check if token is expired
-    const payload = JSON.parse(atob(token.split('.')[1]));
+    const payload = JSON.parse(base64UrlDecode(token.split('.')[1]));
     const currentTime = Math.floor(Date.now() / 1000);
     
     return payload.exp > currentTime;
   } catch (error) {
     console.error('Invalid token format:', error);
+    // Clear invalid token
+    localStorage.removeItem('auth_token');
     return false;
   }
 }
@@ -41,7 +56,7 @@ export function getUserInfo() {
   if (!token) return null;
   
   try {
-    const payload = JSON.parse(atob(token.split('.')[1]));
+    const payload = JSON.parse(base64UrlDecode(token.split('.')[1]));
     return {
       id: payload.sub,
       username: payload.username,
@@ -50,6 +65,8 @@ export function getUserInfo() {
     };
   } catch (error) {
     console.error('Error parsing token:', error);
+    // Clear invalid token
+    localStorage.removeItem('auth_token');
     return null;
   }
 }
