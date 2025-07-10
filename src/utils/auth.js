@@ -78,6 +78,13 @@ export function loginWithGitHub() {
 }
 
 /**
+ * Initiate Google OAuth flow
+ */
+export function loginWithGoogle() {
+  window.location.href = `${API_BASE_URL}/auth/google`;
+}
+
+/**
  * Logout user
  */
 export function logout() {

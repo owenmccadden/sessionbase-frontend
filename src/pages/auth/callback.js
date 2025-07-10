@@ -63,7 +63,7 @@ export default function AuthCallback() {
             Completing sign in...
           </h2>
           <p className="text-gray-600">
-            Please wait while we authenticate you with GitHub.
+            Please wait while we authenticate you.
           </p>
         </div>
       </div>
