@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import UnifiedSessionViewer from '../../components/UnifiedSessionViewer';
 import { parseSession, detectSessionFormat, SESSION_TYPES } from '../../utils/sessionParser';
+import { authenticatedFetch } from '../../utils/auth';
 
 export default function SessionPage() {
   const router = useRouter();
@@ -23,7 +24,7 @@ export default function SessionPage() {
           throw new Error('ENDPOINT_URL environment variable is not set');
         }
 
-        const response = await fetch(`${endpointUrl}/sessions/${id}`);
+        const response = await authenticatedFetch(`${endpointUrl}/sessions/${id}`);
         
         if (!response.ok) {
           throw new Error(`Failed to fetch session: ${response.status} ${response.statusText}`);
