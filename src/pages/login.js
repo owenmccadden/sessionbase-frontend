@@ -11,11 +11,21 @@ export default function Login() {
   const [copied, setCopied] = useState(false);
 
   const handleGitHubLogin = () => {
-    window.location.href = `${API_BASE_URL}/auth/github`;
+    // Store CLI parameter in sessionStorage to survive OAuth redirect
+    if (router.query.cli === 'true' && typeof window !== 'undefined') {
+      sessionStorage.setItem('oauth_cli_mode', 'true');
+    }
+    const cliParam = router.query.cli === 'true' ? '?cli=true' : '';
+    window.location.href = `${API_BASE_URL}/auth/github${cliParam}`;
   };
 
   const handleGoogleLogin = () => {
-    window.location.href = `${API_BASE_URL}/auth/google`;
+    // Store CLI parameter in sessionStorage to survive OAuth redirect
+    if (router.query.cli === 'true' && typeof window !== 'undefined') {
+      sessionStorage.setItem('oauth_cli_mode', 'true');
+    }
+    const cliParam = router.query.cli === 'true' ? '?cli=true' : '';
+    window.location.href = `${API_BASE_URL}/auth/google${cliParam}`;
   };
 
   const handleCopyToken = async () => {

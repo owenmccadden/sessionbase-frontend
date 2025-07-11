@@ -38,6 +38,8 @@ export function AuthProvider({ children }) {
   const logout = () => {
     setUser(null);
     removeAuthToken();
+    // Force immediate state update
+    setLoading(false);
   };
 
   const value = {

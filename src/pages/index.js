@@ -6,6 +6,7 @@ import LoginButton from '../components/auth/LoginButton';
 import UserProfile from '../components/auth/UserProfile';
 import SessionCard from '../components/sessions/SessionCard';
 import { mockSessions } from '../data/mockSessions';
+import CliAuthModal from '../components/auth/CliAuthModal';
 
 // Helper function to decode base64url (JWT uses base64url encoding)
 function base64UrlDecode(str) {
@@ -25,6 +26,8 @@ export default function Home() {
   const router = useRouter();
   const [sortBy, setSortBy] = useState('votes'); // votes, newest, views
   const [showAuthModal, setShowAuthModal] = useState(false);
+  const [showCliModal, setShowCliModal] = useState(false);
+  const [userInfo, setUserInfo] = useState(null);
 
   // Handle OAuth token from URL parameter
   useEffect(() => {
@@ -45,16 +48,31 @@ export default function Home() {
           exp: payload.exp
         };
         login(userInfo);
+        setUserInfo(userInfo);
+
+        // Check if this is a CLI auth flow by checking sessionStorage
+        const isCliMode = typeof window !== 'undefined' &&
+          sessionStorage.getItem('oauth_cli_mode') === 'true';
+        
+        if (isCliMode) {
+          // Clear the stored CLI mode flag
+          sessionStorage.removeItem('oauth_cli_mode');
+          setShowCliModal(true);
+          // Clean up URL by removing token parameter
+          router.replace('/', undefined, { shallow: true });
+        } else {
+          // Clean up URL by removing token parameter
+          router.replace('/', undefined, { shallow: true });
+        }
       } catch (error) {
         console.error('Failed to decode JWT token:', error);
         // Clear invalid token from localStorage
         localStorage.removeItem('auth_token');
+        // Clean up URL by removing token parameter
+        router.replace('/', undefined, { shallow: true });
       }
-      
-      // Clean up URL by removing token parameter
-      router.replace('/', undefined, { shallow: true });
     }
-  }, [router.query.token, router, login]);
+  }, [router.query.token, login]);
 
   const handleAuthRequired = () => {
     setShowAuthModal(true);
@@ -266,6 +284,15 @@ export default function Home() {
             </div>
           </div>
         )}
+
+        {/* CLI Auth Modal */}
+        <CliAuthModal
+          isOpen={showCliModal}
+          onClose={() => {
+            setShowCliModal(false);
+          }}
+          user={userInfo}
+        />
       </div>
     </>
   );

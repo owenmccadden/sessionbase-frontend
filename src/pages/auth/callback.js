@@ -2,12 +2,15 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import { setAuthToken, getUserInfo } from '../../utils/auth';
 import { useAuth } from '../../contexts/AuthContext';
+import CliAuthModal from '../../components/auth/CliAuthModal';
 
 export default function AuthCallback() {
   const router = useRouter();
   const { login } = useAuth();
   const [status, setStatus] = useState('processing');
   const [error, setError] = useState(null);
+  const [showCliModal, setShowCliModal] = useState(false);
+  const [userInfo, setUserInfo] = useState(null);
 
   useEffect(() => {
     const handleCallback = async () => {
@@ -34,13 +37,24 @@ export default function AuthCallback() {
 
         // Update auth context
         login(userInfo);
+        setUserInfo(userInfo);
         
-        setStatus('success');
+        // Check if this is a CLI auth flow by checking sessionStorage
+        const isCliMode = typeof window !== 'undefined' && 
+          sessionStorage.getItem('oauth_cli_mode') === 'true';
         
-        // Redirect to home page after a short delay
-        setTimeout(() => {
-          router.push('/');
-        }, 2000);
+        if (isCliMode) {
+          // Clear the stored CLI mode flag
+          sessionStorage.removeItem('oauth_cli_mode');
+          setStatus('success');
+          setShowCliModal(true);
+        } else {
+          setStatus('success');
+          // Redirect to home page after a short delay
+          setTimeout(() => {
+            router.push('/');
+          }, 2000);
+        }
         
       } catch (err) {
         console.error('Auth callback error:', err);
@@ -106,31 +120,42 @@ export default function AuthCallback() {
 
   if (status === 'success') {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="text-center">
-          <div className="rounded-full bg-green-100 p-3 mx-auto mb-4 w-16 h-16 flex items-center justify-center">
-            <svg
-              className="w-8 h-8 text-green-600"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M5 13l4 4L19 7"
-              />
-            </svg>
+      <>
+        <div className="min-h-screen flex items-center justify-center bg-gray-50">
+          <div className="text-center">
+            <div className="rounded-full bg-green-100 p-3 mx-auto mb-4 w-16 h-16 flex items-center justify-center">
+              <svg
+                className="w-8 h-8 text-green-600"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M5 13l4 4L19 7"
+                />
+              </svg>
+            </div>
+            <h2 className="text-xl font-semibold text-gray-900 mb-2">
+              Successfully signed in!
+            </h2>
+            <p className="text-gray-600">
+              {showCliModal ? 'Setting up CLI authentication...' : 'Redirecting you to the home page...'}
+            </p>
           </div>
-          <h2 className="text-xl font-semibold text-gray-900 mb-2">
-            Successfully signed in!
-          </h2>
-          <p className="text-gray-600">
-            Redirecting you to the home page...
-          </p>
         </div>
-      </div>
+        
+        <CliAuthModal 
+          isOpen={showCliModal} 
+          onClose={() => {
+            setShowCliModal(false);
+            router.push('/');
+          }}
+          user={userInfo}
+        />
+      </>
     );
   }
 

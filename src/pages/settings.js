@@ -14,7 +14,7 @@ export default function Settings() {
 
   const handleCopyToken = async () => {
     const token = getAuthToken();
-    if (token) {
+    if (token && isAuthenticated) {
       try {
         await navigator.clipboard.writeText(token);
         setCopied(true);
@@ -132,7 +132,10 @@ export default function Settings() {
             {/* Account Actions */}
             <div className="border-t pt-6">
               <button
-                onClick={logout}
+                onClick={() => {
+                  logout();
+                  router.push('/login');
+                }}
                 className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors"
               >
                 Sign Out
@@ -274,7 +277,7 @@ export default function Settings() {
                   <div className="relative flex-1">
                     <input
                       type={showToken ? "text" : "password"}
-                      value={getAuthToken() || ''}
+                      value={isAuthenticated ? (getAuthToken() || '') : ''}
                       readOnly
                       className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-md bg-gray-50 text-sm font-mono"
                     />

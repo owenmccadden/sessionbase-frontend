@@ -1,9 +1,8 @@
 import { useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
-import { logout } from '../../utils/auth';
 
 export default function UserProfile() {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
 
   if (!user) return null;
@@ -11,6 +10,8 @@ export default function UserProfile() {
   const handleLogout = () => {
     logout();
     setIsOpen(false);
+    // Redirect to home page after logout
+    window.location.href = '/';
   };
 
   return (
