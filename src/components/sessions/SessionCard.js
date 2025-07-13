@@ -25,7 +25,7 @@ export default function SessionCard({ session, onAuthRequired }) {
     description: session?.description || 'No description available',
     author: {
       username: session?.username || session?.author?.username || 'Anonymous',
-      avatarUrl: session?.author?.avatarUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(session?.username || session?.author?.username || 'Anonymous')}&background=3b82f6&color=fff&size=24`,
+      avatarUrl: session?.avatarUrl || session?.author?.avatarUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(session?.username || session?.author?.username || 'Anonymous')}&background=3b82f6&color=fff&size=24`,
       userId: session?.userId || session?.author?.userId
     },
     tags: session?.tags || [],
