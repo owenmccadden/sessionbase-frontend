@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState } from 'react';
+import { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import { isAuthenticated, getUserInfo, removeAuthToken } from '../utils/auth';
 
 const AuthContext = createContext();
@@ -31,16 +31,16 @@ export function AuthProvider({ children }) {
     }
   };
 
-  const login = (userInfo) => {
+  const login = useCallback((userInfo) => {
     setUser(userInfo);
-  };
+  }, []);
 
-  const logout = () => {
+  const logout = useCallback(() => {
     setUser(null);
     removeAuthToken();
     // Force immediate state update
     setLoading(false);
-  };
+  }, []);
 
   const value = {
     user,

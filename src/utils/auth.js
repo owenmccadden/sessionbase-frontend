@@ -106,7 +106,7 @@ export function loginWithGoogle() {
  */
 export function logout() {
   removeAuthToken();
-  // Optionally redirect to home page
+  // Redirect to landing page
   if (typeof window !== 'undefined') {
     window.location.href = '/';
   }

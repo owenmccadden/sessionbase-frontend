@@ -1,13 +1,11 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/router';
 import Head from 'next/head';
+import Link from 'next/link';
 import { useAuth } from '../contexts/AuthContext';
 import LoginButton from '../components/auth/LoginButton';
 import UserProfile from '../components/auth/UserProfile';
-import SessionCard from '../components/sessions/SessionCard';
-import { discoverSessions, getUserSessions } from '../utils/api';
 import { loginWithGitHub, loginWithGoogle } from '../utils/auth';
-import CliAuthModal from '../components/auth/CliAuthModal';
 
 // Helper function to decode base64url (JWT uses base64url encoding)
 function base64UrlDecode(str) {
@@ -22,25 +20,19 @@ function base64UrlDecode(str) {
   return atob(str);
 }
 
-export default function Home() {
-  const { isAuthenticated, loading, login, checkAuthStatus } = useAuth();
+export default function Landing() {
+  const { isAuthenticated, loading, login } = useAuth();
   const router = useRouter();
-  const [sortBy, setSortBy] = useState('popular'); // popular, newest, views
   const [showAuthModal, setShowAuthModal] = useState(false);
-  const [showCliModal, setShowCliModal] = useState(false);
-  const [userInfo, setUserInfo] = useState(null);
-  const [sessions, setSessions] = useState([]);
-  const [sessionsLoading, setSessionsLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [searchInput, setSearchInput] = useState(''); // Local input state for immediate UI updates
-  const [activeTab, setActiveTab] = useState('discover'); // discover, my-sessions, teams
+  const processedTokenRef = useRef(false);
 
   // Handle OAuth token from URL parameter
   useEffect(() => {
     const { token } = router.query;
     
-    if (token && typeof token === 'string') {
+    if (token && typeof token === 'string' && !processedTokenRef.current) {
+      processedTokenRef.current = true;
+      
       // Store the token in localStorage
       localStorage.setItem('auth_token', token);
       
@@ -55,92 +47,38 @@ export default function Home() {
           exp: payload.exp
         };
         login(userInfo);
-        setUserInfo(userInfo);
 
         // Check if this is a CLI auth flow by checking sessionStorage
         const isCliMode = typeof window !== 'undefined' &&
           sessionStorage.getItem('oauth_cli_mode') === 'true';
         
         if (isCliMode) {
-          // Clear the stored CLI mode flag
+          // Clear the stored CLI mode flag and set flag for discover page
           sessionStorage.removeItem('oauth_cli_mode');
-          setShowCliModal(true);
+          sessionStorage.setItem('show_cli_modal', 'true');
+          // Redirect CLI users to discover page to show them what sessions look like
+          router.replace('/discover');
+        } else {
+          // Regular auth flow - redirect to sessions page
+          router.replace('/sessions');
         }
-        
-        // Clean up URL by removing token parameter
-        router.replace('/', undefined, { shallow: true });
       } catch (error) {
         console.error('Failed to decode JWT token:', error);
         // Clear invalid token from localStorage
         localStorage.removeItem('auth_token');
-        // Clean up URL by removing token parameter
+        // Clean up URL by removing token parameter and stay on landing page
         router.replace('/', undefined, { shallow: true });
       }
     }
-  }, [router.query.token]);
+  }, [router.query.token, login, router]);
 
-  // Fetch sessions from API
+  // Handle CLI mode detection for /login?cli=true redirects
   useEffect(() => {
-    // Don't fetch if we're still loading auth state
-    if (loading) return;
-    
-    const fetchSessions = async () => {
-      try {
-        setSessionsLoading(true);
-        setError(null);
-        
-        let response;
-        if (activeTab === 'my-sessions' && isAuthenticated) {
-          response = await getUserSessions({
-            page: 1,
-            limit: 20
-          });
-        } else {
-          // Default to discover for unauthenticated users and discover tab
-          response = await discoverSessions({
-            sortBy,
-            search: searchQuery,
-            page: 1,
-            limit: 20
-          });
-        }
-        
-        setSessions(response.sessions || []);
-      } catch (err) {
-        console.error('Error fetching sessions:', err);
-        setError('Failed to load sessions');
-        // Fallback to empty array if API fails
-        setSessions([]);
-      } finally {
-        setSessionsLoading(false);
-      }
-    };
-
-    fetchSessions();
-  }, [sortBy, searchQuery, activeTab, isAuthenticated, loading]);
-
-  // Debounce search input - wait 500ms after user stops typing
-  useEffect(() => {
-    const timeoutId = setTimeout(() => {
-      setSearchQuery(searchInput);
-    }, 500);
-
-    return () => clearTimeout(timeoutId);
-  }, [searchInput]);
-
-  const handleAuthRequired = () => {
-    setShowAuthModal(true);
-  };
-
-  const handleSearch = (e) => {
-    setSearchInput(e.target.value);
-  };
-
-  const handleSearchSubmit = (e) => {
-    e.preventDefault();
-    // Immediately trigger search when form is submitted (e.g., Enter key pressed)
-    setSearchQuery(searchInput);
-  };
+    const { cli } = router.query;
+    if (cli === 'true' && !isAuthenticated) {
+      setShowAuthModal(true);
+    }
+  }, [router.query.cli, isAuthenticated]);
 
   return (
     <>
@@ -153,51 +91,36 @@ export default function Home() {
 
       <div className="min-h-screen bg-gray-50">
         {/* Header */}
-        <header className="bg-white border-b border-gray-200 sticky top-0 z-50">
+        <header className="bg-white border-b border-gray-200">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex justify-between items-center h-16">
               {/* Logo */}
               <div className="flex items-center">
-                <h1 className="text-2xl font-bold text-gray-900">SessionBase</h1>
+                <Link href="/" className="text-2xl font-bold text-gray-900">SessionBase</Link>
               </div>
 
               {/* Navigation */}
               <nav className="hidden md:flex items-center space-x-8">
-                <a href="#" className="text-gray-700 hover:text-gray-900 font-medium">
-                  Sessions
-                </a>
-                <a href="#" className="text-gray-500 hover:text-gray-700">
-                  Tags
-                </a>
-                <a href="#" className="text-gray-500 hover:text-gray-700">
-                  Users
-                </a>
+                <Link href="/discover" className="text-gray-700 hover:text-gray-900 font-medium">
+                  Discover
+                </Link>
+                {isAuthenticated && (
+                  <Link href="/sessions" className="text-gray-700 hover:text-gray-900 font-medium">
+                    My Sessions
+                  </Link>
+                )}
+                <Link href="/teams" className="text-gray-500 hover:text-gray-700">
+                  Teams
+                </Link>
               </nav>
 
-              {/* Search */}
-              <div className="flex-1 max-w-lg mx-8">
-                <form onSubmit={handleSearchSubmit} className="relative">
-                  <input
-                    type="text"
-                    placeholder="Search sessions..."
-                    value={searchInput}
-                    onChange={handleSearch}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
-                  <svg
-                    className="absolute right-3 top-2.5 h-5 w-5 text-gray-400"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                    />
+              {/* Mobile menu button */}
+              <div className="md:hidden">
+                <button className="text-gray-500 hover:text-gray-700">
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
                   </svg>
-                </form>
+                </button>
               </div>
 
               {/* Auth */}
@@ -214,145 +137,103 @@ export default function Home() {
           </div>
         </header>
 
-        {/* Main Content */}
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          {/* Main Content */}
-          <main className="w-full">
-              {/* Tabs for authenticated users */}
-              {isAuthenticated && (
-                <div className="border-b border-gray-200 mb-6">
-                  <nav className="flex space-x-8">
-                    {[
-                      { key: 'discover', label: 'Discover', icon: '🔍' },
-                      { key: 'my-sessions', label: 'My Sessions', icon: '📝' },
-                      { key: 'teams', label: 'Teams', icon: '👥' }
-                    ].map((tab) => (
-                      <button
-                        key={tab.key}
-                        onClick={() => setActiveTab(tab.key)}
-                        className={`py-2 px-1 border-b-2 font-medium text-sm transition-colors ${
-                          activeTab === tab.key
-                            ? 'border-blue-500 text-blue-600'
-                            : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                        }`}
-                      >
-                        <span className="mr-2">{tab.icon}</span>
-                        {tab.label}
-                      </button>
-                    ))}
-                  </nav>
-                </div>
-              )}
-
-              {/* Header */}
-              <div className="mb-6">
-                <h1 className="text-2xl font-bold text-gray-900">
-                  {activeTab === 'my-sessions' ? 'My Sessions' : 
-                   activeTab === 'teams' ? 'Team Sessions' : 'All Sessions'}
-                </h1>
-                {activeTab !== 'teams' && (
-                  <p className="text-gray-600 mt-1">
-                    {sessionsLoading ? 'Loading...' : `${sessions.length} sessions`}
+        {/* Hero Section */}
+        <div className="relative bg-white overflow-hidden">
+          <div className="max-w-7xl mx-auto">
+            <div className="relative z-10 pb-8 bg-white sm:pb-16 md:pb-20 lg:max-w-2xl lg:w-full lg:pb-28 xl:pb-32">
+              <main className="mt-10 mx-auto max-w-7xl px-4 sm:mt-12 sm:px-6 md:mt-16 lg:mt-20 lg:px-8 xl:mt-28">
+                <div className="sm:text-center lg:text-left">
+                  <h1 className="text-4xl tracking-tight font-extrabold text-gray-900 sm:text-5xl md:text-6xl">
+                    <span className="block xl:inline">Share and discover</span>{' '}
+                    <span className="block text-blue-600 xl:inline">AI chat sessions</span>
+                  </h1>
+                  <p className="mt-3 text-base text-gray-500 sm:mt-5 sm:text-lg sm:max-w-xl sm:mx-auto md:mt-5 md:text-xl lg:mx-0">
+                    Learn from conversations with Claude, GPT-4, and other AI models. 
+                    Share your best prompts and discover solutions from the community.
                   </p>
-                )}
-              </div>
-
-              {/* Sort Options */}
-              {activeTab !== 'teams' && (
-                <div className="flex items-center space-x-4 mb-6 border-b border-gray-200">
-                  {[
-                    { key: 'popular', label: 'Most Popular' },
-                    { key: 'newest', label: 'Newest' },
-                    { key: 'views', label: 'Most Viewed' }
-                  ].map((option) => (
-                    <button
-                      key={option.key}
-                      onClick={() => setSortBy(option.key)}
-                      className={`pb-3 px-1 border-b-2 font-medium text-sm transition-colors ${
-                        sortBy === option.key
-                          ? 'border-blue-500 text-blue-600'
-                          : 'border-transparent text-gray-500 hover:text-gray-700'
-                      }`}
-                    >
-                      {option.label}
-                    </button>
-                  ))}
-                </div>
-              )}
-
-              {/* Session Cards */}
-              <div className="space-y-4">
-                {activeTab === 'teams' ? (
-                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-8 text-center">
-                    <div className="text-6xl mb-4">👥</div>
-                    <h3 className="text-xl font-semibold text-gray-900 mb-2">Teams Coming Soon</h3>
-                    <p className="text-gray-600 mb-6 max-w-md mx-auto">
-                      We're working on team features that will allow you to collaborate on sessions with your teammates. 
-                      Stay tuned for updates!
-                    </p>
-                    <div className="space-y-4">
-                      <div className="bg-white rounded-lg p-4 border border-blue-200">
-                        <h4 className="font-medium text-gray-900 mb-2">Get notified when teams launch</h4>
-                        <div className="flex gap-2">
-                          <input
-                            type="email"
-                            placeholder="Enter your email"
-                            className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                          />
-                          <button className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors">
-                            Notify Me
-                          </button>
-                        </div>
-                      </div>
-                      <div className="text-left bg-white rounded-lg p-4 border border-blue-200">
-                        <h4 className="font-medium text-gray-900 mb-2">Planned Team Features:</h4>
-                        <ul className="text-sm text-gray-600 space-y-1">
-                          <li>• Private team sessions</li>
-                          <li>• Collaborative session editing</li>
-                          <li>• Team knowledge base</li>
-                          <li>• Advanced sharing controls</li>
-                        </ul>
-                      </div>
+                  <div className="mt-5 sm:mt-8 sm:flex sm:justify-center lg:justify-start">
+                    <div className="rounded-md shadow">
+                      <Link
+                        href="/discover"
+                        className="w-full flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 md:py-4 md:text-lg md:px-10"
+                      >
+                        Browse Sessions
+                      </Link>
+                    </div>
+                    <div className="mt-3 sm:mt-0 sm:ml-3">
+                      <button
+                        onClick={() => setShowAuthModal(true)}
+                        className="w-full flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-blue-700 bg-blue-100 hover:bg-blue-200 md:py-4 md:text-lg md:px-10"
+                      >
+                        Get Started
+                      </button>
                     </div>
                   </div>
-                ) : sessionsLoading ? (
-                  <div className="space-y-4">
-                    {[1, 2, 3].map((i) => (
-                      <div key={i} className="bg-white border border-gray-200 rounded-lg p-6 animate-pulse">
-                        <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
-                        <div className="h-3 bg-gray-200 rounded w-1/2 mb-4"></div>
-                        <div className="h-3 bg-gray-200 rounded w-full mb-2"></div>
-                        <div className="h-3 bg-gray-200 rounded w-2/3"></div>
-                      </div>
-                    ))}
+                </div>
+              </main>
+            </div>
+          </div>
+          <div className="lg:absolute lg:inset-y-0 lg:right-0 lg:w-1/2">
+            <div className="h-56 w-full bg-gradient-to-r from-blue-400 to-blue-600 sm:h-72 md:h-96 lg:w-full lg:h-full flex items-center justify-center">
+              <div className="text-white text-6xl">💬</div>
+            </div>
+          </div>
+        </div>
+
+        {/* Features Section */}
+        <div className="py-12 bg-gray-50">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="lg:text-center">
+              <h2 className="text-base text-blue-600 font-semibold tracking-wide uppercase">Features</h2>
+              <p className="mt-2 text-3xl leading-8 font-extrabold tracking-tight text-gray-900 sm:text-4xl">
+                Everything you need to share AI conversations
+              </p>
+            </div>
+
+            <div className="mt-10">
+              <div className="space-y-10 md:space-y-0 md:grid md:grid-cols-2 md:gap-x-8 md:gap-y-10">
+                <div className="relative">
+                  <div className="absolute flex items-center justify-center h-12 w-12 rounded-md bg-blue-500 text-white">
+                    <span className="text-2xl">🔍</span>
                   </div>
-                ) : error ? (
-                  <div className="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
-                    <p className="text-red-600">{error}</p>
-                    <button 
-                      onClick={() => window.location.reload()} 
-                      className="mt-2 text-red-600 hover:text-red-800 underline"
-                    >
-                      Try again
-                    </button>
+                  <p className="ml-16 text-lg leading-6 font-medium text-gray-900">Discover Sessions</p>
+                  <p className="mt-2 ml-16 text-base text-gray-500">
+                    Browse and search through community-shared AI conversations by topic, model, or keywords.
+                  </p>
+                </div>
+
+                <div className="relative">
+                  <div className="absolute flex items-center justify-center h-12 w-12 rounded-md bg-blue-500 text-white">
+                    <span className="text-2xl">📤</span>
                   </div>
-                ) : sessions.length === 0 ? (
-                  <div className="bg-gray-50 border border-gray-200 rounded-lg p-6 text-center">
-                    <p className="text-gray-600">
-                      {activeTab === 'my-sessions' ? 'You haven\'t created any sessions yet.' : 'No sessions found.'}
-                    </p>
+                  <p className="ml-16 text-lg leading-6 font-medium text-gray-900">Share Your Sessions</p>
+                  <p className="mt-2 ml-16 text-base text-gray-500">
+                    Upload and share your best AI conversations with automatic formatting and syntax highlighting.
+                  </p>
+                </div>
+
+                <div className="relative">
+                  <div className="absolute flex items-center justify-center h-12 w-12 rounded-md bg-blue-500 text-white">
+                    <span className="text-2xl">🏷️</span>
                   </div>
-                ) : (
-                  sessions.map((session) => (
-                    <SessionCard
-                      key={session.sessionId || session.id}
-                      session={session}
-                      onAuthRequired={handleAuthRequired}
-                    />
-                  ))
-                )}
+                  <p className="ml-16 text-lg leading-6 font-medium text-gray-900">Organize with Tags</p>
+                  <p className="mt-2 ml-16 text-base text-gray-500">
+                    Tag your sessions by programming language, topic, or use case for easy discovery.
+                  </p>
+                </div>
+
+                <div className="relative">
+                  <div className="absolute flex items-center justify-center h-12 w-12 rounded-md bg-blue-500 text-white">
+                    <span className="text-2xl">👥</span>
+                  </div>
+                  <p className="ml-16 text-lg leading-6 font-medium text-gray-900">Team Collaboration</p>
+                  <p className="mt-2 ml-16 text-base text-gray-500">
+                    Work together with your team on private sessions and build shared knowledge bases.
+                  </p>
+                </div>
               </div>
-            </main>
+            </div>
+          </div>
         </div>
 
         {/* Auth Modal */}
@@ -434,14 +315,6 @@ export default function Home() {
           </div>
         )}
 
-        {/* CLI Auth Modal */}
-        <CliAuthModal
-          isOpen={showCliModal}
-          onClose={() => {
-            setShowCliModal(false);
-          }}
-          user={userInfo}
-        />
       </div>
     </>
   );
