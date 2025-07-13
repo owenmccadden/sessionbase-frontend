@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useAuth } from '../contexts/AuthContext';
 import LoginButton from '../components/auth/LoginButton';
 import UserProfile from '../components/auth/UserProfile';
-import { loginWithGitHub, loginWithGoogle } from '../utils/auth';
+import { loginWithGitHub, loginWithGoogle, getUserInfo } from '../utils/auth';
 
 // Helper function to decode base64url (JWT uses base64url encoding)
 function base64UrlDecode(str) {
@@ -38,15 +38,11 @@ export default function Landing() {
       
       // Update auth context
       try {
-        // Decode JWT to get user info using base64url decoder
-        const payload = JSON.parse(base64UrlDecode(token.split('.')[1]));
-        const userInfo = {
-          id: payload.sub,
-          username: payload.username,
-          avatarUrl: payload.avatar_url,
-          exp: payload.exp
-        };
-        login(userInfo);
+        // Use the centralized getUserInfo function to get user data from token
+        const userInfo = getUserInfo();
+        if (userInfo) {
+          login(userInfo);
+        }
 
         // Check if this is a CLI auth flow by checking sessionStorage
         const isCliMode = typeof window !== 'undefined' &&
