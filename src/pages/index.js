@@ -33,6 +33,7 @@ export default function Home() {
   const [sessionsLoading, setSessionsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const [searchInput, setSearchInput] = useState(''); // Local input state for immediate UI updates
   const [activeTab, setActiveTab] = useState('discover'); // discover, my-sessions, teams
 
   // Handle OAuth token from URL parameter
@@ -118,17 +119,27 @@ export default function Home() {
     fetchSessions();
   }, [sortBy, searchQuery, activeTab, isAuthenticated, loading]);
 
+  // Debounce search input - wait 500ms after user stops typing
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      setSearchQuery(searchInput);
+    }, 500);
+
+    return () => clearTimeout(timeoutId);
+  }, [searchInput]);
+
   const handleAuthRequired = () => {
     setShowAuthModal(true);
   };
 
   const handleSearch = (e) => {
-    setSearchQuery(e.target.value);
+    setSearchInput(e.target.value);
   };
 
   const handleSearchSubmit = (e) => {
     e.preventDefault();
-    // Search will trigger automatically due to useEffect dependency on searchQuery
+    // Immediately trigger search when form is submitted (e.g., Enter key pressed)
+    setSearchQuery(searchInput);
   };
 
   return (
@@ -169,7 +180,7 @@ export default function Home() {
                   <input
                     type="text"
                     placeholder="Search sessions..."
-                    value={searchQuery}
+                    value={searchInput}
                     onChange={handleSearch}
                     className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
