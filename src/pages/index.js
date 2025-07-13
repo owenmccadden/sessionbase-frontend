@@ -64,12 +64,10 @@ export default function Home() {
           // Clear the stored CLI mode flag
           sessionStorage.removeItem('oauth_cli_mode');
           setShowCliModal(true);
-          // Clean up URL by removing token parameter
-          router.replace('/', undefined, { shallow: true });
-        } else {
-          // Clean up URL by removing token parameter
-          router.replace('/', undefined, { shallow: true });
         }
+        
+        // Clean up URL by removing token parameter
+        router.replace('/', undefined, { shallow: true });
       } catch (error) {
         console.error('Failed to decode JWT token:', error);
         // Clear invalid token from localStorage
@@ -78,7 +76,7 @@ export default function Home() {
         router.replace('/', undefined, { shallow: true });
       }
     }
-  }, [router.query.token, login]);
+  }, [router.query.token]);
 
   // Fetch sessions from API
   useEffect(() => {
