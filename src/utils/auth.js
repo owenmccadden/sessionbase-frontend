@@ -59,8 +59,9 @@ export function getUserInfo() {
     const payload = JSON.parse(base64UrlDecode(token.split('.')[1]));
     return {
       id: payload.sub,
+      userId: payload.userId,
       username: payload.username,
-      avatarUrl: payload.avatar_url,
+      avatarUrl: payload.avatarUrl,
       exp: payload.exp
     };
   } catch (error) {
