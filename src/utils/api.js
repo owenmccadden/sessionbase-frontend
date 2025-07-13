@@ -63,3 +63,23 @@ export async function getUserSessions(params = {}) {
   
   return response.json();
 }
+
+/**
+ * Get public user profile data - maps to GET /users/{id}
+ * No authentication required
+ */
+export async function getUserProfile(userId) {
+  const url = `${API_BASE_URL}/users/${userId}`;
+  
+  const response = await fetch(url, {
+    headers: {
+      'Content-Type': 'application/json'
+    }
+  });
+  
+  if (!response.ok) {
+    throw new Error(`Failed to get user profile: ${response.status}`);
+  }
+  
+  return response.json();
+}

@@ -25,7 +25,8 @@ export default function SessionCard({ session, onAuthRequired }) {
     description: session?.description || 'No description available',
     author: {
       username: session?.username || session?.author?.username || 'Anonymous',
-      avatarUrl: session?.author?.avatarUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(session?.username || session?.author?.username || 'Anonymous')}&background=3b82f6&color=fff&size=24`
+      avatarUrl: session?.author?.avatarUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(session?.username || session?.author?.username || 'Anonymous')}&background=3b82f6&color=fff&size=24`,
+      userId: session?.userId || session?.author?.userId
     },
     tags: session?.tags || [],
     messageCount: session?.messageCount || 0,
@@ -129,9 +130,13 @@ export default function SessionCard({ session, onAuthRequired }) {
                   e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(safeSession.author.username)}&background=3b82f6&color=fff&size=24`;
                 }}
               />
-              <span className="font-medium text-blue-600">
+              <Link 
+                href={`/users/${safeSession.author.userId || 'unknown'}`}
+                className="font-medium text-blue-600 hover:text-blue-800 transition-colors"
+                onClick={(e) => e.stopPropagation()}
+              >
                 {safeSession.author.username}
-              </span>
+              </Link>
             </div>
             
             <div className="flex items-center space-x-4">
