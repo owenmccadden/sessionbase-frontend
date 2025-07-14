@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/router';
 import Head from 'next/head';
 import Link from 'next/link';
@@ -7,11 +7,11 @@ import LoginButton from '../components/auth/LoginButton';
 import UserProfile from '../components/auth/UserProfile';
 import SessionCard from '../components/sessions/SessionCard';
 import { discoverSessions } from '../utils/api';
-import { loginWithGitHub, loginWithGoogle } from '../utils/auth';
+import { loginWithGitHub, loginWithGoogle, getUserInfo } from '../utils/auth';
 import CliAuthModal from '../components/auth/CliAuthModal';
 
 export default function Discover() {
-  const { isAuthenticated, loading, user } = useAuth();
+  const { isAuthenticated, loading, user, login } = useAuth();
   const router = useRouter();
   const [sortBy, setSortBy] = useState('popular'); // popular, newest, views
   const [showAuthModal, setShowAuthModal] = useState(false);
@@ -21,6 +21,47 @@ export default function Discover() {
   const [error, setError] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchInput, setSearchInput] = useState(''); // Local input state for immediate UI updates
+  const processedTokenRef = useRef(false);
+
+  // Handle OAuth token from URL parameter
+  useEffect(() => {
+    const { token } = router.query;
+    
+    if (token && typeof token === 'string' && !processedTokenRef.current) {
+      processedTokenRef.current = true;
+      
+      // Store the token in localStorage
+      localStorage.setItem('auth_token', token);
+      
+      // Update auth context
+      try {
+        // Use the centralized getUserInfo function to get user data from token
+        const userInfo = getUserInfo();
+        if (userInfo) {
+          login(userInfo);
+        }
+
+        // Check if this is a CLI auth flow by checking sessionStorage
+        const isCliMode = typeof window !== 'undefined' &&
+          sessionStorage.getItem('oauth_cli_mode') === 'true';
+        
+        if (isCliMode) {
+          // Clear the stored CLI mode flag and set flag to show CLI modal
+          sessionStorage.removeItem('oauth_cli_mode');
+          sessionStorage.setItem('show_cli_modal', 'true');
+        }
+        
+        // Clean up URL by removing token parameter
+        router.replace('/discover', undefined, { shallow: true });
+      } catch (error) {
+        console.error('Failed to decode JWT token:', error);
+        // Clear invalid token from localStorage
+        localStorage.removeItem('auth_token');
+        // Clean up URL by removing token parameter
+        router.replace('/discover', undefined, { shallow: true });
+      }
+    }
+  }, [router.query.token, login, router]);
 
   // Fetch sessions from API
   useEffect(() => {
@@ -62,6 +103,14 @@ export default function Discover() {
 
     return () => clearTimeout(timeoutId);
   }, [searchInput]);
+
+  // Handle CLI mode detection for /discover?cli=true redirects
+  useEffect(() => {
+    const { cli } = router.query;
+    if (cli === 'true' && !isAuthenticated) {
+      setShowAuthModal(true);
+    }
+  }, [router.query.cli, isAuthenticated]);
 
   // Check if CLI modal should be shown (for CLI users redirected here)
   useEffect(() => {
@@ -279,6 +328,10 @@ export default function Discover() {
                 <div className="space-y-4">
                   <button
                     onClick={() => {
+                      // Store CLI parameter in sessionStorage to survive OAuth redirect
+                      if (router.query.cli === 'true' && typeof window !== 'undefined') {
+                        sessionStorage.setItem('oauth_cli_mode', 'true');
+                      }
                       loginWithGitHub();
                       setShowAuthModal(false);
                     }}
@@ -299,6 +352,10 @@ export default function Discover() {
                   </button>
                   <button
                     onClick={() => {
+                      // Store CLI parameter in sessionStorage to survive OAuth redirect
+                      if (router.query.cli === 'true' && typeof window !== 'undefined') {
+                        sessionStorage.setItem('oauth_cli_mode', 'true');
+                      }
                       loginWithGoogle();
                       setShowAuthModal(false);
                     }}

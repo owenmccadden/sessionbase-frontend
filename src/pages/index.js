@@ -1,80 +1,17 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import Head from 'next/head';
 import Link from 'next/link';
 import { useAuth } from '../contexts/AuthContext';
 import LoginButton from '../components/auth/LoginButton';
 import UserProfile from '../components/auth/UserProfile';
-import { loginWithGitHub, loginWithGoogle, getUserInfo } from '../utils/auth';
-
-// Helper function to decode base64url (JWT uses base64url encoding)
-function base64UrlDecode(str) {
-  // Replace URL-safe characters with standard base64 characters
-  str = str.replace(/-/g, '+').replace(/_/g, '/');
-  
-  // Add padding if needed
-  while (str.length % 4) {
-    str += '=';
-  }
-  
-  return atob(str);
-}
+import { loginWithGitHub, loginWithGoogle } from '../utils/auth';
 
 export default function Landing() {
-  const { isAuthenticated, loading, login } = useAuth();
+  const { isAuthenticated, loading } = useAuth();
   const router = useRouter();
   const [showAuthModal, setShowAuthModal] = useState(false);
-  const processedTokenRef = useRef(false);
 
-  // Handle OAuth token from URL parameter
-  useEffect(() => {
-    const { token } = router.query;
-    
-    if (token && typeof token === 'string' && !processedTokenRef.current) {
-      processedTokenRef.current = true;
-      
-      // Store the token in localStorage
-      localStorage.setItem('auth_token', token);
-      
-      // Update auth context
-      try {
-        // Use the centralized getUserInfo function to get user data from token
-        const userInfo = getUserInfo();
-        if (userInfo) {
-          login(userInfo);
-        }
-
-        // Check if this is a CLI auth flow by checking sessionStorage
-        const isCliMode = typeof window !== 'undefined' &&
-          sessionStorage.getItem('oauth_cli_mode') === 'true';
-        
-        if (isCliMode) {
-          // Clear the stored CLI mode flag and set flag for discover page
-          sessionStorage.removeItem('oauth_cli_mode');
-          sessionStorage.setItem('show_cli_modal', 'true');
-          // Redirect CLI users to discover page to show them what sessions look like
-          router.replace('/discover');
-        } else {
-          // Regular auth flow - redirect to sessions page
-          router.replace('/sessions');
-        }
-      } catch (error) {
-        console.error('Failed to decode JWT token:', error);
-        // Clear invalid token from localStorage
-        localStorage.removeItem('auth_token');
-        // Clean up URL by removing token parameter and stay on landing page
-        router.replace('/', undefined, { shallow: true });
-      }
-    }
-  }, [router.query.token, login, router]);
-
-  // Handle CLI mode detection for /login?cli=true redirects
-  useEffect(() => {
-    const { cli } = router.query;
-    if (cli === 'true' && !isAuthenticated) {
-      setShowAuthModal(true);
-    }
-  }, [router.query.cli, isAuthenticated]);
 
   return (
     <>
