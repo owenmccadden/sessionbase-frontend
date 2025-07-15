@@ -63,6 +63,15 @@ export function detectSessionFormat(data) {
       data = JSON.parse(data);
     }
     
+    // Claude Code wrapped format detection (new format with messages array)
+    if (data.messages && Array.isArray(data.messages) && data.platform) {
+      // Check if messages have Claude Code structure
+      const firstMessage = data.messages[0];
+      if (firstMessage && firstMessage.sessionId && firstMessage.type && firstMessage.message && firstMessage.uuid) {
+        return SESSION_TYPES.CLAUDE_CODE;
+      }
+    }
+    
     // Q Chat JSON detection
     if (data.conversation_id && data.history && Array.isArray(data.history)) {
       return SESSION_TYPES.Q_CHAT;
@@ -202,6 +211,9 @@ function parseClaudeCodeSession(data) {
     messages = lines.map(line => JSON.parse(line));
   } else if (Array.isArray(data)) {
     messages = data;
+  } else if (data.messages && Array.isArray(data.messages)) {
+    // Handle new wrapped format: {"messages": [...], "platform": "qcli"}
+    messages = data.messages;
   } else if (data.rawMessages) {
     messages = data.rawMessages;
   }
