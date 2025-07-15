@@ -1,9 +1,11 @@
 import { useState } from 'react';
 import { SESSION_TYPES } from '../utils/sessionParser';
+import SessionReplay from './SessionReplay';
 
 export default function UnifiedSessionViewer({ session }) {
   const [activeView, setActiveView] = useState('conversation');
   const [copySuccess, setCopySuccess] = useState(false);
+  const [isReplayMode, setIsReplayMode] = useState(false);
 
   const handleCopyRawData = async () => {
     try {
@@ -30,10 +32,15 @@ export default function UnifiedSessionViewer({ session }) {
     }
   };
 
+  // Show replay mode if activated
+  if (isReplayMode) {
+    return <SessionReplay session={session} onExit={() => setIsReplayMode(false)} />;
+  }
+
   return (
     <div className="max-w-6xl mx-auto p-6">
       {/* Session Header */}
-      <SessionHeader session={session} />
+      <SessionHeader session={session} onStartReplay={() => setIsReplayMode(true)} />
       
       {/* View Toggle and Copy Button */}
       <div className="mb-6 flex items-center justify-between">
@@ -113,7 +120,7 @@ function ViewToggleButton({ active, onClick, label }) {
   );
 }
 
-function SessionHeader({ session }) {
+function SessionHeader({ session, onStartReplay }) {
   const getSessionIcon = (type) => {
     switch (type) {
       case SESSION_TYPES.Q_CHAT:
@@ -156,6 +163,15 @@ function SessionHeader({ session }) {
             <span className="bg-blue-100 text-blue-800 text-sm font-medium px-3 py-1 rounded-full">
               {getSessionTypeLabel(session.type)}
             </span>
+            {/* Replay Button */}
+            <button
+              onClick={onStartReplay}
+              className="flex items-center space-x-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white text-sm font-medium rounded-lg transition-colors"
+              title="Start interactive replay"
+            >
+              <PlayIcon />
+              <span>Replay</span>
+            </button>
           </div>
           
           <div className="flex items-center space-x-4 text-sm text-gray-600 mb-2">
@@ -963,6 +979,14 @@ function CheckIcon() {
   return (
     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+    </svg>
+  );
+}
+
+function PlayIcon() {
+  return (
+    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+      <path d="M8 5v14l11-7z" />
     </svg>
   );
 }

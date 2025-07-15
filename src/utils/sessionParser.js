@@ -226,14 +226,36 @@ function parseClaudeCodeSession(data) {
   const normalizedMessages = messages
     .filter(msg => !msg.isMeta)
     .map((msg, index) => {
-      // Determine if this is a tool result message
-      const isToolResult = msg.message?.content && 
+      // Determine message type based on role and content
+      // Check if this contains tool use or tool results
+      const hasToolUse = msg.message?.content && 
         Array.isArray(msg.message.content) && 
-        msg.message.content.some(item => item.type === 'tool_result');
+        msg.message.content.some(item => item.type === 'tool_use');
       
-      // Tool result messages should be treated as assistant messages, not user messages
-      const messageType = msg.type === 'user' && !isToolResult ? 'user' : 'assistant';
-      const messageRole = msg.type === 'user' && !isToolResult ? 'user' : 'assistant';
+      const hasToolResult = (msg.message?.content && 
+        Array.isArray(msg.message.content) && 
+        msg.message.content.some(item => item.type === 'tool_result')) ||
+        msg.toolUseResult; // Also check for tool results in the root level
+      
+      // Determine the correct message type:
+      // 1. If it has tool_use or tool_result, it should be assistant (highest priority)
+      // 2. If the inner message has a role, use that
+      // 3. Fall back to the outer type
+      let messageType, messageRole;
+      
+      if (hasToolUse || hasToolResult) {
+        // Tool messages are always assistant messages, regardless of claimed role
+        messageType = 'assistant';
+        messageRole = 'assistant';
+      } else if (msg.message?.role) {
+        // Trust the inner message role
+        messageType = msg.message.role;
+        messageRole = msg.message.role;
+      } else {
+        // Fall back to outer type
+        messageType = msg.type || 'assistant';
+        messageRole = msg.type || 'assistant';
+      }
       
       return {
         id: msg.uuid || `claude-${index}`,
@@ -248,10 +270,10 @@ function parseClaudeCodeSession(data) {
           model: msg.message?.model,
           usage: msg.message?.usage,
           toolUseResult: msg.toolUseResult,
-          isToolResult: isToolResult
+          isToolResult: hasToolResult
         },
         toolCalls: extractClaudeToolCalls(msg),
-        toolResults: isToolResult ? extractClaudeToolResults(msg) : undefined,
+        toolResults: hasToolResult ? extractClaudeToolResults(msg) : undefined,
         context: {
           cwd: msg.cwd,
           userType: msg.userType,
