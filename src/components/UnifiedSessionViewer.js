@@ -248,10 +248,15 @@ function StatCard({ value, label, color }) {
 function ConversationView({ session }) {
   const [allCodeBlocksCollapsed, setAllCodeBlocksCollapsed] = useState(false);
   const [forceCollapseToggle, setForceCollapseToggle] = useState(0);
+  const [allToolUseBlocksHidden, setAllToolUseBlocksHidden] = useState(false);
 
   const handleToggleAll = () => {
     setAllCodeBlocksCollapsed(!allCodeBlocksCollapsed);
     setForceCollapseToggle(prev => prev + 1);
+  };
+
+  const handleToggleAllToolUse = () => {
+    setAllToolUseBlocksHidden(!allToolUseBlocksHidden);
   };
 
   if (session.messages.length === 0) {
@@ -269,44 +274,83 @@ function ConversationView({ session }) {
     getContentType(message.content, message) === 'code'
   );
 
+  // Check if there are any tool use blocks in the session
+  const hasToolUseBlocks = session.messages.some(message => 
+    message.toolCalls && message.toolCalls.length > 0
+  );
+
   return (
     <div className="space-y-4">
-      {/* Sticky Code Block Controls */}
-      {hasCodeBlocks && (
-        <div className="sticky top-20 z-30 flex justify-end mb-4">
-          <div className="flex items-center space-x-3 bg-white rounded-lg shadow-lg border border-gray-200 px-4 py-2 backdrop-blur-sm bg-white/95">
-            <span className="text-sm text-gray-600 font-medium">Code Blocks:</span>
-            <button
-              onClick={handleToggleAll}
-              className={`text-sm px-4 py-2 rounded-lg transition-all duration-200 transform hover:scale-105 flex items-center space-x-2 ${
-                allCodeBlocksCollapsed 
-                  ? 'bg-blue-600 text-white shadow-md hover:bg-blue-700' 
-                  : 'bg-gray-600 text-white shadow-md hover:bg-gray-700'
-              }`}
-            >
-              <span className={`${
-                allCodeBlocksCollapsed ? 'rotate-0' : 'rotate-90'
-              }`}>
-                ▶️
-              </span>
-              <span className="font-medium">
-                {allCodeBlocksCollapsed ? 'Expand All' : 'Collapse All'}
-              </span>
-            </button>
+      {/* Sticky Controls */}
+      {(hasCodeBlocks || hasToolUseBlocks) && (
+        <div className="fixed top-20 right-6 z-30">
+          <div className="flex flex-col items-end space-y-2 bg-white rounded-lg shadow-lg border border-gray-200 px-4 py-2 backdrop-blur-sm bg-white/95">
+            {/* Code Blocks Toggle */}
+            {hasCodeBlocks && (
+              <div className="flex items-center space-x-3">
+                <span className="text-sm text-gray-600 font-medium">Code Blocks:</span>
+                <button
+                  onClick={handleToggleAll}
+                  className={`text-sm px-4 py-2 rounded-lg transition-all duration-200 transform hover:scale-105 flex items-center space-x-2 ${
+                    allCodeBlocksCollapsed 
+                      ? 'bg-blue-600 text-white shadow-md hover:bg-blue-700' 
+                      : 'bg-gray-600 text-white shadow-md hover:bg-gray-700'
+                  }`}
+                >
+                  <span className={`${
+                    allCodeBlocksCollapsed ? 'rotate-0' : 'rotate-90'
+                  }`}>
+                    ▶️
+                  </span>
+                  <span className="font-medium">
+                    {allCodeBlocksCollapsed ? 'Expand All' : 'Collapse All'}
+                  </span>
+                </button>
+              </div>
+            )}
+            
+            {/* Tool Use Blocks Toggle */}
+            {hasToolUseBlocks && (
+              <div className="flex items-center space-x-3">
+                <span className="text-sm text-gray-600 font-medium">Tool Use:</span>
+                <button
+                  onClick={handleToggleAllToolUse}
+                  className={`text-sm px-4 py-2 rounded-lg transition-all duration-200 transform hover:scale-105 flex items-center space-x-2 ${
+                    allToolUseBlocksHidden 
+                      ? 'bg-orange-600 text-white shadow-md hover:bg-orange-700' 
+                      : 'bg-gray-600 text-white shadow-md hover:bg-gray-700'
+                  }`}
+                >
+                  <span className="font-medium">
+                    {allToolUseBlocksHidden ? 'Show All' : 'Hide All'}
+                  </span>
+                </button>
+              </div>
+            )}
           </div>
         </div>
       )}
       
       {/* Messages */}
-      {session.messages.map((message) => (
-        <UnifiedMessageBubble 
-          key={message.id} 
-          message={message} 
-          sessionType={session.type}
-          allCodeBlocksCollapsed={allCodeBlocksCollapsed}
-          forceCollapseToggle={forceCollapseToggle}
-        />
-      ))}
+      {session.messages.map((message) => {
+        // Hide entire message if it contains tool calls or tool results and tool use blocks are hidden
+        const hasToolCalls = message.toolCalls && message.toolCalls.length > 0;
+        const hasToolResults = message.toolResults && message.toolResults.length > 0;
+        if ((hasToolCalls || hasToolResults) && allToolUseBlocksHidden) {
+          return null;
+        }
+        
+        return (
+          <UnifiedMessageBubble 
+            key={message.id} 
+            message={message} 
+            sessionType={session.type}
+            allCodeBlocksCollapsed={allCodeBlocksCollapsed}
+            forceCollapseToggle={forceCollapseToggle}
+            allToolUseBlocksHidden={allToolUseBlocksHidden}
+          />
+        );
+      })}
     </div>
   );
 }
@@ -651,7 +695,7 @@ function CodeBlock({ content, language, filePath, isUser, allCodeBlocksCollapsed
   );
 }
 
-function UnifiedMessageBubble({ message, sessionType, allCodeBlocksCollapsed, forceCollapseToggle }) {
+function UnifiedMessageBubble({ message, sessionType, allCodeBlocksCollapsed, forceCollapseToggle, allToolUseBlocksHidden }) {
   const [showRawData, setShowRawData] = useState(false);
   const [showToolDetails, setShowToolDetails] = useState(false);
 
