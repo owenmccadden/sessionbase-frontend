@@ -1,4 +1,7 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
+import ReactMarkdown from 'react-markdown';
+import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
+import { vscDarkPlus, vs } from 'react-syntax-highlighter/dist/cjs/styles/prism';
 import { SESSION_TYPES } from '../utils/sessionParser';
 import SessionReplay from './SessionReplay';
 
@@ -243,6 +246,14 @@ function StatCard({ value, label, color }) {
 }
 
 function ConversationView({ session }) {
+  const [allCodeBlocksCollapsed, setAllCodeBlocksCollapsed] = useState(false);
+  const [forceCollapseToggle, setForceCollapseToggle] = useState(0);
+
+  const handleToggleAll = () => {
+    setAllCodeBlocksCollapsed(!allCodeBlocksCollapsed);
+    setForceCollapseToggle(prev => prev + 1);
+  };
+
   if (session.messages.length === 0) {
     return (
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8 text-center">
@@ -253,16 +264,370 @@ function ConversationView({ session }) {
     );
   }
 
+  // Check if there are any code blocks in the session
+  const hasCodeBlocks = session.messages.some(message => 
+    getContentType(message.content, message) === 'code'
+  );
+
   return (
     <div className="space-y-4">
+      {/* Sticky Code Block Controls */}
+      {hasCodeBlocks && (
+        <div className="sticky top-20 z-30 flex justify-end mb-4">
+          <div className="flex items-center space-x-3 bg-white rounded-lg shadow-lg border border-gray-200 px-4 py-2 backdrop-blur-sm bg-white/95">
+            <span className="text-sm text-gray-600 font-medium">Code Blocks:</span>
+            <button
+              onClick={handleToggleAll}
+              className={`text-sm px-4 py-2 rounded-lg transition-all duration-200 transform hover:scale-105 flex items-center space-x-2 ${
+                allCodeBlocksCollapsed 
+                  ? 'bg-blue-600 text-white shadow-md hover:bg-blue-700' 
+                  : 'bg-gray-600 text-white shadow-md hover:bg-gray-700'
+              }`}
+            >
+              <span className={`${
+                allCodeBlocksCollapsed ? 'rotate-0' : 'rotate-90'
+              }`}>
+                ▶️
+              </span>
+              <span className="font-medium">
+                {allCodeBlocksCollapsed ? 'Expand All' : 'Collapse All'}
+              </span>
+            </button>
+          </div>
+        </div>
+      )}
+      
+      {/* Messages */}
       {session.messages.map((message) => (
-        <UnifiedMessageBubble key={message.id} message={message} sessionType={session.type} />
+        <UnifiedMessageBubble 
+          key={message.id} 
+          message={message} 
+          sessionType={session.type}
+          allCodeBlocksCollapsed={allCodeBlocksCollapsed}
+          forceCollapseToggle={forceCollapseToggle}
+        />
       ))}
     </div>
   );
 }
 
-function UnifiedMessageBubble({ message, sessionType }) {
+// Helper function to determine content type based on file extension and patterns
+function getContentType(content, message) {
+  if (!content || typeof content !== 'string') return 'text';
+  
+  // Check if this is a tool result with file information
+  let filePath = null;
+  if (message?.metadata?.toolUseResult?.file?.filePath) {
+    filePath = message.metadata.toolUseResult.file.filePath;
+  }
+  
+  // If we have a file path, use the extension to determine type
+  if (filePath) {
+    const extension = filePath.split('.').pop()?.toLowerCase();
+    
+    // Code file extensions
+    const codeExtensions = [
+      'js', 'jsx', 'ts', 'tsx', 'py', 'java', 'c', 'cpp', 'cc', 'cxx', 'h', 'hpp',
+      'cs', 'php', 'rb', 'go', 'rs', 'swift', 'kt', 'scala', 'sh', 'bash', 'zsh',
+      'fish', 'ps1', 'bat', 'cmd', 'sql', 'json', 'xml', 'yaml', 'yml', 'toml',
+      'ini', 'cfg', 'conf', 'env', 'css', 'scss', 'sass', 'less', 'html', 'htm',
+      'vue', 'svelte', 'astro', 'r', 'R', 'matlab', 'm', 'pl', 'pm', 'lua', 'vim',
+      'ex', 'exs', 'elm', 'hs', 'lhs', 'clj', 'cljs', 'cljc', 'edn', 'ml', 'mli',
+      'fs', 'fsi', 'fsx', 'dart', 'jl', 'nim', 'cr', 'zig', 'v', 'vv'
+    ];
+    
+    // Markdown file extensions
+    const markdownExtensions = ['md', 'markdown', 'mdown', 'mkd', 'mdx'];
+    
+    if (codeExtensions.includes(extension)) {
+      return 'code';
+    }
+    
+    if (markdownExtensions.includes(extension)) {
+      return 'markdown';
+    }
+  }
+  
+  // Clean content for pattern detection
+  const cleanContent = cleanContentForMarkdown(content);
+  
+  // Check for code patterns (these should override markdown detection)
+  const codePatterns = [
+    /^(import|export|from|require)\s+/m,           // JS/TS imports
+    /^(function|const|let|var|class)\s+/m,         // JS/TS declarations
+    /^(def|class|import|from)\s+/m,                // Python
+    /^(public|private|protected|static)\s+/m,      // Java/C#/C++
+    /^(#include|#define|#ifndef)\s+/m,             // C/C++
+    /^(package|func|import|var)\s+/m,              // Go
+    /^(use|fn|impl|struct|enum)\s+/m,              // Rust
+    /^\s*<[a-zA-Z][^>]*>/m,                        // HTML/XML tags
+    /^\s*[a-zA-Z-]+\s*:\s*[^;]+;/m,               // CSS properties
+    /^SELECT|INSERT|UPDATE|DELETE|CREATE|DROP/im,  // SQL
+  ];
+  
+  if (codePatterns.some(pattern => pattern.test(cleanContent))) {
+    return 'code';
+  }
+  
+  // Check for markdown patterns
+  const markdownPatterns = [
+    /^#{1,6}\s+/m,           // Headers
+    /\*\*.*?\*\*/,           // Bold
+    /^\s*[-*+]\s+/m,         // Lists
+    /^\s*\d+\.\s+/m,         // Numbered lists
+    /\[.*?\]\(.*?\)/,        // Links
+    /!\[.*?\]\(.*?\)/,       // Images
+    /^\s*\|.*\|.*\|/m,       // Tables
+    /^\s*>\s+/m,             // Blockquotes
+    /---+/,                  // Horizontal rules
+  ];
+  
+  if (markdownPatterns.some(pattern => pattern.test(cleanContent))) {
+    return 'markdown';
+  }
+  
+  return 'text';
+}
+
+// Helper function to detect language from file extension
+function getLanguageFromPath(filePath) {
+  if (!filePath) return '';
+  
+  const extension = filePath.split('.').pop()?.toLowerCase();
+  const languageMap = {
+    'js': 'javascript',
+    'jsx': 'javascript',
+    'ts': 'typescript', 
+    'tsx': 'typescript',
+    'py': 'python',
+    'java': 'java',
+    'c': 'c',
+    'cpp': 'cpp',
+    'cc': 'cpp',
+    'cxx': 'cpp',
+    'h': 'c',
+    'hpp': 'cpp',
+    'cs': 'csharp',
+    'php': 'php',
+    'rb': 'ruby',
+    'go': 'go',
+    'rs': 'rust',
+    'swift': 'swift',
+    'kt': 'kotlin',
+    'scala': 'scala',
+    'sh': 'bash',
+    'bash': 'bash',
+    'zsh': 'bash',
+    'fish': 'bash',
+    'ps1': 'powershell',
+    'bat': 'batch',
+    'cmd': 'batch',
+    'sql': 'sql',
+    'json': 'json',
+    'xml': 'xml',
+    'yaml': 'yaml',
+    'yml': 'yaml',
+    'toml': 'toml',
+    'css': 'css',
+    'scss': 'scss',
+    'sass': 'sass',
+    'less': 'less',
+    'html': 'html',
+    'htm': 'html',
+    'vue': 'vue',
+    'svelte': 'svelte',
+    'r': 'r',
+    'R': 'r',
+    'matlab': 'matlab',
+    'm': 'matlab',
+    'pl': 'perl',
+    'lua': 'lua',
+    'vim': 'vim',
+    'ex': 'elixir',
+    'exs': 'elixir',
+    'elm': 'elm',
+    'hs': 'haskell',
+    'clj': 'clojure',
+    'ml': 'ocaml',
+    'fs': 'fsharp',
+    'dart': 'dart',
+    'jl': 'julia',
+    'nim': 'nim',
+    'cr': 'crystal',
+    'zig': 'zig'
+  };
+  
+  return languageMap[extension] || extension || '';
+}
+
+// Helper function to clean content for markdown rendering
+function cleanContentForMarkdown(content) {
+  if (!content || typeof content !== 'string') return content;
+  
+  let cleanedContent = content;
+  
+  // Remove "Tool result:" prefix if present
+  cleanedContent = cleanedContent.replace(/^Tool result:\s*/i, '');
+  
+  // Remove line numbers (like "1→", "2→", etc.)
+  cleanedContent = cleanedContent.replace(/^\s*\d+→/gm, '');
+  
+  return cleanedContent.trim();
+}
+
+function CodeBlock({ content, language, filePath, isUser, allCodeBlocksCollapsed, forceCollapseToggle }) {
+  const [showLineNumbers, setShowLineNumbers] = useState(true);
+  const [copySuccess, setCopySuccess] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(false);
+
+  // React to global collapse/expand controls immediately
+  React.useEffect(() => {
+    if (forceCollapseToggle > 0) {
+      setIsCollapsed(allCodeBlocksCollapsed);
+    }
+  }, [allCodeBlocksCollapsed, forceCollapseToggle]);
+
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(content);
+      setCopySuccess(true);
+      setTimeout(() => setCopySuccess(false), 2000);
+    } catch (err) {
+      console.error('Failed to copy:', err);
+    }
+  };
+
+  // Get appropriate syntax highlighting theme
+  const syntaxTheme = isUser ? vscDarkPlus : vs;
+  
+  // Custom style overrides for better integration
+  const customStyle = {
+    margin: 0,
+    padding: '1rem',
+    background: 'transparent',
+    fontSize: '0.875rem',
+    fontFamily: 'ui-monospace, SFMono-Regular, "SF Mono", Consolas, "Liberation Mono", Menlo, monospace',
+  };
+
+  const lineNumberStyle = {
+    minWidth: '3rem',
+    paddingRight: '1rem',
+    textAlign: 'right',
+    userSelect: 'none',
+    opacity: 0.6,
+  };
+
+  return (
+    <div className={`rounded-lg overflow-hidden ${
+      isUser 
+        ? 'bg-gray-900 border border-gray-700' 
+        : 'bg-white border border-gray-200 shadow-sm'
+    }`}>
+      {/* Header with file path and controls */}
+      <div className={`px-4 py-2 border-b flex items-center justify-between ${
+        isUser 
+          ? 'bg-gray-800 border-gray-700 text-gray-100' 
+          : 'bg-gray-50 border-gray-200 text-gray-700'
+      }`}>
+        <div className="flex items-center space-x-2">
+          <button
+            onClick={() => setIsCollapsed(!isCollapsed)}
+            className={`text-sm hover:opacity-70 ${
+              isUser ? 'text-gray-300' : 'text-gray-500'
+            }`}
+          >
+            <span className={`inline-block ${
+              isCollapsed ? 'rotate-0' : 'rotate-90'
+            }`}>
+              ▶️
+            </span>
+          </button>
+          <span className="text-sm font-mono">📄</span>
+          <span className="text-sm font-medium">{filePath || 'Code Block'}</span>
+          {language && (
+            <span className={`text-xs px-2 py-1 rounded ${
+              isUser 
+                ? 'bg-gray-700 text-gray-200' 
+                : 'bg-gray-200 text-gray-600'
+            }`}>
+              {language}
+            </span>
+          )}
+        </div>
+        <div className="flex items-center space-x-2">
+          {!isCollapsed && (
+            <>
+              <button
+                onClick={() => setShowLineNumbers(!showLineNumbers)}
+                className={`text-xs px-2 py-1 rounded transition-colors ${
+                  isUser 
+                    ? 'hover:bg-gray-700 text-gray-300' 
+                    : 'hover:bg-gray-200 text-gray-600'
+                }`}
+              >
+                {showLineNumbers ? 'Hide' : 'Show'} Lines
+              </button>
+              <button
+                onClick={handleCopy}
+                className={`text-xs px-2 py-1 rounded flex items-center space-x-1 transition-colors ${
+                  copySuccess
+                    ? (isUser ? 'bg-green-600 text-white' : 'bg-green-100 text-green-700')
+                    : (isUser ? 'hover:bg-gray-700 text-gray-300' : 'hover:bg-gray-200 text-gray-600')
+                }`}
+              >
+                {copySuccess ? (
+                  <>
+                    <span>✓</span>
+                    <span>Copied</span>
+                  </>
+                ) : (
+                  <>
+                    <span>📋</span>
+                    <span>Copy</span>
+                  </>
+                )}
+              </button>
+            </>
+          )}
+        </div>
+      </div>
+      
+      {/* Code content - CSS display toggle for maximum speed */}
+      <div 
+        className={`overflow-x-auto ${
+          isUser 
+            ? 'bg-gray-900' 
+            : 'bg-white'
+        }`}
+        style={{ display: isCollapsed ? 'none' : 'block' }}
+      >
+        <SyntaxHighlighter
+          language={language || 'text'}
+          style={syntaxTheme}
+          showLineNumbers={showLineNumbers}
+          customStyle={customStyle}
+          lineNumberStyle={lineNumberStyle}
+          wrapLines={true}
+          wrapLongLines={false}
+        >
+          {content}
+        </SyntaxHighlighter>
+      </div>
+      
+      {/* Collapsed state preview - CSS display toggle */}
+      <div 
+        className={`px-4 py-2 text-sm italic ${
+          isUser ? 'text-gray-400' : 'text-gray-500'
+        }`}
+        style={{ display: isCollapsed ? 'block' : 'none' }}
+      >
+        {content.split('\n').length} lines • Click to expand
+      </div>
+    </div>
+  );
+}
+
+function UnifiedMessageBubble({ message, sessionType, allCodeBlocksCollapsed, forceCollapseToggle }) {
   const [showRawData, setShowRawData] = useState(false);
   const [showToolDetails, setShowToolDetails] = useState(false);
 
@@ -270,6 +635,11 @@ function UnifiedMessageBubble({ message, sessionType }) {
   const isUser = message.type === 'user';
   const isAssistant = message.type === 'assistant';
   const isSystem = message.type === 'system' || message.type === 'tool';
+  
+  // Determine content type
+  const contentType = getContentType(message.content, message);
+  const shouldRenderMarkdown = contentType === 'markdown';
+  const shouldRenderCode = contentType === 'code';
 
   return (
     <div className={`flex ${isUser ? 'justify-end' : 'justify-start'} mb-4`}>
@@ -310,8 +680,184 @@ function UnifiedMessageBubble({ message, sessionType }) {
             : 'bg-white border border-gray-200 shadow-sm'
         }`}>
           {/* Main Content */}
-          <div className="whitespace-pre-wrap mb-3">
-            {message.content}
+          <div className="mb-3">
+            {shouldRenderCode ? (
+              <CodeBlock 
+                content={cleanContentForMarkdown(message.content)}
+                language={getLanguageFromPath(message?.metadata?.toolUseResult?.file?.filePath)}
+                filePath={message?.metadata?.toolUseResult?.file?.filePath}
+                isUser={isUser}
+                allCodeBlocksCollapsed={allCodeBlocksCollapsed}
+                forceCollapseToggle={forceCollapseToggle}
+              />
+            ) : shouldRenderMarkdown ? (
+              <div className={`${isUser ? 'text-white' : 'text-gray-700'}`}>
+                <ReactMarkdown 
+                  components={{
+                    h1: ({children}) => (
+                      <h1 className={`text-xl font-bold mb-2 ${
+                        isUser ? 'text-blue-100' : 'text-gray-900'
+                      }`}>
+                        {children}
+                      </h1>
+                    ),
+                    h2: ({children}) => (
+                      <h2 className={`text-lg font-bold mb-2 ${
+                        isUser ? 'text-blue-100' : 'text-gray-900'
+                      }`}>
+                        {children}
+                      </h2>
+                    ),
+                    h3: ({children}) => (
+                      <h3 className={`text-base font-bold mb-1 ${
+                        isUser ? 'text-blue-100' : 'text-gray-900'
+                      }`}>
+                        {children}
+                      </h3>
+                    ),
+                    p: ({children}) => (
+                      <p className={`mb-2 ${
+                        isUser ? 'text-white' : 'text-gray-700'
+                      }`}>
+                        {children}
+                      </p>
+                    ),
+                    strong: ({children}) => (
+                      <strong className={`font-bold ${
+                        isUser ? 'text-blue-100' : 'text-gray-900'
+                      }`}>
+                        {children}
+                      </strong>
+                    ),
+                    em: ({children}) => (
+                      <em className={`italic ${
+                        isUser ? 'text-blue-100' : 'text-gray-600'
+                      }`}>
+                        {children}
+                      </em>
+                    ),
+                    ul: ({children}) => (
+                      <ul className={`list-disc list-inside mb-2 space-y-0.5 ${
+                        isUser ? 'text-white' : 'text-gray-700'
+                      }`}>
+                        {children}
+                      </ul>
+                    ),
+                    ol: ({children}) => (
+                      <ol className={`list-decimal list-inside mb-2 space-y-0.5 ${
+                        isUser ? 'text-white' : 'text-gray-700'
+                      }`}>
+                        {children}
+                      </ol>
+                    ),
+                    li: ({children}) => (
+                      <li className={`${
+                        isUser ? 'text-white' : 'text-gray-700'
+                      }`}>
+                        {children}
+                      </li>
+                    ),
+                    code: ({node, inline, className, children, ...props}) => {
+                      // More explicit inline detection
+                      const isInline = inline || !node || node.tagName !== 'pre';
+                      
+                      if (isInline) {
+                        return (
+                          <code 
+                            className={`px-1 py-0.5 rounded text-sm font-mono ${
+                              isUser 
+                                ? 'bg-blue-500 text-blue-100' 
+                                : 'bg-gray-100 text-gray-900'
+                            }`} 
+                            {...props}
+                          >
+                            {children}
+                          </code>
+                        );
+                      }
+                      return (
+                        <pre className={`p-3 rounded-lg overflow-x-auto mb-3 ${
+                          isUser 
+                            ? 'bg-blue-500 text-blue-100' 
+                            : 'bg-gray-100 text-gray-900'
+                        }`}>
+                          <code className="text-sm font-mono" {...props}>
+                            {children}
+                          </code>
+                        </pre>
+                      );
+                    },
+                    pre: ({children}) => {
+                      // Handle pre tags separately to ensure block code works correctly
+                      return children;
+                    },
+                    blockquote: ({children}) => (
+                      <blockquote className={`border-l-4 pl-4 italic mb-3 ${
+                        isUser 
+                          ? 'border-blue-300 text-blue-100' 
+                          : 'border-gray-300 text-gray-600'
+                      }`}>
+                        {children}
+                      </blockquote>
+                    ),
+                    table: ({children}) => (
+                      <div className="overflow-x-auto mb-3">
+                        <table className={`min-w-full divide-y ${
+                          isUser 
+                            ? 'divide-blue-400' 
+                            : 'divide-gray-200'
+                        }`}>
+                          {children}
+                        </table>
+                      </div>
+                    ),
+                    th: ({children}) => (
+                      <th className={`px-3 py-2 text-left text-xs font-medium uppercase tracking-wider ${
+                        isUser 
+                          ? 'bg-blue-500 text-blue-100' 
+                          : 'bg-gray-50 text-gray-500'
+                      }`}>
+                        {children}
+                      </th>
+                    ),
+                    td: ({children}) => (
+                      <td className={`px-3 py-2 text-sm ${
+                        isUser 
+                          ? 'text-blue-100' 
+                          : 'text-gray-900'
+                      }`}>
+                        {children}
+                      </td>
+                    ),
+                    a: ({children, href}) => (
+                      <a 
+                        href={href}
+                        className={`underline ${
+                          isUser 
+                            ? 'text-blue-200 hover:text-blue-100' 
+                            : 'text-blue-600 hover:text-blue-800'
+                        }`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        {children}
+                      </a>
+                    ),
+                    hr: () => (
+                      <hr className={`my-4 border-t ${
+                        isUser ? 'border-blue-300' : 'border-gray-300'
+                      }`} />
+                    )
+                  }}
+                >
+                  {cleanContentForMarkdown(message.content)}
+                </ReactMarkdown>
+              </div>
+            ) : (
+              <div className="whitespace-pre-wrap">
+                {message.content}
+              </div>
+            )}
           </div>
           
           {/* Tool Calls */}

@@ -218,3 +218,10 @@ export default function SessionPage() {
     </>
   );
 }
+
+// This tells Next.js this is a dynamic page that should be rendered on each request
+export async function getServerSideProps() {
+  return {
+    props: {}, // Will be passed to the page component as props
+  }
+}
