@@ -315,6 +315,14 @@ function ConversationView({ session }) {
 function getContentType(content, message) {
   if (!content || typeof content !== 'string') return 'text';
   
+  // User messages should never be treated as code blocks
+  if (message?.type === 'user') {
+    return 'text';
+  }
+  
+  // Clean content for pattern detection first
+  const cleanContent = cleanContentForMarkdown(content);
+  
   // Check if this is a tool result with file information
   let filePath = null;
   if (message?.metadata?.toolUseResult?.file?.filePath) {
@@ -325,11 +333,11 @@ function getContentType(content, message) {
   if (filePath) {
     const extension = filePath.split('.').pop()?.toLowerCase();
     
-    // Code file extensions
+    // Code file extensions (removed 'json' from here since we want to handle JSON specially)
     const codeExtensions = [
       'js', 'jsx', 'ts', 'tsx', 'py', 'java', 'c', 'cpp', 'cc', 'cxx', 'h', 'hpp',
       'cs', 'php', 'rb', 'go', 'rs', 'swift', 'kt', 'scala', 'sh', 'bash', 'zsh',
-      'fish', 'ps1', 'bat', 'cmd', 'sql', 'json', 'xml', 'yaml', 'yml', 'toml',
+      'fish', 'ps1', 'bat', 'cmd', 'sql', 'xml', 'yaml', 'yml', 'toml',
       'ini', 'cfg', 'conf', 'env', 'css', 'scss', 'sass', 'less', 'html', 'htm',
       'vue', 'svelte', 'astro', 'r', 'R', 'matlab', 'm', 'pl', 'pm', 'lua', 'vim',
       'ex', 'exs', 'elm', 'hs', 'lhs', 'clj', 'cljs', 'cljc', 'edn', 'ml', 'mli',
@@ -339,6 +347,25 @@ function getContentType(content, message) {
     // Markdown file extensions
     const markdownExtensions = ['md', 'markdown', 'mdown', 'mkd', 'mdx'];
     
+    // JSON file extension - handle specially
+    if (extension === 'json') {
+      // For JSON files, check if it's data or code
+      const cleanContent = cleanContentForMarkdown(content);
+      const hasJsonStructure = /^\s*\{[\s\S]*\}\s*$/.test(cleanContent.trim());
+      if (hasJsonStructure) {
+        try {
+          JSON.parse(cleanContent.trim());
+          // If it's valid JSON and contains common message/data fields, treat as text/data
+          if (/["'](?:id|type|content|timestamp|metadata|role)["']\s*:/.test(cleanContent)) {
+            return 'text';
+          }
+        } catch (e) {
+          // If JSON parsing fails, treat as code
+        }
+      }
+      return 'code'; // Default for JSON files if not data
+    }
+    
     if (codeExtensions.includes(extension)) {
       return 'code';
     }
@@ -347,9 +374,6 @@ function getContentType(content, message) {
       return 'markdown';
     }
   }
-  
-  // Clean content for pattern detection
-  const cleanContent = cleanContentForMarkdown(content);
   
   // Check for code patterns (these should override markdown detection)
   const codePatterns = [
@@ -361,7 +385,7 @@ function getContentType(content, message) {
     /^(package|func|import|var)\s+/m,              // Go
     /^(use|fn|impl|struct|enum)\s+/m,              // Rust
     /^\s*<[a-zA-Z][^>]*>/m,                        // HTML/XML tags
-    /^\s*[a-zA-Z-]+\s*:\s*[^;]+;/m,               // CSS properties
+    /^\s*[a-zA-Z-]+\s*:\s*[^;}]+;\s*$/m,          // CSS properties (must end with semicolon and be more specific)
     /^SELECT|INSERT|UPDATE|DELETE|CREATE|DROP/im,  // SQL
   ];
   
