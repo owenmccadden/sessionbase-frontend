@@ -367,6 +367,32 @@ function getContentType(content, message) {
   // Clean content for pattern detection first
   const cleanContent = cleanContentForMarkdown(content);
   
+  // If content contains natural language explanations, prioritize text/markdown over code
+  // Look for conversational phrases that indicate this is explanatory content
+  const conversationalPhrases = [
+    /\b(?:you're|absolutely|perfect|great|now|based on|can see|available|let me|i'll|i can|here's|this is|these are)\b/i,
+    /\b(?:right|sure|okay|yes|no|exactly|correct|sounds good|makes sense)\b/i,
+    /\b(?:let's|we'll|i'll|should|will|going to|start|create|update|implement)\b/i,
+    /\b(?:instead|rather than|instead of|better|simple|minimal|just)\b/i
+  ];
+  
+  const hasConversationalText = conversationalPhrases.some(pattern => pattern.test(cleanContent));
+  
+  // If it's clearly conversational and doesn't look like code, treat as text
+  if (hasConversationalText && cleanContent.length < 500) {
+    // Check if it has markdown patterns
+    if (/(\*\*.*?\*\*|^#{1,6}\s|^\s*[-*+]\s|^\s*\d+\.\s)/m.test(cleanContent)) {
+      return 'markdown';
+    }
+    // Otherwise treat as plain text for short conversational content
+    return 'text';
+  }
+  
+  // If it has explanatory text AND markdown patterns, treat as markdown
+  if (hasConversationalText && /(\*\*.*?\*\*|^#{1,6}\s|^\s*[-*+]\s|^\s*\d+\.\s)/m.test(cleanContent)) {
+    return 'markdown';
+  }
+  
   // Check if this is a tool result with file information
   let filePath = null;
   if (message?.metadata?.toolUseResult?.file?.filePath) {
@@ -403,6 +429,10 @@ function getContentType(content, message) {
           if (/["'](?:id|type|content|timestamp|metadata|role)["']\s*:/.test(cleanContent)) {
             return 'text';
           }
+          // If it's configuration-like JSON (package.json, tsconfig.json, etc.), treat as code
+          if (/["'](?:name|version|scripts|dependencies|devDependencies|compilerOptions|extends)["']\s*:/.test(cleanContent)) {
+            return 'code';
+          }
         } catch (e) {
           // If JSON parsing fails, treat as code
         }
@@ -419,7 +449,24 @@ function getContentType(content, message) {
     }
   }
   
-  // Check for code patterns (these should override markdown detection)
+  // Check for markdown patterns FIRST (before code patterns)
+  const markdownPatterns = [
+    /^#{1,6}\s+/m,           // Headers
+    /\*\*.*?\*\*/,           // Bold
+    /^\s*[-*+]\s+/m,         // Lists
+    /^\s*\d+\.\s+/m,         // Numbered lists
+    /\[.*?\]\(.*?\)/,        // Links
+    /!\[.*?\]\(.*?\)/,       // Images
+    /^\s*\|.*\|.*\|/m,       // Tables
+    /^\s*>\s+/m,             // Blockquotes
+    /---+/,                  // Horizontal rules
+  ];
+  
+  if (markdownPatterns.some(pattern => pattern.test(cleanContent))) {
+    return 'markdown';
+  }
+
+  // Check for code patterns (these should only trigger for actual code)
   const codePatterns = [
     /^(import|export|from|require)\s+/m,           // JS/TS imports
     /^(function|const|let|var|class)\s+/m,         // JS/TS declarations
@@ -437,21 +484,10 @@ function getContentType(content, message) {
     return 'code';
   }
   
-  // Check for markdown patterns
-  const markdownPatterns = [
-    /^#{1,6}\s+/m,           // Headers
-    /\*\*.*?\*\*/,           // Bold
-    /^\s*[-*+]\s+/m,         // Lists
-    /^\s*\d+\.\s+/m,         // Numbered lists
-    /\[.*?\]\(.*?\)/,        // Links
-    /!\[.*?\]\(.*?\)/,       // Images
-    /^\s*\|.*\|.*\|/m,       // Tables
-    /^\s*>\s+/m,             // Blockquotes
-    /---+/,                  // Horizontal rules
-  ];
-  
-  if (markdownPatterns.some(pattern => pattern.test(cleanContent))) {
-    return 'markdown';
+  // Final fallback: if it's an assistant message without file path and doesn't match code patterns,
+  // and it's relatively short and conversational, treat as text
+  if (message?.type === 'assistant' && !filePath && cleanContent.length < 300) {
+    return 'text';
   }
   
   return 'text';
