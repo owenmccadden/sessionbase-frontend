@@ -156,7 +156,14 @@ export default function Discover() {
             <div className="flex justify-between items-center h-16">
               {/* Logo */}
               <div className="flex items-center">
-                <Link href="/" className="text-2xl font-bold text-gray-900">SessionBase</Link>
+                <Link href="/" className="flex items-center space-x-2 text-2xl font-bold text-gray-900">
+                  <img
+                    src="/sessionbase-logo.png"
+                    alt="SessionBase Logo"
+                    className="w-10 h-10"
+                  />
+                  <span>SessionBase</span>
+                </Link>
               </div>
 
               {/* Navigation */}
