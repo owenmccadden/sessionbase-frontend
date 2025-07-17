@@ -163,9 +163,6 @@ function SessionHeader({ session, onStartReplay }) {
             <h1 className="text-2xl font-bold text-gray-900">
               {session.title}
             </h1>
-            <span className="bg-blue-100 text-blue-800 text-sm font-medium px-3 py-1 rounded-full">
-              {getSessionTypeLabel(session.type)}
-            </span>
             {/* Replay Button */}
             <button
               onClick={onStartReplay}
@@ -177,29 +174,12 @@ function SessionHeader({ session, onStartReplay }) {
             </button>
           </div>
           
-          <div className="flex items-center space-x-4 text-sm text-gray-600 mb-2">
-            {session.metadata.version && (
-              <span>Version: {session.metadata.version}</span>
-            )}
-            {session.metadata.duration && (
-              <>
-                {session.metadata.version && <span>•</span>}
-                <span>Duration: {session.metadata.duration}</span>
-              </>
-            )}
-          </div>
-          
           {session.metadata.cwd && (
             <div className="text-sm text-gray-600">
               <span className="font-medium">Working Directory:</span>
               <code className="ml-1 bg-gray-100 px-2 py-1 rounded">{session.metadata.cwd}</code>
             </div>
           )}
-        </div>
-        
-        <div className="text-right">
-          <div className="text-2xl font-bold text-blue-600">{session.stats.totalMessages}</div>
-          <div className="text-sm text-gray-600">Total Messages</div>
         </div>
       </div>
     </div>
