@@ -54,9 +54,9 @@ export default function UnifiedSessionViewer({ session }) {
             label="Conversation"
           />
           <ViewToggleButton
-            active={activeView === 'timeline'}
-            onClick={() => setActiveView('timeline')}
-            label="Timeline"
+            active={activeView === 'user-prompts'}
+            onClick={() => setActiveView('user-prompts')}
+            label="User Prompts"
           />
           <ViewToggleButton
             active={activeView === 'tools'}
@@ -100,7 +100,7 @@ export default function UnifiedSessionViewer({ session }) {
 
       {/* Content Views */}
       {activeView === 'conversation' && <ConversationView session={session} />}
-      {activeView === 'timeline' && <TimelineView session={session} />}
+      {activeView === 'user-prompts' && <UserPromptsView session={session} />}
       {activeView === 'tools' && <ToolsView session={session} />}
       {activeView === 'stats' && <StatsView session={session} />}
       {activeView === 'raw' && <RawDataView session={session} />}
@@ -1292,50 +1292,68 @@ function UsageStats({ usage, isUser }) {
   );
 }
 
-function TimelineView({ session }) {
-  const sortedMessages = [...session.messages].sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+function UserPromptsView({ session }) {
+  // Filter to only show user messages
+  const userMessages = session.messages.filter(message => message.type === 'user');
+  const sortedUserMessages = [...userMessages].sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+  
+  // Get session author info using same pattern as in UnifiedMessageBubble
+  const sessionAuthor = {
+    username: session?.username || session?.author?.username || 'User',
+    avatarUrl: session?.avatarUrl || session?.author?.avatarUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(session?.username || session?.author?.username || 'User')}&background=3b82f6&color=fff&size=24`,
+    userId: session?.userId || session?.author?.userId
+  };
   
   return (
     <div className="bg-white rounded-lg shadow-sm border border-gray-200">
       <div className="p-4 border-b border-gray-200">
-        <h3 className="text-lg font-semibold text-gray-900">Session Timeline</h3>
-        <p className="text-sm text-gray-600">Chronological view of all session events</p>
+        <h3 className="text-lg font-semibold text-gray-900">User Prompts</h3>
+        <p className="text-sm text-gray-600">All messages sent by the user in this session</p>
       </div>
       
       <div className="p-4">
-        {sortedMessages.length === 0 ? (
+        {sortedUserMessages.length === 0 ? (
           <div className="text-center py-8">
-            <div className="text-gray-400 text-4xl mb-4">⏰</div>
-            <p className="text-gray-600">No messages found</p>
+            <div className="text-gray-400 text-4xl mb-4">💬</div>
+            <p className="text-gray-600">No user messages found</p>
           </div>
         ) : (
           <div className="space-y-4">
-            {sortedMessages.map((message, index) => (
-              <div key={message.id} className="flex items-start space-x-3">
-                <div className="flex-shrink-0 w-2 h-2 bg-blue-500 rounded-full mt-2"></div>
-                <div className="flex-grow">
-                  <div className="flex items-center space-x-2 mb-1">
-                    <span className="text-sm font-medium text-gray-900 capitalize">
-                      {message.type}
-                    </span>
-                    <span className="text-xs text-gray-500">
-                      {message.timestamp.toLocaleString()}
-                    </span>
-                    {message.metadata?.model && (
+            {sortedUserMessages.map((message, index) => (
+              <div key={message.id} className="border border-gray-200 rounded-lg p-4">
+                <div className="flex items-center space-x-2 mb-3">
+                  <img
+                    src={sessionAuthor.avatarUrl}
+                    alt={sessionAuthor.username}
+                    className="w-6 h-6 rounded-full object-cover"
+                    onError={(e) => {
+                      e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(sessionAuthor.username)}&background=3b82f6&color=fff&size=24`;
+                    }}
+                  />
+                  <span className="text-sm font-medium text-gray-900">
+                    {sessionAuthor.username}
+                  </span>
+                  <span className="text-xs text-gray-500">•</span>
+                  <span className="text-xs text-gray-500">
+                    {message.timestamp.toLocaleString()}
+                  </span>
+                  {message.metadata?.model && (
+                    <>
+                      <span className="text-xs text-gray-500">•</span>
                       <span className="text-xs bg-purple-100 text-purple-700 px-2 py-1 rounded">
                         {message.metadata.model}
                       </span>
-                    )}
-                  </div>
-                  <div className="text-sm text-gray-600 line-clamp-3">
-                    {message.content}
-                  </div>
-                  {message.toolCalls && message.toolCalls.length > 0 && (
-                    <div className="text-xs text-orange-600 mt-1">
-                      🔧 {message.toolCalls.length} tool call{message.toolCalls.length !== 1 ? 's' : ''}
-                    </div>
+                    </>
                   )}
                 </div>
+                <div className="text-sm text-gray-700 whitespace-pre-wrap">
+                  {message.content}
+                </div>
+                {message.toolCalls && message.toolCalls.length > 0 && (
+                  <div className="text-xs text-orange-600 mt-2">
+                    🔧 {message.toolCalls.length} tool call{message.toolCalls.length !== 1 ? 's' : ''}
+                  </div>
+                )}
               </div>
             ))}
           </div>
