@@ -1702,6 +1702,8 @@ function UsageStats({ usage, isUser }) {
 }
 
 function UserPromptsView({ session }) {
+  const [copiedId, setCopiedId] = useState(null);
+  
   // Filter to only show user messages
   const userMessages = session.messages.filter(message => message.type === 'user');
   const sortedUserMessages = [...userMessages].sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
@@ -1711,6 +1713,16 @@ function UserPromptsView({ session }) {
     username: session?.username || session?.author?.username || 'User',
     avatarUrl: session?.avatarUrl || session?.author?.avatarUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(session?.username || session?.author?.username || 'User')}&background=3b82f6&color=fff&size=24`,
     userId: session?.userId || session?.author?.userId
+  };
+  
+  const copyToClipboard = async (text, messageId) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopiedId(messageId);
+      setTimeout(() => setCopiedId(null), 2000);
+    } catch (err) {
+      console.error('Failed to copy text: ', err);
+    }
   };
   
   return (
@@ -1730,30 +1742,47 @@ function UserPromptsView({ session }) {
           <div className="space-y-4">
             {sortedUserMessages.map((message, index) => (
               <div key={message.id} className="border border-gray-200 rounded-lg p-4">
-                <div className="flex items-center space-x-2 mb-3">
-                  <img
-                    src={sessionAuthor.avatarUrl}
-                    alt={sessionAuthor.username}
-                    className="w-6 h-6 rounded-full object-cover"
-                    onError={(e) => {
-                      e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(sessionAuthor.username)}&background=3b82f6&color=fff&size=24`;
-                    }}
-                  />
-                  <span className="text-sm font-medium text-gray-900">
-                    {sessionAuthor.username}
-                  </span>
-                  <span className="text-xs text-gray-500">•</span>
-                  <span className="text-xs text-gray-500">
-                    {message.timestamp.toLocaleString()}
-                  </span>
-                  {message.metadata?.model && (
-                    <>
-                      <span className="text-xs text-gray-500">•</span>
-                      <span className="text-xs bg-purple-100 text-purple-700 px-2 py-1 rounded">
-                        {message.metadata.model}
-                      </span>
-                    </>
-                  )}
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center space-x-2">
+                    <img
+                      src={sessionAuthor.avatarUrl}
+                      alt={sessionAuthor.username}
+                      className="w-6 h-6 rounded-full object-cover"
+                      onError={(e) => {
+                        e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(sessionAuthor.username)}&background=3b82f6&color=fff&size=24`;
+                      }}
+                    />
+                    <span className="text-sm font-medium text-gray-900">
+                      {sessionAuthor.username}
+                    </span>
+                    <span className="text-xs text-gray-500">•</span>
+                    <span className="text-xs text-gray-500">
+                      {message.timestamp.toLocaleString()}
+                    </span>
+                    {message.metadata?.model && (
+                      <>
+                        <span className="text-xs text-gray-500">•</span>
+                        <span className="text-xs bg-purple-100 text-purple-700 px-2 py-1 rounded">
+                          {message.metadata.model}
+                        </span>
+                      </>
+                    )}
+                  </div>
+                  <button
+                    onClick={() => copyToClipboard(message.content, message.id)}
+                    className="text-gray-400 hover:text-gray-600 transition-colors p-1 rounded hover:bg-gray-100"
+                    title="Copy prompt"
+                  >
+                    {copiedId === message.id ? (
+                      <svg className="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
+                      </svg>
+                    ) : (
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                      </svg>
+                    )}
+                  </button>
                 </div>
                 <div className="text-sm text-gray-700 whitespace-pre-wrap">
                   {message.content}
