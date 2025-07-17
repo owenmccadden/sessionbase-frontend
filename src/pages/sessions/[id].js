@@ -39,13 +39,16 @@ export default function SessionPage() {
         
         // Parse the response to check if it's in the new wrapped format
         let sessionData;
+        let sessionMetadata = null;
         try {
           const parsedResponse = JSON.parse(responseText);
           
           // Check if response has the new format with data property
           if (parsedResponse && typeof parsedResponse === 'object' && parsedResponse.data) {
-            // Extract the actual session data from the data property
-            sessionData = JSON.stringify(parsedResponse.data);
+            // Extract the actual session data from the data property (keep it as string, not re-stringify)
+            sessionData = parsedResponse.data;
+            // Extract metadata if available
+            sessionMetadata = parsedResponse.metadata;
           } else {
             // Use the response as-is for backward compatibility
             sessionData = responseText;
@@ -55,8 +58,40 @@ export default function SessionPage() {
           sessionData = responseText;
         }
         
+        // Handle potentially nested data structure
+        // Some sessions might be stored with their own wrapper format
+        let parsedSessionData = sessionData;
+        if (typeof sessionData === 'string' && sessionData.trim().startsWith('{')) {
+          try {
+            const parsed = JSON.parse(sessionData);
+            // Check if this is a nested structure with its own "data" property
+            if (parsed && typeof parsed === 'object' && parsed.data) {
+              parsedSessionData = parsed.data;
+            } else {
+              parsedSessionData = parsed;
+            }
+          } catch (parseError) {
+            // If parsing fails, keep as string (might be JSONL)
+            console.warn('Failed to parse session data as JSON, keeping as string:', parseError);
+            parsedSessionData = sessionData;
+          }
+        }
+        
         // Use unified parser to detect format and normalize data
-        const normalizedSession = parseSession(sessionData);
+        const normalizedSession = parseSession(parsedSessionData);
+        
+        // Add metadata to the normalized session if we have it
+        if (sessionMetadata) {
+          normalizedSession.metadata = { ...normalizedSession.metadata, ...sessionMetadata };
+          // Add author info for easier access
+          if (sessionMetadata.username || sessionMetadata.avatarUrl) {
+            normalizedSession.author = {
+              username: sessionMetadata.username,
+              avatarUrl: sessionMetadata.avatarUrl,
+              userId: sessionMetadata.userId
+            };
+          }
+        }
         
         setSession(normalizedSession);
       } catch (err) {

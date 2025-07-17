@@ -348,6 +348,7 @@ function ConversationView({ session }) {
             allCodeBlocksCollapsed={allCodeBlocksCollapsed}
             forceCollapseToggle={forceCollapseToggle}
             allToolUseBlocksHidden={allToolUseBlocksHidden}
+            session={session}
           />
         );
       })}
@@ -731,7 +732,7 @@ function CodeBlock({ content, language, filePath, isUser, allCodeBlocksCollapsed
   );
 }
 
-function UnifiedMessageBubble({ message, sessionType, allCodeBlocksCollapsed, forceCollapseToggle, allToolUseBlocksHidden }) {
+function UnifiedMessageBubble({ message, sessionType, allCodeBlocksCollapsed, forceCollapseToggle, allToolUseBlocksHidden, session }) {
   const [showRawData, setShowRawData] = useState(false);
   const [showToolDetails, setShowToolDetails] = useState(false);
 
@@ -739,6 +740,13 @@ function UnifiedMessageBubble({ message, sessionType, allCodeBlocksCollapsed, fo
   const isUser = message.type === 'user';
   const isAssistant = message.type === 'assistant';
   const isSystem = message.type === 'system' || message.type === 'tool';
+  
+  // Get session author info using same pattern as SessionCard
+  const sessionAuthor = {
+    username: session?.username || session?.author?.username || 'User',
+    avatarUrl: session?.avatarUrl || session?.author?.avatarUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(session?.username || session?.author?.username || 'User')}&background=3b82f6&color=fff&size=24`,
+    userId: session?.userId || session?.author?.userId
+  };
   
   // Determine content type
   const contentType = getContentType(message.content, message);
@@ -752,19 +760,31 @@ function UnifiedMessageBubble({ message, sessionType, allCodeBlocksCollapsed, fo
         <div className={`flex items-center mb-2 ${isUser ? 'justify-end' : 'justify-start'}`}>
           <div className="flex items-center space-x-2 text-sm text-gray-500">
             <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-medium ${
-              isUser ? 'bg-blue-100 text-blue-700' : 
+              isUser ? '' : 
               isSystem ? 'bg-orange-100 text-orange-700' :
               ''
             }`}>
-              {isUser ? '👤' : isSystem ? '🔧' : 
+              {isUser ? (
+                <img
+                  src={sessionAuthor.avatarUrl}
+                  alt={sessionAuthor.username}
+                  className="w-6 h-6 rounded-full object-cover"
+                  onError={(e) => {
+                    e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(sessionAuthor.username)}&background=3b82f6&color=fff&size=24`;
+                  }}
+                />
+              ) : isSystem ? '🔧' : 
                 sessionType === SESSION_TYPES.Q_CHAT ? 
                   <img src="/q-logo.png" alt="Amazon Q" className="w-4 h-4" /> :
                   <img src="/claude-logo.png" alt="Claude" className="w-4 h-4" />
               }
             </span>
-            <span className="font-medium capitalize">
+            <span className={`font-medium ${
+              message.type === 'user' ? '' : 'capitalize'
+            }`}>
               {message.type === 'assistant' && sessionType === SESSION_TYPES.CLAUDE_CODE ? 'Claude' : 
-               message.type === 'assistant' && sessionType === SESSION_TYPES.Q_CHAT ? 'Amazon Q' : 
+               message.type === 'assistant' && sessionType === SESSION_TYPES.Q_CHAT ? 'Amazon Q' :
+               message.type === 'user' ? sessionAuthor.username :
                message.type}
               {message.role && message.role !== message.type && ` (${message.role})`}
             </span>
