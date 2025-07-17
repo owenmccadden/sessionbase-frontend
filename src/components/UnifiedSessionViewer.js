@@ -127,9 +127,9 @@ function SessionHeader({ session, onStartReplay }) {
   const getSessionIcon = (type) => {
     switch (type) {
       case SESSION_TYPES.Q_CHAT:
-        return '🤖';
+        return <img src="/q-logo.png" alt="Amazon Q" className="w-8 h-8" />;
       case SESSION_TYPES.CLAUDE_CODE:
-        return '🧠';
+        return <img src="/claude-logo.png" alt="Claude" className="w-8 h-8" />;
       case SESSION_TYPES.CURSOR:
         return '⚡';
       case SESSION_TYPES.GEMINI_CLI:
@@ -754,12 +754,18 @@ function UnifiedMessageBubble({ message, sessionType, allCodeBlocksCollapsed, fo
             <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-medium ${
               isUser ? 'bg-blue-100 text-blue-700' : 
               isSystem ? 'bg-orange-100 text-orange-700' :
-              'bg-green-100 text-green-700'
+              ''
             }`}>
-              {isUser ? '👤' : isSystem ? '🔧' : '🤖'}
+              {isUser ? '👤' : isSystem ? '🔧' : 
+                sessionType === SESSION_TYPES.Q_CHAT ? 
+                  <img src="/q-logo.png" alt="Amazon Q" className="w-4 h-4" /> :
+                  <img src="/claude-logo.png" alt="Claude" className="w-4 h-4" />
+              }
             </span>
             <span className="font-medium capitalize">
-              {message.type}
+              {message.type === 'assistant' && sessionType === SESSION_TYPES.CLAUDE_CODE ? 'Claude' : 
+               message.type === 'assistant' && sessionType === SESSION_TYPES.Q_CHAT ? 'Amazon Q' : 
+               message.type}
               {message.role && message.role !== message.type && ` (${message.role})`}
             </span>
             <span>•</span>
