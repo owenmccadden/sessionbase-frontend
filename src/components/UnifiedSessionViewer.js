@@ -1041,12 +1041,66 @@ function UnifiedMessageBubble({ message, sessionType, allCodeBlocksCollapsed, fo
 
         {/* Raw Data Display */}
         {showRawData && (
-          <div className="mt-2 bg-gray-50 border border-gray-200 rounded p-3">
-            <pre className="text-xs text-gray-600 overflow-auto">
-              {JSON.stringify(message, null, 2)}
-            </pre>
-          </div>
+          <RawMessageDataDisplay message={message} />
         )}
+      </div>
+    </div>
+  );
+}
+
+function RawMessageDataDisplay({ message }) {
+  const [copySuccess, setCopySuccess] = useState(false);
+  
+  const rawText = JSON.stringify(message, null, 2);
+
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(rawText);
+      setCopySuccess(true);
+      setTimeout(() => setCopySuccess(false), 2000);
+    } catch (err) {
+      console.error('Failed to copy:', err);
+      // Fallback for older browsers
+      const textArea = document.createElement('textarea');
+      textArea.value = rawText;
+      document.body.appendChild(textArea);
+      textArea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textArea);
+      setCopySuccess(true);
+      setTimeout(() => setCopySuccess(false), 2000);
+    }
+  };
+
+  return (
+    <div className="mt-2 bg-gray-50 border border-gray-200 rounded">
+      <div className="px-3 py-2 border-b border-gray-200 flex items-center justify-between">
+        <span className="text-xs font-medium text-gray-700">Message Raw Data</span>
+        <button
+          onClick={handleCopy}
+          className={`flex items-center space-x-1 px-2 py-1 rounded text-xs font-medium transition-all ${
+            copySuccess
+              ? 'bg-green-100 text-green-700'
+              : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+          }`}
+        >
+          {copySuccess ? (
+            <>
+              <CheckIcon />
+              <span>Copied!</span>
+            </>
+          ) : (
+            <>
+              <CopyIcon />
+              <span>Copy</span>
+            </>
+          )}
+        </button>
+      </div>
+      <div className="p-3">
+        <pre className="text-xs text-gray-600 overflow-auto">
+          {rawText}
+        </pre>
       </div>
     </div>
   );
@@ -1597,15 +1651,58 @@ function getSessionTypeLabel(type) {
 }
 
 function RawDataView({ session }) {
+  const [copySuccess, setCopySuccess] = useState(false);
+  
   const rawText = typeof session.rawData === 'string' 
     ? session.rawData 
     : JSON.stringify(session.rawData, null, 2);
+
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(rawText);
+      setCopySuccess(true);
+      setTimeout(() => setCopySuccess(false), 2000);
+    } catch (err) {
+      console.error('Failed to copy:', err);
+      // Fallback for older browsers
+      const textArea = document.createElement('textarea');
+      textArea.value = rawText;
+      document.body.appendChild(textArea);
+      textArea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textArea);
+      setCopySuccess(true);
+      setTimeout(() => setCopySuccess(false), 2000);
+    }
+  };
   
   return (
     <div className="bg-white rounded-lg shadow-sm border border-gray-200">
-      <div className="p-4 border-b border-gray-200">
-        <h3 className="text-lg font-semibold text-gray-900">Raw Session Data</h3>
-        <p className="text-sm text-gray-600">Complete raw data representation of the session</p>
+      <div className="p-4 border-b border-gray-200 flex items-center justify-between">
+        <div>
+          <h3 className="text-lg font-semibold text-gray-900">Raw Session Data</h3>
+          <p className="text-sm text-gray-600">Complete raw data representation of the session</p>
+        </div>
+        <button
+          onClick={handleCopy}
+          className={`flex items-center space-x-2 px-3 py-2 rounded-lg text-sm font-medium transition-all ${
+            copySuccess
+              ? 'bg-green-100 text-green-700 border border-green-200'
+              : 'bg-gray-100 text-gray-700 hover:bg-gray-200 border border-gray-200'
+          }`}
+        >
+          {copySuccess ? (
+            <>
+              <CheckIcon />
+              <span>Copied!</span>
+            </>
+          ) : (
+            <>
+              <CopyIcon />
+              <span>Copy</span>
+            </>
+          )}
+        </button>
       </div>
       <div className="p-4">
         <pre className="bg-gray-50 p-4 rounded-lg overflow-auto text-xs max-h-96">
