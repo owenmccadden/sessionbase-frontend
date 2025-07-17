@@ -202,7 +202,11 @@ export default function SessionPage() {
         <Header />
 
         {/* Unified Session Viewer */}
-        <UnifiedSessionViewer session={session} />
+        <UnifiedSessionViewer 
+          session={session} 
+          onSessionUpdate={setSession}
+          sessionId={id}
+        />
       </div>
     </>
   );

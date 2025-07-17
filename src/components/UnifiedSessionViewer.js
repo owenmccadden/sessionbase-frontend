@@ -4,11 +4,14 @@ import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus, vs } from 'react-syntax-highlighter/dist/cjs/styles/prism';
 import { SESSION_TYPES } from '../utils/sessionParser';
 import SessionReplay from './SessionReplay';
+import { useAuth } from '../contexts/AuthContext';
+import { authenticatedFetch } from '../utils/auth';
 
-export default function UnifiedSessionViewer({ session }) {
+export default function UnifiedSessionViewer({ session, onSessionUpdate, sessionId }) {
   const [activeView, setActiveView] = useState('conversation');
   const [copySuccess, setCopySuccess] = useState(false);
   const [isReplayMode, setIsReplayMode] = useState(false);
+  const { user } = useAuth();
 
   const handleCopyRawData = async () => {
     try {
@@ -43,7 +46,13 @@ export default function UnifiedSessionViewer({ session }) {
   return (
     <div className="max-w-6xl mx-auto p-6">
       {/* Session Header */}
-      <SessionHeader session={session} onStartReplay={() => setIsReplayMode(true)} />
+      <SessionHeader 
+        session={session} 
+        onStartReplay={() => setIsReplayMode(true)} 
+        user={user}
+        onSessionUpdate={onSessionUpdate}
+        sessionId={sessionId}
+      />
       
       {/* View Toggle and Copy Button */}
       <div className="mb-6 flex items-center justify-between">
@@ -123,7 +132,94 @@ function ViewToggleButton({ active, onClick, label }) {
   );
 }
 
-function SessionHeader({ session, onStartReplay }) {
+function SessionHeader({ session, onStartReplay, user, onSessionUpdate, sessionId }) {
+  const [isEditing, setIsEditing] = useState(false);
+  const [editedData, setEditedData] = useState({
+    title: session.metadata?.title || session.title || '',
+    summary: session.metadata?.summary || '',
+    tags: session.metadata?.tags || []
+  });
+  const [newTag, setNewTag] = useState('');
+  const [isSaving, setIsSaving] = useState(false);
+
+  // Check if user is the owner of the session
+  const isOwner = user && session.author && (
+    user.id === session.author.userId || 
+    user.userId === session.author.userId ||
+    user.id === session.author.id
+  );
+
+  const handleSave = async () => {
+    if (!isOwner) return;
+    
+    setIsSaving(true);
+    try {
+      const endpointUrl = process.env.NEXT_PUBLIC_ENDPOINT_URL || process.env.ENDPOINT_URL;
+      const response = await authenticatedFetch(`${endpointUrl}/sessions/${sessionId}/metadata`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          title: editedData.title,
+          summary: editedData.summary,
+          tags: editedData.tags
+        }),
+      });
+
+      if (response.ok) {
+        setIsEditing(false);
+        if (onSessionUpdate) {
+          onSessionUpdate({
+            ...session,
+            metadata: {
+              ...session.metadata,
+              title: editedData.title,
+              summary: editedData.summary,
+              tags: editedData.tags
+            }
+          });
+        }
+      } else {
+        const errorText = await response.text();
+        console.error('API Error Response:', errorText);
+        console.error('Response Status:', response.status);
+        throw new Error(`Failed to update session metadata: ${errorText}`);
+      }
+    } catch (error) {
+      console.error('Error updating session metadata:', error);
+      // Could add a toast notification here
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleCancel = () => {
+    setEditedData({
+      title: session.metadata?.title || session.title || '',
+      summary: session.metadata?.summary || '',
+      tags: session.metadata?.tags || []
+    });
+    setIsEditing(false);
+  };
+
+  const handleAddTag = () => {
+    if (newTag.trim() && !editedData.tags.includes(newTag.trim())) {
+      setEditedData({
+        ...editedData,
+        tags: [...editedData.tags, newTag.trim()]
+      });
+      setNewTag('');
+    }
+  };
+
+  const handleRemoveTag = (tagToRemove) => {
+    setEditedData({
+      ...editedData,
+      tags: editedData.tags.filter(tag => tag !== tagToRemove)
+    });
+  };
+
   const getSessionIcon = (type) => {
     switch (type) {
       case SESSION_TYPES.Q_CHAT:
@@ -157,11 +253,63 @@ function SessionHeader({ session, onStartReplay }) {
   return (
     <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
       <div className="flex items-start justify-between">
-        <div className="flex-1">
-          <div className="flex items-center space-x-3 mb-2">
-            <h1 className="text-2xl font-bold text-gray-900">
-              {session.metadata?.title || session.title}
-            </h1>
+        <div className="flex-1 pr-4">
+          <div className="mb-2">
+            {isEditing ? (
+              <input
+                type="text"
+                value={editedData.title}
+                onChange={(e) => setEditedData({...editedData, title: e.target.value})}
+                className="w-full text-2xl font-bold text-gray-900 border border-gray-300 rounded px-3 py-2 bg-white"
+                placeholder="Session title"
+              />
+            ) : (
+              <h1 className="text-2xl font-bold text-gray-900">
+                {session.metadata?.title || session.title}
+              </h1>
+            )}
+          </div>
+          
+          {/* Action buttons - moved below title */}
+          <div className="flex items-center space-x-2 mb-3">
+            {/* Edit/Save/Cancel buttons */}
+            {isOwner && (
+              <>
+                {isEditing ? (
+                  <>
+                    <button
+                      onClick={handleSave}
+                      disabled={isSaving}
+                      className="flex items-center space-x-1 px-3 py-1 bg-green-600 hover:bg-green-700 disabled:bg-green-400 text-white text-sm font-medium rounded transition-colors"
+                    >
+                      {isSaving ? (
+                        <span className="animate-spin">⭮</span>
+                      ) : (
+                        <SaveIcon />
+                      )}
+                      <span>{isSaving ? 'Saving...' : 'Save'}</span>
+                    </button>
+                    <button
+                      onClick={handleCancel}
+                      disabled={isSaving}
+                      className="flex items-center space-x-1 px-3 py-1 bg-gray-600 hover:bg-gray-700 disabled:bg-gray-400 text-white text-sm font-medium rounded transition-colors"
+                    >
+                      <CancelIcon />
+                      <span>Cancel</span>
+                    </button>
+                  </>
+                ) : (
+                  <button
+                    onClick={() => setIsEditing(true)}
+                    className="flex items-center space-x-1 px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded transition-colors"
+                  >
+                    <EditIcon />
+                    <span>Edit</span>
+                  </button>
+                )}
+              </>
+            )}
+            
             {/* Replay Button */}
             <button
               onClick={onStartReplay}
@@ -174,25 +322,63 @@ function SessionHeader({ session, onStartReplay }) {
           </div>
           
           {/* Summary */}
-          {session.metadata?.summary && (
+          {(isEditing || session.metadata?.summary) && (
             <div className="mb-3">
-              <p className="text-gray-700 text-sm leading-relaxed">
-                {session.metadata.summary}
-              </p>
+              {isEditing ? (
+                <textarea
+                  value={editedData.summary}
+                  onChange={(e) => setEditedData({...editedData, summary: e.target.value})}
+                  className="w-full text-gray-700 text-sm leading-relaxed border border-gray-300 rounded px-2 py-1 resize-none"
+                  placeholder="Session summary"
+                  rows="2"
+                />
+              ) : (
+                <p className="text-gray-700 text-sm leading-relaxed">
+                  {session.metadata.summary}
+                </p>
+              )}
             </div>
           )}
           
           {/* Tags */}
-          {session.metadata?.tags && session.metadata.tags.length > 0 && (
-            <div className="flex flex-wrap gap-2 mb-3">
-              {session.metadata.tags.map((tag) => (
-                <span
-                  key={tag}
-                  className="inline-block bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded hover:bg-blue-200 transition-colors"
-                >
-                  {tag}
-                </span>
-              ))}
+          {(isEditing || (session.metadata?.tags && session.metadata.tags.length > 0)) && (
+            <div className="mb-3">
+              <div className="flex flex-wrap gap-2 mb-2">
+                {(isEditing ? editedData.tags : session.metadata.tags).map((tag) => (
+                  <span
+                    key={tag}
+                    className="inline-flex items-center bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded hover:bg-blue-200 transition-colors"
+                  >
+                    {tag}
+                    {isEditing && (
+                      <button
+                        onClick={() => handleRemoveTag(tag)}
+                        className="ml-1 text-blue-600 hover:text-blue-800"
+                      >
+                        ×
+                      </button>
+                    )}
+                  </span>
+                ))}
+              </div>
+              {isEditing && (
+                <div className="flex items-center space-x-2">
+                  <input
+                    type="text"
+                    value={newTag}
+                    onChange={(e) => setNewTag(e.target.value)}
+                    onKeyPress={(e) => e.key === 'Enter' && handleAddTag()}
+                    className="text-xs border border-gray-300 rounded px-2 py-1 bg-white"
+                    placeholder="Add tag"
+                  />
+                  <button
+                    onClick={handleAddTag}
+                    className="text-xs bg-blue-600 hover:bg-blue-700 text-white px-2 py-1 rounded"
+                  >
+                    Add
+                  </button>
+                </div>
+              )}
             </div>
           )}
           
@@ -2008,6 +2194,30 @@ function ChevronDownIcon() {
   return (
     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+    </svg>
+  );
+}
+
+function EditIcon() {
+  return (
+    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+    </svg>
+  );
+}
+
+function SaveIcon() {
+  return (
+    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
+    </svg>
+  );
+}
+
+function CancelIcon() {
+  return (
+    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
     </svg>
   );
 }
