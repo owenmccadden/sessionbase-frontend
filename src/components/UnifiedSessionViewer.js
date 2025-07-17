@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus, vs } from 'react-syntax-highlighter/dist/cjs/styles/prism';
@@ -1802,6 +1802,7 @@ function UserPromptsView({ session }) {
 }
 
 function ToolsView({ session }) {
+  const [allExpanded, setAllExpanded] = useState(true);
   const toolCalls = [];
   
   session.messages.forEach(message => {
@@ -1817,13 +1818,36 @@ function ToolsView({ session }) {
     }
   });
   
+  const toggleAllExpanded = () => {
+    setAllExpanded(!allExpanded);
+  };
+  
   return (
     <div className="bg-white rounded-lg shadow-sm border border-gray-200">
       <div className="p-4 border-b border-gray-200">
-        <h3 className="text-lg font-semibold text-gray-900">Tool Usage</h3>
-        <p className="text-sm text-gray-600">
-          {toolCalls.length} tool call{toolCalls.length !== 1 ? 's' : ''} in this session
-        </p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h3 className="text-lg font-semibold text-gray-900">Tool Usage</h3>
+            <p className="text-sm text-gray-600">
+              {toolCalls.length} tool call{toolCalls.length !== 1 ? 's' : ''} in this session
+            </p>
+          </div>
+          {toolCalls.length > 0 && (
+            <button
+              onClick={toggleAllExpanded}
+              className="flex items-center space-x-1 text-sm text-blue-600 hover:text-blue-800 px-3 py-1 rounded-md hover:bg-blue-50 transition-colors"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                {allExpanded ? (
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 15l7-7 7 7" />
+                ) : (
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+                )}
+              </svg>
+              <span>{allExpanded ? 'Collapse All' : 'Expand All'}</span>
+            </button>
+          )}
+        </div>
       </div>
       
       <div className="p-4">
@@ -1835,7 +1859,7 @@ function ToolsView({ session }) {
         ) : (
           <div className="space-y-4">
             {toolCalls.map((tool, index) => (
-              <ToolCallDetailCard key={tool.id || index} tool={tool} />
+              <ToolCallDetailCard key={tool.id || index} tool={tool} allExpanded={allExpanded} />
             ))}
           </div>
         )}
@@ -1844,9 +1868,15 @@ function ToolsView({ session }) {
   );
 }
 
-function ToolCallDetailCard({ tool }) {
-  const [showInput, setShowInput] = useState(false);
-  const [showOriginalArgs, setShowOriginalArgs] = useState(false);
+function ToolCallDetailCard({ tool, allExpanded }) {
+  const [showInput, setShowInput] = useState(true);
+  const [showOriginalArgs, setShowOriginalArgs] = useState(true);
+
+  // Update local state when allExpanded changes
+  useEffect(() => {
+    setShowInput(allExpanded);
+    setShowOriginalArgs(allExpanded);
+  }, [allExpanded]);
 
   return (
     <div className="border border-gray-200 rounded-lg p-4">
