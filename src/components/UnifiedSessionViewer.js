@@ -243,12 +243,19 @@ function StatCard({ value, label, color }) {
 
 function ConversationView({ session }) {
   const [allCodeBlocksCollapsed, setAllCodeBlocksCollapsed] = useState(false);
+  const [allMarkdownBlocksCollapsed, setAllMarkdownBlocksCollapsed] = useState(false);
   const [forceCollapseToggle, setForceCollapseToggle] = useState(0);
+  const [forceMarkdownCollapseToggle, setForceMarkdownCollapseToggle] = useState(0);
   const [allToolUseBlocksHidden, setAllToolUseBlocksHidden] = useState(false);
 
   const handleToggleAll = () => {
     setAllCodeBlocksCollapsed(!allCodeBlocksCollapsed);
     setForceCollapseToggle(prev => prev + 1);
+  };
+
+  const handleToggleAllMarkdown = () => {
+    setAllMarkdownBlocksCollapsed(!allMarkdownBlocksCollapsed);
+    setForceMarkdownCollapseToggle(prev => prev + 1);
   };
 
   const handleToggleAllToolUse = () => {
@@ -270,6 +277,11 @@ function ConversationView({ session }) {
     getContentType(message.content, message) === 'code'
   );
 
+  // Check if there are any markdown blocks in the session
+  const hasMarkdownBlocks = session.messages.some(message => 
+    getContentType(message.content, message) === 'markdown'
+  );
+
   // Check if there are any tool use blocks in the session
   const hasToolUseBlocks = session.messages.some(message => 
     message.toolCalls && message.toolCalls.length > 0
@@ -278,7 +290,7 @@ function ConversationView({ session }) {
   return (
     <div className="space-y-4">
       {/* Sticky Controls */}
-      {(hasCodeBlocks || hasToolUseBlocks) && (
+      {(hasCodeBlocks || hasMarkdownBlocks || hasToolUseBlocks) && (
         <div className="fixed top-20 right-6 z-30">
           <div className="flex flex-col items-end space-y-2 bg-white rounded-lg shadow-lg border border-gray-200 px-4 py-2 backdrop-blur-sm bg-white/95">
             {/* Code Blocks Toggle */}
@@ -293,13 +305,29 @@ function ConversationView({ session }) {
                       : 'bg-gray-600 text-white shadow-md hover:bg-gray-700'
                   }`}
                 >
-                  <span className={`${
-                    allCodeBlocksCollapsed ? 'rotate-0' : 'rotate-90'
-                  }`}>
-                    ▶️
-                  </span>
+                  {allCodeBlocksCollapsed ? <ChevronRightIcon /> : <ChevronDownIcon />}
                   <span className="font-medium">
                     {allCodeBlocksCollapsed ? 'Expand All' : 'Collapse All'}
+                  </span>
+                </button>
+              </div>
+            )}
+
+            {/* Markdown Blocks Toggle */}
+            {hasMarkdownBlocks && (
+              <div className="flex items-center space-x-3">
+                <span className="text-sm text-gray-600 font-medium">Markdown Blocks:</span>
+                <button
+                  onClick={handleToggleAllMarkdown}
+                  className={`text-sm px-4 py-2 rounded-lg transition-all duration-200 transform hover:scale-105 flex items-center space-x-2 ${
+                    allMarkdownBlocksCollapsed 
+                      ? 'bg-green-600 text-white shadow-md hover:bg-green-700' 
+                      : 'bg-gray-600 text-white shadow-md hover:bg-gray-700'
+                  }`}
+                >
+                  {allMarkdownBlocksCollapsed ? <ChevronRightIcon /> : <ChevronDownIcon />}
+                  <span className="font-medium">
+                    {allMarkdownBlocksCollapsed ? 'Expand All' : 'Collapse All'}
                   </span>
                 </button>
               </div>
@@ -343,6 +371,8 @@ function ConversationView({ session }) {
             sessionType={session.type}
             allCodeBlocksCollapsed={allCodeBlocksCollapsed}
             forceCollapseToggle={forceCollapseToggle}
+            allMarkdownBlocksCollapsed={allMarkdownBlocksCollapsed}
+            forceMarkdownCollapseToggle={forceMarkdownCollapseToggle}
             allToolUseBlocksHidden={allToolUseBlocksHidden}
             session={session}
           />
@@ -637,11 +667,7 @@ function CodeBlock({ content, language, filePath, isUser, allCodeBlocksCollapsed
               isUser ? 'text-gray-300' : 'text-gray-500'
             }`}
           >
-            <span className={`inline-block ${
-              isCollapsed ? 'rotate-0' : 'rotate-90'
-            }`}>
-              ▶️
-            </span>
+            {isCollapsed ? <ChevronRightIcon /> : <ChevronDownIcon />}
           </button>
           <span className="text-sm font-mono">📄</span>
           <span className="text-sm font-medium">{filePath || 'Code Block'}</span>
@@ -728,7 +754,262 @@ function CodeBlock({ content, language, filePath, isUser, allCodeBlocksCollapsed
   );
 }
 
-function UnifiedMessageBubble({ message, sessionType, allCodeBlocksCollapsed, forceCollapseToggle, allToolUseBlocksHidden, session }) {
+function MarkdownBlock({ content, isUser, allMarkdownBlocksCollapsed, forceMarkdownCollapseToggle }) {
+  const [isCollapsed, setIsCollapsed] = useState(false);
+  const [copySuccess, setCopySuccess] = useState(false);
+
+  // React to global collapse/expand controls immediately
+  React.useEffect(() => {
+    if (forceMarkdownCollapseToggle > 0) {
+      setIsCollapsed(allMarkdownBlocksCollapsed);
+    }
+  }, [allMarkdownBlocksCollapsed, forceMarkdownCollapseToggle]);
+
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(cleanContentForMarkdown(content));
+      setCopySuccess(true);
+      setTimeout(() => setCopySuccess(false), 2000);
+    } catch (err) {
+      console.error('Failed to copy:', err);
+    }
+  };
+
+  return (
+    <div className={`rounded-lg overflow-hidden ${
+      isUser 
+        ? 'bg-blue-600 border border-blue-500' 
+        : 'bg-white border border-gray-200 shadow-sm'
+    }`}>
+      {/* Header with controls */}
+      <div className={`px-4 py-2 border-b flex items-center justify-between ${
+        isUser 
+          ? 'bg-blue-700 border-blue-500 text-blue-100' 
+          : 'bg-gray-50 border-gray-200 text-gray-700'
+      }`}>
+        <div className="flex items-center space-x-2">
+          <button
+            onClick={() => setIsCollapsed(!isCollapsed)}
+            className={`text-sm hover:opacity-70 ${
+              isUser ? 'text-blue-200' : 'text-gray-500'
+            }`}
+          >
+            {isCollapsed ? <ChevronRightIcon /> : <ChevronDownIcon />}
+          </button>
+          <span className="text-sm font-mono">📝</span>
+          <span className="text-sm font-medium">Markdown Content</span>
+        </div>
+        <div className="flex items-center space-x-2">
+          {!isCollapsed && (
+            <button
+              onClick={handleCopy}
+              className={`text-xs px-2 py-1 rounded flex items-center space-x-1 transition-colors ${
+                copySuccess
+                  ? (isUser ? 'bg-green-600 text-white' : 'bg-green-100 text-green-700')
+                  : (isUser ? 'hover:bg-blue-600 text-blue-200' : 'hover:bg-gray-200 text-gray-600')
+              }`}
+            >
+              {copySuccess ? (
+                <>
+                  <CheckIcon />
+                  <span>Copied</span>
+                </>
+              ) : (
+                <>
+                  <CopyIcon />
+                  <span>Copy</span>
+                </>
+              )}
+            </button>
+          )}
+        </div>
+      </div>
+      
+      {/* Markdown content - CSS display toggle for maximum speed */}
+      <div 
+        className={`${
+          isUser 
+            ? 'bg-blue-600' 
+            : 'bg-white'
+        }`}
+        style={{ display: isCollapsed ? 'none' : 'block' }}
+      >
+        <div className={`p-4 ${isUser ? 'text-white' : 'text-gray-700'}`}>
+          <ReactMarkdown 
+            components={{
+              h1: ({children}) => (
+                <h1 className={`text-xl font-bold mb-2 ${
+                  isUser ? 'text-blue-100' : 'text-gray-900'
+                }`}>
+                  {children}
+                </h1>
+              ),
+              h2: ({children}) => (
+                <h2 className={`text-lg font-bold mb-2 ${
+                  isUser ? 'text-blue-100' : 'text-gray-900'
+                }`}>
+                  {children}
+                </h2>
+              ),
+              h3: ({children}) => (
+                <h3 className={`text-base font-bold mb-1 ${
+                  isUser ? 'text-blue-100' : 'text-gray-900'
+                }`}>
+                  {children}
+                </h3>
+              ),
+              p: ({children}) => (
+                <p className={`mb-2 ${
+                  isUser ? 'text-white' : 'text-gray-700'
+                }`}>
+                  {children}
+                </p>
+              ),
+              strong: ({children}) => (
+                <strong className={`font-bold ${
+                  isUser ? 'text-blue-100' : 'text-gray-900'
+                }`}>
+                  {children}
+                </strong>
+              ),
+              em: ({children}) => (
+                <em className={`italic ${
+                  isUser ? 'text-blue-100' : 'text-gray-600'
+                }`}>
+                  {children}
+                </em>
+              ),
+              ul: ({children}) => (
+                <ul className={`list-disc list-inside mb-2 space-y-0.5 ${
+                  isUser ? 'text-white' : 'text-gray-700'
+                }`}>
+                  {children}
+                </ul>
+              ),
+              ol: ({children}) => (
+                <ol className={`list-decimal list-inside mb-2 space-y-0.5 ${
+                  isUser ? 'text-white' : 'text-gray-700'
+                }`}>
+                  {children}
+                </ol>
+              ),
+              li: ({children}) => (
+                <li className={`${
+                  isUser ? 'text-white' : 'text-gray-700'
+                }`}>
+                  {children}
+                </li>
+              ),
+              code: ({node, inline, className, children, ...props}) => {
+                const isInline = inline || !node || node.tagName !== 'pre';
+                
+                if (isInline) {
+                  return (
+                    <code 
+                      className={`px-1 py-0.5 rounded text-sm font-mono ${
+                        isUser 
+                          ? 'bg-blue-500 text-blue-100' 
+                          : 'bg-gray-100 text-gray-900'
+                      }`} 
+                      {...props}
+                    >
+                      {children}
+                    </code>
+                  );
+                }
+                return (
+                  <pre className={`p-3 rounded-lg overflow-x-auto mb-3 ${
+                    isUser 
+                      ? 'bg-blue-500 text-blue-100' 
+                      : 'bg-gray-100 text-gray-900'
+                  }`}>
+                    <code className="text-sm font-mono" {...props}>
+                      {children}
+                    </code>
+                  </pre>
+                );
+              },
+              pre: ({children}) => {
+                return children;
+              },
+              blockquote: ({children}) => (
+                <blockquote className={`border-l-4 pl-4 italic mb-3 ${
+                  isUser 
+                    ? 'border-blue-300 text-blue-100' 
+                    : 'border-gray-300 text-gray-600'
+                }`}>
+                  {children}
+                </blockquote>
+              ),
+              table: ({children}) => (
+                <div className="overflow-x-auto mb-3">
+                  <table className={`min-w-full divide-y ${
+                    isUser 
+                      ? 'divide-blue-400' 
+                      : 'divide-gray-200'
+                  }`}>
+                    {children}
+                  </table>
+                </div>
+              ),
+              th: ({children}) => (
+                <th className={`px-3 py-2 text-left text-xs font-medium uppercase tracking-wider ${
+                  isUser 
+                    ? 'bg-blue-500 text-blue-100' 
+                    : 'bg-gray-50 text-gray-500'
+                }`}>
+                  {children}
+                </th>
+              ),
+              td: ({children}) => (
+                <td className={`px-3 py-2 text-sm ${
+                  isUser 
+                    ? 'text-blue-100' 
+                    : 'text-gray-900'
+                }`}>
+                  {children}
+                </td>
+              ),
+              a: ({children, href}) => (
+                <a 
+                  href={href}
+                  className={`underline ${
+                    isUser 
+                      ? 'text-blue-200 hover:text-blue-100' 
+                      : 'text-blue-600 hover:text-blue-800'
+                  }`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  {children}
+                </a>
+              ),
+              hr: () => (
+                <hr className={`my-4 border-t ${
+                  isUser ? 'border-blue-300' : 'border-gray-300'
+                }`} />
+              )
+            }}
+          >
+            {cleanContentForMarkdown(content)}
+          </ReactMarkdown>
+        </div>
+      </div>
+      
+      {/* Collapsed state preview */}
+      <div 
+        className={`px-4 py-2 text-sm italic ${
+          isUser ? 'text-blue-200' : 'text-gray-500'
+        }`}
+        style={{ display: isCollapsed ? 'block' : 'none' }}
+      >
+        Markdown content • Click to expand
+      </div>
+    </div>
+  );
+}
+
+function UnifiedMessageBubble({ message, sessionType, allCodeBlocksCollapsed, forceCollapseToggle, allMarkdownBlocksCollapsed, forceMarkdownCollapseToggle, allToolUseBlocksHidden, session }) {
   const [showRawData, setShowRawData] = useState(false);
   const [showToolDetails, setShowToolDetails] = useState(false);
 
@@ -817,168 +1098,12 @@ function UnifiedMessageBubble({ message, sessionType, allCodeBlocksCollapsed, fo
                 forceCollapseToggle={forceCollapseToggle}
               />
             ) : shouldRenderMarkdown ? (
-              <div className={`${isUser ? 'text-white' : 'text-gray-700'}`}>
-                <ReactMarkdown 
-                  components={{
-                    h1: ({children}) => (
-                      <h1 className={`text-xl font-bold mb-2 ${
-                        isUser ? 'text-blue-100' : 'text-gray-900'
-                      }`}>
-                        {children}
-                      </h1>
-                    ),
-                    h2: ({children}) => (
-                      <h2 className={`text-lg font-bold mb-2 ${
-                        isUser ? 'text-blue-100' : 'text-gray-900'
-                      }`}>
-                        {children}
-                      </h2>
-                    ),
-                    h3: ({children}) => (
-                      <h3 className={`text-base font-bold mb-1 ${
-                        isUser ? 'text-blue-100' : 'text-gray-900'
-                      }`}>
-                        {children}
-                      </h3>
-                    ),
-                    p: ({children}) => (
-                      <p className={`mb-2 ${
-                        isUser ? 'text-white' : 'text-gray-700'
-                      }`}>
-                        {children}
-                      </p>
-                    ),
-                    strong: ({children}) => (
-                      <strong className={`font-bold ${
-                        isUser ? 'text-blue-100' : 'text-gray-900'
-                      }`}>
-                        {children}
-                      </strong>
-                    ),
-                    em: ({children}) => (
-                      <em className={`italic ${
-                        isUser ? 'text-blue-100' : 'text-gray-600'
-                      }`}>
-                        {children}
-                      </em>
-                    ),
-                    ul: ({children}) => (
-                      <ul className={`list-disc list-inside mb-2 space-y-0.5 ${
-                        isUser ? 'text-white' : 'text-gray-700'
-                      }`}>
-                        {children}
-                      </ul>
-                    ),
-                    ol: ({children}) => (
-                      <ol className={`list-decimal list-inside mb-2 space-y-0.5 ${
-                        isUser ? 'text-white' : 'text-gray-700'
-                      }`}>
-                        {children}
-                      </ol>
-                    ),
-                    li: ({children}) => (
-                      <li className={`${
-                        isUser ? 'text-white' : 'text-gray-700'
-                      }`}>
-                        {children}
-                      </li>
-                    ),
-                    code: ({node, inline, className, children, ...props}) => {
-                      // More explicit inline detection
-                      const isInline = inline || !node || node.tagName !== 'pre';
-                      
-                      if (isInline) {
-                        return (
-                          <code 
-                            className={`px-1 py-0.5 rounded text-sm font-mono ${
-                              isUser 
-                                ? 'bg-blue-500 text-blue-100' 
-                                : 'bg-gray-100 text-gray-900'
-                            }`} 
-                            {...props}
-                          >
-                            {children}
-                          </code>
-                        );
-                      }
-                      return (
-                        <pre className={`p-3 rounded-lg overflow-x-auto mb-3 ${
-                          isUser 
-                            ? 'bg-blue-500 text-blue-100' 
-                            : 'bg-gray-100 text-gray-900'
-                        }`}>
-                          <code className="text-sm font-mono" {...props}>
-                            {children}
-                          </code>
-                        </pre>
-                      );
-                    },
-                    pre: ({children}) => {
-                      // Handle pre tags separately to ensure block code works correctly
-                      return children;
-                    },
-                    blockquote: ({children}) => (
-                      <blockquote className={`border-l-4 pl-4 italic mb-3 ${
-                        isUser 
-                          ? 'border-blue-300 text-blue-100' 
-                          : 'border-gray-300 text-gray-600'
-                      }`}>
-                        {children}
-                      </blockquote>
-                    ),
-                    table: ({children}) => (
-                      <div className="overflow-x-auto mb-3">
-                        <table className={`min-w-full divide-y ${
-                          isUser 
-                            ? 'divide-blue-400' 
-                            : 'divide-gray-200'
-                        }`}>
-                          {children}
-                        </table>
-                      </div>
-                    ),
-                    th: ({children}) => (
-                      <th className={`px-3 py-2 text-left text-xs font-medium uppercase tracking-wider ${
-                        isUser 
-                          ? 'bg-blue-500 text-blue-100' 
-                          : 'bg-gray-50 text-gray-500'
-                      }`}>
-                        {children}
-                      </th>
-                    ),
-                    td: ({children}) => (
-                      <td className={`px-3 py-2 text-sm ${
-                        isUser 
-                          ? 'text-blue-100' 
-                          : 'text-gray-900'
-                      }`}>
-                        {children}
-                      </td>
-                    ),
-                    a: ({children, href}) => (
-                      <a 
-                        href={href}
-                        className={`underline ${
-                          isUser 
-                            ? 'text-blue-200 hover:text-blue-100' 
-                            : 'text-blue-600 hover:text-blue-800'
-                        }`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
-                        {children}
-                      </a>
-                    ),
-                    hr: () => (
-                      <hr className={`my-4 border-t ${
-                        isUser ? 'border-blue-300' : 'border-gray-300'
-                      }`} />
-                    )
-                  }}
-                >
-                  {cleanContentForMarkdown(message.content)}
-                </ReactMarkdown>
-              </div>
+              <MarkdownBlock 
+                content={message.content}
+                isUser={isUser}
+                allMarkdownBlocksCollapsed={allMarkdownBlocksCollapsed}
+                forceMarkdownCollapseToggle={forceMarkdownCollapseToggle}
+              />
             ) : (
               <div className="whitespace-pre-wrap">
                 {message.content}
@@ -1769,6 +1894,22 @@ function PlayIcon() {
   return (
     <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
       <path d="M8 5v14l11-7z" />
+    </svg>
+  );
+}
+
+function ChevronRightIcon() {
+  return (
+    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+    </svg>
+  );
+}
+
+function ChevronDownIcon() {
+  return (
+    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
     </svg>
   );
 }
