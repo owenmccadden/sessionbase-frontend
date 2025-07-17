@@ -382,13 +382,134 @@ function ConversationView({ session }) {
   );
 }
 
+// Conservative heuristics to detect if user content is likely a code block
+function detectUserCodeContent(content) {
+  if (!content || typeof content !== 'string') return 'text';
+  
+  const cleanContent = content.trim();
+  
+  // If content is very short (less than 3 lines), bias toward text unless very obvious
+  const lines = cleanContent.split('\n');
+  if (lines.length < 3 && cleanContent.length < 100) {
+    // Only detect very obvious single-line code patterns
+    const obviousSingleLineCode = [
+      /^(import|export|from|require)\s+.+$/,           // JS/TS imports
+      /^(function|const|let|var|class)\s+\w+.*[{(].*$/,  // JS/TS declarations with opening brace/paren
+      /^(def|class)\s+\w+.*:.*$/,                      // Python def/class
+      /^(public|private|protected|static)\s+(class|interface|enum)\s+\w+/,  // Java/C# class declarations
+      /^#include\s*<.+>$/,                             // C/C++ includes
+      /^(package|func|import|var)\s+/,                 // Go
+      /^(use|fn|impl|struct|enum)\s+/,                 // Rust
+    ];
+    
+    if (obviousSingleLineCode.some(pattern => pattern.test(cleanContent))) {
+      return 'code';
+    }
+    return 'text';
+  }
+  
+  // For longer content, use more comprehensive detection
+  
+  // Check for markdown fencing (very strong indicator)
+  if (/^```[\w]*\s*\n[\s\S]*\n```\s*$/m.test(cleanContent)) {
+    return 'code';
+  }
+  
+  // Check for multiple clear code indicators (need at least 2 for confidence)
+  let codeIndicators = 0;
+  
+  // Strong code patterns that are unlikely to appear in normal text
+  const strongCodePatterns = [
+    /^(import|export|from|require)\s+/m,              // Module imports
+    /^(function|const|let|var|class)\s+\w+/m,         // JS/TS declarations  
+    /^(def|class)\s+\w+.*:/m,                         // Python def/class
+    /^(public|private|protected|static)\s+(class|interface|enum|void|int|string)/m, // Java/C# modifiers
+    /^#include\s*[<"]/m,                              // C/C++ includes
+    /^(package|func|import|var)\s+\w+/m,              // Go keywords
+    /^(use|fn|impl|struct|enum)\s+/m,                 // Rust keywords
+    /^\s*<[a-zA-Z][^>]*>/m,                           // HTML/XML tags
+    /^SELECT|INSERT|UPDATE|DELETE|CREATE|DROP/im,     // SQL keywords
+  ];
+  
+  // Count strong indicators
+  codeIndicators += strongCodePatterns.filter(pattern => pattern.test(cleanContent)).length;
+  
+  // Additional indicators (weaker, so need more of these)
+  const weakCodePatterns = [
+    /[{}\[\]();]/,                                    // Common code punctuation
+    /\w+\s*\(\s*.*\s*\)/,                            // Function calls
+    /\w+\.\w+/,                                      // Object property access
+    /[=!<>]=|[<>]/,                                  // Comparison operators
+    /\+\+|--|[+\-*/%]=?/,                           // Arithmetic operators
+    /\/\/.*$|\/\*[\s\S]*?\*\//m,                     // Comments
+    /^\s*[\w\-]+\s*:\s*[^;]+;?\s*$/m,               // CSS-like property declarations
+  ];
+  
+  // Count weak indicators
+  const weakMatches = weakCodePatterns.filter(pattern => pattern.test(cleanContent)).length;
+  codeIndicators += Math.min(weakMatches / 3, 2); // Cap weak indicators contribution
+  
+  // Structure-based indicators
+  const structureIndicators = [
+    // Multiple lines with consistent indentation (2+ levels)
+    /^\s{2,}\w+/m && /^\s{4,}\w+/m,
+    // Multiple lines starting with keywords
+    lines.filter(line => /^\s*(if|for|while|function|def|class|public|private|import|export|const|let|var)\s+/.test(line)).length >= 2,
+    // Bracket/brace balance suggesting code structure
+    cleanContent.split('').filter(c => c === '{').length >= 2 && cleanContent.split('').filter(c => c === '}').length >= 2,
+  ];
+  
+  codeIndicators += structureIndicators.filter(Boolean).length;
+  
+  // Bias against natural language patterns
+  const naturalLanguagePatterns = [
+    /\b(the|and|or|but|however|therefore|because|although|since|while|during|after|before)\b/gi,
+    /\b(is|are|was|were|will|would|could|should|might|may)\b/gi,
+    /\b(this|that|these|those|here|there|where|when|how|why|what)\b/gi,
+  ];
+  
+  const naturalLanguageWords = naturalLanguagePatterns.reduce((count, pattern) => {
+    const matches = cleanContent.match(pattern);
+    return count + (matches ? matches.length : 0);
+  }, 0);
+  
+  // If there's a lot of natural language, reduce confidence
+  if (naturalLanguageWords > cleanContent.split(/\s+/).length * 0.1) {
+    codeIndicators -= 1;
+  }
+  
+  // Decision threshold: need significant evidence for code detection
+  // This is deliberately conservative to avoid false positives
+  if (codeIndicators >= 3) {
+    return 'code';
+  }
+  
+  // Check for markdown patterns as secondary option
+  const markdownPatterns = [
+    /^#{1,6}\s+/m,           // Headers
+    /\*\*.*?\*\*/,           // Bold
+    /^\s*[-*+]\s+/m,         // Lists
+    /^\s*\d+\.\s+/m,         // Numbered lists
+    /\[.*?\]\(.*?\)/,        // Links
+    /!\[.*?\]\(.*?\)/,       // Images
+    /^\s*\|.*\|.*\|/m,       // Tables
+    /^\s*>\s+/m,             // Blockquotes
+  ];
+  
+  if (markdownPatterns.some(pattern => pattern.test(cleanContent))) {
+    return 'markdown';
+  }
+  
+  return 'text';
+}
+
 // Helper function to determine content type based on file extension and patterns
 function getContentType(content, message) {
   if (!content || typeof content !== 'string') return 'text';
   
-  // User messages should never be treated as code blocks
+  // For user messages, use conservative heuristics to detect obvious code blocks
   if (message?.type === 'user') {
-    return 'text';
+    return detectUserCodeContent(content);
   }
   
   // Clean content for pattern detection first
@@ -778,20 +899,20 @@ function MarkdownBlock({ content, isUser, allMarkdownBlocksCollapsed, forceMarkd
   return (
     <div className={`rounded-lg overflow-hidden ${
       isUser 
-        ? 'bg-blue-600 border border-blue-500' 
+        ? 'bg-slate-700 border border-slate-600' 
         : 'bg-white border border-gray-200 shadow-sm'
     }`}>
       {/* Header with controls */}
       <div className={`px-4 py-2 border-b flex items-center justify-between ${
         isUser 
-          ? 'bg-blue-700 border-blue-500 text-blue-100' 
+          ? 'bg-slate-800 border-slate-600 text-slate-100' 
           : 'bg-gray-50 border-gray-200 text-gray-700'
       }`}>
         <div className="flex items-center space-x-2">
           <button
             onClick={() => setIsCollapsed(!isCollapsed)}
             className={`text-sm hover:opacity-70 ${
-              isUser ? 'text-blue-200' : 'text-gray-500'
+              isUser ? 'text-slate-300' : 'text-gray-500'
             }`}
           >
             {isCollapsed ? <ChevronRightIcon /> : <ChevronDownIcon />}
@@ -806,7 +927,7 @@ function MarkdownBlock({ content, isUser, allMarkdownBlocksCollapsed, forceMarkd
               className={`text-xs px-2 py-1 rounded flex items-center space-x-1 transition-colors ${
                 copySuccess
                   ? (isUser ? 'bg-green-600 text-white' : 'bg-green-100 text-green-700')
-                  : (isUser ? 'hover:bg-blue-600 text-blue-200' : 'hover:bg-gray-200 text-gray-600')
+                  : (isUser ? 'hover:bg-slate-600 text-slate-200' : 'hover:bg-gray-200 text-gray-600')
               }`}
             >
               {copySuccess ? (
@@ -829,73 +950,73 @@ function MarkdownBlock({ content, isUser, allMarkdownBlocksCollapsed, forceMarkd
       <div 
         className={`${
           isUser 
-            ? 'bg-blue-600' 
+            ? 'bg-slate-700' 
             : 'bg-white'
         }`}
         style={{ display: isCollapsed ? 'none' : 'block' }}
       >
-        <div className={`p-4 ${isUser ? 'text-white' : 'text-gray-700'}`}>
+        <div className={`p-4 ${isUser ? 'text-slate-100' : 'text-gray-700'}`}>
           <ReactMarkdown 
             components={{
               h1: ({children}) => (
                 <h1 className={`text-xl font-bold mb-2 ${
-                  isUser ? 'text-blue-100' : 'text-gray-900'
+                  isUser ? 'text-slate-50' : 'text-gray-900'
                 }`}>
                   {children}
                 </h1>
               ),
               h2: ({children}) => (
                 <h2 className={`text-lg font-bold mb-2 ${
-                  isUser ? 'text-blue-100' : 'text-gray-900'
+                  isUser ? 'text-slate-50' : 'text-gray-900'
                 }`}>
                   {children}
                 </h2>
               ),
               h3: ({children}) => (
                 <h3 className={`text-base font-bold mb-1 ${
-                  isUser ? 'text-blue-100' : 'text-gray-900'
+                  isUser ? 'text-slate-50' : 'text-gray-900'
                 }`}>
                   {children}
                 </h3>
               ),
               p: ({children}) => (
                 <p className={`mb-2 ${
-                  isUser ? 'text-white' : 'text-gray-700'
+                  isUser ? 'text-slate-100' : 'text-gray-700'
                 }`}>
                   {children}
                 </p>
               ),
               strong: ({children}) => (
                 <strong className={`font-bold ${
-                  isUser ? 'text-blue-100' : 'text-gray-900'
+                  isUser ? 'text-slate-50' : 'text-gray-900'
                 }`}>
                   {children}
                 </strong>
               ),
               em: ({children}) => (
                 <em className={`italic ${
-                  isUser ? 'text-blue-100' : 'text-gray-600'
+                  isUser ? 'text-slate-200' : 'text-gray-600'
                 }`}>
                   {children}
                 </em>
               ),
               ul: ({children}) => (
                 <ul className={`list-disc list-inside mb-2 space-y-0.5 ${
-                  isUser ? 'text-white' : 'text-gray-700'
+                  isUser ? 'text-slate-100' : 'text-gray-700'
                 }`}>
                   {children}
                 </ul>
               ),
               ol: ({children}) => (
                 <ol className={`list-decimal list-inside mb-2 space-y-0.5 ${
-                  isUser ? 'text-white' : 'text-gray-700'
+                  isUser ? 'text-slate-100' : 'text-gray-700'
                 }`}>
                   {children}
                 </ol>
               ),
               li: ({children}) => (
                 <li className={`${
-                  isUser ? 'text-white' : 'text-gray-700'
+                  isUser ? 'text-slate-100' : 'text-gray-700'
                 }`}>
                   {children}
                 </li>
@@ -908,7 +1029,7 @@ function MarkdownBlock({ content, isUser, allMarkdownBlocksCollapsed, forceMarkd
                     <code 
                       className={`px-1 py-0.5 rounded text-sm font-mono ${
                         isUser 
-                          ? 'bg-blue-500 text-blue-100' 
+                          ? 'bg-slate-600 text-slate-200' 
                           : 'bg-gray-100 text-gray-900'
                       }`} 
                       {...props}
@@ -920,7 +1041,7 @@ function MarkdownBlock({ content, isUser, allMarkdownBlocksCollapsed, forceMarkd
                 return (
                   <pre className={`p-3 rounded-lg overflow-x-auto mb-3 ${
                     isUser 
-                      ? 'bg-blue-500 text-blue-100' 
+                      ? 'bg-slate-600 text-slate-200' 
                       : 'bg-gray-100 text-gray-900'
                   }`}>
                     <code className="text-sm font-mono" {...props}>
@@ -935,7 +1056,7 @@ function MarkdownBlock({ content, isUser, allMarkdownBlocksCollapsed, forceMarkd
               blockquote: ({children}) => (
                 <blockquote className={`border-l-4 pl-4 italic mb-3 ${
                   isUser 
-                    ? 'border-blue-300 text-blue-100' 
+                    ? 'border-slate-400 text-slate-200' 
                     : 'border-gray-300 text-gray-600'
                 }`}>
                   {children}
@@ -945,7 +1066,7 @@ function MarkdownBlock({ content, isUser, allMarkdownBlocksCollapsed, forceMarkd
                 <div className="overflow-x-auto mb-3">
                   <table className={`min-w-full divide-y ${
                     isUser 
-                      ? 'divide-blue-400' 
+                      ? 'divide-slate-500' 
                       : 'divide-gray-200'
                   }`}>
                     {children}
@@ -955,7 +1076,7 @@ function MarkdownBlock({ content, isUser, allMarkdownBlocksCollapsed, forceMarkd
               th: ({children}) => (
                 <th className={`px-3 py-2 text-left text-xs font-medium uppercase tracking-wider ${
                   isUser 
-                    ? 'bg-blue-500 text-blue-100' 
+                    ? 'bg-slate-600 text-slate-200' 
                     : 'bg-gray-50 text-gray-500'
                 }`}>
                   {children}
@@ -964,7 +1085,7 @@ function MarkdownBlock({ content, isUser, allMarkdownBlocksCollapsed, forceMarkd
               td: ({children}) => (
                 <td className={`px-3 py-2 text-sm ${
                   isUser 
-                    ? 'text-blue-100' 
+                    ? 'text-slate-100' 
                     : 'text-gray-900'
                 }`}>
                   {children}
@@ -975,7 +1096,7 @@ function MarkdownBlock({ content, isUser, allMarkdownBlocksCollapsed, forceMarkd
                   href={href}
                   className={`underline ${
                     isUser 
-                      ? 'text-blue-200 hover:text-blue-100' 
+                      ? 'text-slate-300 hover:text-slate-200' 
                       : 'text-blue-600 hover:text-blue-800'
                   }`}
                   target="_blank"
@@ -986,7 +1107,7 @@ function MarkdownBlock({ content, isUser, allMarkdownBlocksCollapsed, forceMarkd
               ),
               hr: () => (
                 <hr className={`my-4 border-t ${
-                  isUser ? 'border-blue-300' : 'border-gray-300'
+                  isUser ? 'border-slate-500' : 'border-gray-300'
                 }`} />
               )
             }}
@@ -999,7 +1120,7 @@ function MarkdownBlock({ content, isUser, allMarkdownBlocksCollapsed, forceMarkd
       {/* Collapsed state preview */}
       <div 
         className={`px-4 py-2 text-sm italic ${
-          isUser ? 'text-blue-200' : 'text-gray-500'
+          isUser ? 'text-slate-300' : 'text-gray-500'
         }`}
         style={{ display: isCollapsed ? 'block' : 'none' }}
       >
