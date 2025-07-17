@@ -178,16 +178,12 @@ function SessionHeader({ session, onStartReplay }) {
           </div>
           
           <div className="flex items-center space-x-4 text-sm text-gray-600 mb-2">
-            <span>ID: <code className="bg-gray-100 px-2 py-1 rounded text-xs">{session.id}</code></span>
             {session.metadata.version && (
-              <>
-                <span>•</span>
-                <span>Version: {session.metadata.version}</span>
-              </>
+              <span>Version: {session.metadata.version}</span>
             )}
             {session.metadata.duration && (
               <>
-                <span>•</span>
+                {session.metadata.version && <span>•</span>}
                 <span>Duration: {session.metadata.duration}</span>
               </>
             )}
@@ -1058,11 +1054,6 @@ function UnifiedMessageBubble({ message, sessionType, allCodeBlocksCollapsed, fo
           >
             {showRawData ? 'Hide' : 'Show'} Raw Data
           </button>
-          {message.id && (
-            <span className="text-gray-400">
-              ID: {message.id.toString().slice(0, 8)}...
-            </span>
-          )}
         </div>
 
         {/* Raw Data Display */}
