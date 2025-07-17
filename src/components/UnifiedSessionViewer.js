@@ -157,11 +157,10 @@ function SessionHeader({ session, onStartReplay }) {
   return (
     <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
       <div className="flex items-start justify-between">
-        <div>
+        <div className="flex-1">
           <div className="flex items-center space-x-3 mb-2">
-            <span className="text-2xl">{getSessionIcon(session.type)}</span>
             <h1 className="text-2xl font-bold text-gray-900">
-              {session.title}
+              {session.metadata?.title || session.title}
             </h1>
             {/* Replay Button */}
             <button
@@ -174,12 +173,43 @@ function SessionHeader({ session, onStartReplay }) {
             </button>
           </div>
           
+          {/* Summary */}
+          {session.metadata?.summary && (
+            <div className="mb-3">
+              <p className="text-gray-700 text-sm leading-relaxed">
+                {session.metadata.summary}
+              </p>
+            </div>
+          )}
+          
+          {/* Tags */}
+          {session.metadata?.tags && session.metadata.tags.length > 0 && (
+            <div className="flex flex-wrap gap-2 mb-3">
+              {session.metadata.tags.map((tag) => (
+                <span
+                  key={tag}
+                  className="inline-block bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded hover:bg-blue-200 transition-colors"
+                >
+                  {tag}
+                </span>
+              ))}
+            </div>
+          )}
+          
           {session.metadata.cwd && (
             <div className="text-sm text-gray-600">
               <span className="font-medium">Working Directory:</span>
               <code className="ml-1 bg-gray-100 px-2 py-1 rounded">{session.metadata.cwd}</code>
             </div>
           )}
+        </div>
+        
+        {/* Platform Badge - Top Right */}
+        <div className="flex items-center space-x-2 bg-gray-50 px-3 py-2 rounded-lg border border-gray-200">
+          <span className="text-sm">{getSessionIcon(session.type)}</span>
+          <span className="text-sm font-medium text-gray-700">
+            {getSessionTypeLabel(session.type)}
+          </span>
         </div>
       </div>
     </div>
