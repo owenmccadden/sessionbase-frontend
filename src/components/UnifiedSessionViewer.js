@@ -202,32 +202,6 @@ function SessionHeader({ session, onStartReplay }) {
           <div className="text-sm text-gray-600">Total Messages</div>
         </div>
       </div>
-      
-      {/* Quick Stats */}
-      <div className="mt-4 pt-4 border-t border-gray-200">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <StatCard
-            value={session.stats.userMessages}
-            label="User Messages"
-            color="text-green-600"
-          />
-          <StatCard
-            value={session.stats.assistantMessages}
-            label="Assistant Messages"
-            color="text-purple-600"
-          />
-          <StatCard
-            value={session.stats.toolCalls}
-            label="Tool Calls"
-            color="text-orange-600"
-          />
-          <StatCard
-            value={session.stats.totalTokens > 0 ? session.stats.totalTokens.toLocaleString() : 'N/A'}
-            label="Total Tokens"
-            color="text-blue-600"
-          />
-        </div>
-      </div>
     </div>
   );
 }
