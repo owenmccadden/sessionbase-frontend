@@ -1255,13 +1255,6 @@ function UnifiedMessageBubble({ message, sessionType, allCodeBlocksCollapsed, fo
             />
           )}
 
-          {/* Usage Statistics */}
-          {message.metadata?.usage && (
-            <div className="mt-3 pt-3 border-t border-gray-100">
-              <UsageStats usage={message.metadata.usage} isUser={isUser} />
-            </div>
-          )}
-
           {/* Additional Context for Q Chat */}
           {message.metadata?.additional_context && (
             <div className={`mt-3 p-3 rounded border-l-4 ${
