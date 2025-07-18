@@ -1955,158 +1955,178 @@ function ToolCallDetailCard({ tool, allExpanded }) {
 }
 
 function StatsView({ session }) {
+  // Calculate token percentages for the chart
+  const inputPercentage = session.stats.totalTokens > 0 ? (session.stats.inputTokens / session.stats.totalTokens) * 100 : 0;
+  const outputPercentage = session.stats.totalTokens > 0 ? (session.stats.outputTokens / session.stats.totalTokens) * 100 : 0;
+
   return (
     <div className="space-y-6">
-      {/* Overview Stats */}
+      {/* Message Statistics */}
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Session Statistics</h3>
-        
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-          <div className="text-center">
-            <div className="text-3xl font-bold text-blue-600">{session.stats.totalMessages}</div>
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">Message Statistics</h3>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="text-center p-4 bg-gray-50 rounded-lg">
+            <div className="text-2xl font-bold text-gray-900">{session.stats.totalMessages}</div>
             <div className="text-sm text-gray-600 mt-1">Total Messages</div>
           </div>
-          <div className="text-center">
-            <div className="text-3xl font-bold text-green-600">{session.stats.userMessages}</div>
+          <div className="text-center p-4 bg-blue-50 rounded-lg">
+            <div className="text-2xl font-bold text-blue-600">{session.stats.userMessages}</div>
             <div className="text-sm text-gray-600 mt-1">User Messages</div>
           </div>
-          <div className="text-center">
-            <div className="text-3xl font-bold text-purple-600">{session.stats.assistantMessages}</div>
+          <div className="text-center p-4 bg-purple-50 rounded-lg">
+            <div className="text-2xl font-bold text-purple-600">{session.stats.assistantMessages}</div>
             <div className="text-sm text-gray-600 mt-1">Assistant Messages</div>
           </div>
-          <div className="text-center">
-            <div className="text-3xl font-bold text-orange-600">{session.stats.toolCalls}</div>
+          <div className="text-center p-4 bg-orange-50 rounded-lg">
+            <div className="text-2xl font-bold text-orange-600">{session.stats.toolCalls}</div>
             <div className="text-sm text-gray-600 mt-1">Tool Calls</div>
           </div>
         </div>
-      </div>
-
-      {/* Additional Message Types (if any) */}
-      {(session.stats.toolMessages > 0 || session.stats.systemMessages > 0) && (
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Additional Message Types</h3>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        
+        {/* Additional message types if they exist */}
+        {(session.stats.toolMessages > 0 || session.stats.systemMessages > 0) && (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
             {session.stats.toolMessages > 0 && (
-              <div className="text-center">
+              <div className="text-center p-4 bg-yellow-50 rounded-lg">
                 <div className="text-2xl font-bold text-yellow-600">{session.stats.toolMessages}</div>
                 <div className="text-sm text-gray-600 mt-1">Tool Messages</div>
               </div>
             )}
             {session.stats.systemMessages > 0 && (
-              <div className="text-center">
+              <div className="text-center p-4 bg-gray-50 rounded-lg">
                 <div className="text-2xl font-bold text-gray-600">{session.stats.systemMessages}</div>
                 <div className="text-sm text-gray-600 mt-1">System Messages</div>
               </div>
             )}
           </div>
-        </div>
-      )}
+        )}
+      </div>
 
-      {/* Token Usage */}
+      {/* Token Usage Chart */}
       {session.stats.totalTokens > 0 && (
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Token Usage</h3>
+          <h3 className="text-lg font-semibold text-gray-900 mb-6">Token Usage</h3>
           
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="text-center">
-              <div className="text-2xl font-bold text-blue-600">{session.stats.inputTokens.toLocaleString()}</div>
-              <div className="text-sm text-gray-600 mt-1">Input Tokens</div>
+          {/* Visual Chart */}
+          <div className="mb-6">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm font-medium text-gray-700">Token Distribution</span>
+              <span className="text-sm text-gray-600">{session.stats.totalTokens.toLocaleString()} total</span>
             </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-green-600">{session.stats.outputTokens.toLocaleString()}</div>
-              <div className="text-sm text-gray-600 mt-1">Output Tokens</div>
+            <div className="flex w-full h-8 bg-gray-100 rounded-full overflow-hidden">
+              <div 
+                className="bg-blue-500 flex items-center justify-center text-white text-xs font-medium"
+                style={{ width: `${inputPercentage}%` }}
+              >
+                {inputPercentage > 15 && `${Math.round(inputPercentage)}%`}
+              </div>
+              <div 
+                className="bg-green-500 flex items-center justify-center text-white text-xs font-medium"
+                style={{ width: `${outputPercentage}%` }}
+              >
+                {outputPercentage > 15 && `${Math.round(outputPercentage)}%`}
+              </div>
             </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-purple-600">{session.stats.totalTokens.toLocaleString()}</div>
-              <div className="text-sm text-gray-600 mt-1">Total Tokens</div>
+          </div>
+
+          {/* Token Details */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="flex items-center justify-between p-4 bg-blue-50 rounded-lg">
+              <div className="flex items-center gap-3">
+                <div className="w-4 h-4 bg-blue-500 rounded"></div>
+                <span className="text-sm font-medium text-gray-700">Input Tokens</span>
+              </div>
+              <div className="text-right">
+                <div className="text-lg font-bold text-blue-600">{session.stats.inputTokens.toLocaleString()}</div>
+                <div className="text-xs text-gray-600">{Math.round(inputPercentage)}%</div>
+              </div>
+            </div>
+            <div className="flex items-center justify-between p-4 bg-green-50 rounded-lg">
+              <div className="flex items-center gap-3">
+                <div className="w-4 h-4 bg-green-500 rounded"></div>
+                <span className="text-sm font-medium text-gray-700">Output Tokens</span>
+              </div>
+              <div className="text-right">
+                <div className="text-lg font-bold text-green-600">{session.stats.outputTokens.toLocaleString()}</div>
+                <div className="text-xs text-gray-600">{Math.round(outputPercentage)}%</div>
+              </div>
+            </div>
+            <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+              <div className="flex items-center gap-3">
+                <div className="w-4 h-4 bg-gray-400 rounded"></div>
+                <span className="text-sm font-medium text-gray-700">Total Tokens</span>
+              </div>
+              <div className="text-right">
+                <div className="text-lg font-bold text-gray-900">{session.stats.totalTokens.toLocaleString()}</div>
+                <div className="text-xs text-gray-600">100%</div>
+              </div>
             </div>
           </div>
         </div>
       )}
 
-      {/* Session Metadata */}
+      {/* Session Details */}
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Session Metadata</h3>
-        
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">Session Details</h3>
         <div className="space-y-3">
-          {/* Session ID */}
-          <div className="flex justify-between">
-            <span className="text-gray-600">Session ID:</span>
-            <code className="text-sm bg-gray-100 px-2 py-1 rounded">{session.id}</code>
+          <div className="flex justify-between items-center py-2 border-b border-gray-100">
+            <span className="text-sm text-gray-600">Session ID</span>
+            <code className="text-xs bg-gray-100 px-2 py-1 rounded">{session.id}</code>
           </div>
-          
-          {/* Session Type */}
-          <div className="flex justify-between">
-            <span className="text-gray-600">Session Type:</span>
-            <span className="font-medium">{getSessionTypeLabel(session.type)}</span>
+          <div className="flex justify-between items-center py-2 border-b border-gray-100">
+            <span className="text-sm text-gray-600">Session Type</span>
+            <span className="text-sm font-medium">{getSessionTypeLabel(session.type)}</span>
           </div>
-          
-          {/* Version (if available) */}
           {session.metadata.version && (
-            <div className="flex justify-between">
-              <span className="text-gray-600">Version:</span>
-              <span className="font-medium">{session.metadata.version}</span>
+            <div className="flex justify-between items-center py-2 border-b border-gray-100">
+              <span className="text-sm text-gray-600">Version</span>
+              <span className="text-sm font-medium">{session.metadata.version}</span>
             </div>
           )}
-          
-          {/* User Type (Claude Code) */}
           {session.metadata.userType && (
-            <div className="flex justify-between">
-              <span className="text-gray-600">User Type:</span>
-              <span className="font-medium">{session.metadata.userType}</span>
+            <div className="flex justify-between items-center py-2 border-b border-gray-100">
+              <span className="text-sm text-gray-600">User Type</span>
+              <span className="text-sm font-medium">{session.metadata.userType}</span>
             </div>
           )}
-          
-          {/* Duration */}
           {session.metadata.duration && (
-            <div className="flex justify-between">
-              <span className="text-gray-600">Duration:</span>
-              <span className="font-medium">{session.metadata.duration}</span>
+            <div className="flex justify-between items-center py-2 border-b border-gray-100">
+              <span className="text-sm text-gray-600">Duration</span>
+              <span className="text-sm font-medium">{session.metadata.duration}</span>
             </div>
           )}
-          
-          {/* Working Directory */}
+          {session.metadata.model && (
+            <div className="flex justify-between items-center py-2 border-b border-gray-100">
+              <span className="text-sm text-gray-600">Model</span>
+              <span className="text-sm font-medium">{session.metadata.model}</span>
+            </div>
+          )}
           {session.metadata.cwd && (
-            <div className="flex justify-between">
-              <span className="text-gray-600">Working Directory:</span>
-              <code className="text-sm bg-gray-100 px-2 py-1 rounded max-w-md truncate">
+            <div className="flex justify-between items-start py-2 border-b border-gray-100">
+              <span className="text-sm text-gray-600">Working Directory</span>
+              <code className="text-xs bg-gray-100 px-2 py-1 rounded max-w-md truncate ml-4">
                 {session.metadata.cwd}
               </code>
             </div>
           )}
-          
-          {/* Model (Q Chat) */}
-          {session.metadata.model && (
-            <div className="flex justify-between">
-              <span className="text-gray-600">Model:</span>
-              <span className="font-medium">{session.metadata.model}</span>
-            </div>
-          )}
-          
-          {/* Conversation ID (Q Chat) */}
           {session.metadata.conversation_id && session.metadata.conversation_id !== session.id && (
-            <div className="flex justify-between">
-              <span className="text-gray-600">Conversation ID:</span>
-              <code className="text-sm bg-gray-100 px-2 py-1 rounded">{session.metadata.conversation_id}</code>
+            <div className="flex justify-between items-center py-2 border-b border-gray-100">
+              <span className="text-sm text-gray-600">Conversation ID</span>
+              <code className="text-xs bg-gray-100 px-2 py-1 rounded">{session.metadata.conversation_id}</code>
             </div>
           )}
-          
-          {/* Valid History Range (Q Chat) */}
           {session.metadata.valid_history_range && (
-            <div className="flex justify-between">
-              <span className="text-gray-600">Valid History Range:</span>
-              <span className="font-medium">
+            <div className="flex justify-between items-center py-2 border-b border-gray-100">
+              <span className="text-sm text-gray-600">Valid History Range</span>
+              <span className="text-sm font-medium">
                 [{session.metadata.valid_history_range[0]}, {session.metadata.valid_history_range[1]}]
               </span>
             </div>
           )}
-          
-          {/* Total Messages (metadata) */}
           {session.metadata.totalMessages && (
-            <div className="flex justify-between">
-              <span className="text-gray-600">Total Raw Messages:</span>
-              <span className="font-medium">{session.metadata.totalMessages}</span>
+            <div className="flex justify-between items-center py-2">
+              <span className="text-sm text-gray-600">Total Raw Messages</span>
+              <span className="text-sm font-medium">{session.metadata.totalMessages}</span>
             </div>
           )}
         </div>
