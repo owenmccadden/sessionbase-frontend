@@ -461,7 +461,7 @@ function ConversationView({ session }) {
     <div className="space-y-4">
       {/* Sticky Controls */}
       {(hasCodeBlocks || hasMarkdownBlocks || hasToolUseBlocks) && (
-        <div className="fixed top-20 right-6 z-30">
+        <div className="fixed top-20 right-2 z-30">
           <div className="flex flex-col items-end space-y-2 bg-white rounded-lg shadow-lg border border-gray-200 px-4 py-2 backdrop-blur-sm bg-white/95">
             {/* Code Blocks Toggle */}
             {hasCodeBlocks && (
