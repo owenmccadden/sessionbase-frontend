@@ -79,27 +79,6 @@ export default function UnifiedSessionViewer({ session, onSessionUpdate, session
           />
         </div>
 
-        {/* Copy Raw Data Button */}
-        <button
-          onClick={handleCopyRawData}
-          className={`flex items-center space-x-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-            copySuccess
-              ? 'bg-green-100 text-green-700 border border-green-200'
-              : 'bg-gray-100 text-gray-700 hover:bg-gray-200 border border-gray-200'
-          }`}
-        >
-          {copySuccess ? (
-            <>
-              <CheckIcon />
-              <span>Copied!</span>
-            </>
-          ) : (
-            <>
-              <CopyIcon />
-              <span>Copy Raw Data</span>
-            </>
-          )}
-        </button>
       </div>
 
       {/* Content Views */}
@@ -2327,6 +2306,23 @@ function RawDataView({ session }) {
       setTimeout(() => setCopySuccess(false), 2000);
     }
   };
+
+  const handleDownload = () => {
+    const sessionTitle = session.metadata?.title || session.title || 'session';
+    const filename = `${sessionTitle.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.json`;
+    
+    const blob = new Blob([rawText], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    URL.revokeObjectURL(url);
+  };
   
   return (
     <div className="bg-white rounded-lg shadow-sm border border-gray-200">
@@ -2335,26 +2331,35 @@ function RawDataView({ session }) {
           <h3 className="text-lg font-semibold text-gray-900">Raw Session Data</h3>
           <p className="text-sm text-gray-600">Complete raw data representation of the session</p>
         </div>
-        <button
-          onClick={handleCopy}
-          className={`flex items-center space-x-2 px-3 py-2 rounded-lg text-sm font-medium transition-all ${
-            copySuccess
-              ? 'bg-green-100 text-green-700 border border-green-200'
-              : 'bg-gray-100 text-gray-700 hover:bg-gray-200 border border-gray-200'
-          }`}
-        >
-          {copySuccess ? (
-            <>
-              <CheckIcon />
-              <span>Copied!</span>
-            </>
-          ) : (
-            <>
-              <CopyIcon />
-              <span>Copy</span>
-            </>
-          )}
-        </button>
+        <div className="flex items-center space-x-2">
+          <button
+            onClick={handleCopy}
+            className={`flex items-center space-x-2 px-3 py-2 rounded-lg text-sm font-medium transition-all ${
+              copySuccess
+                ? 'bg-green-100 text-green-700 border border-green-200'
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200 border border-gray-200'
+            }`}
+          >
+            {copySuccess ? (
+              <>
+                <CheckIcon />
+                <span>Copied!</span>
+              </>
+            ) : (
+              <>
+                <CopyIcon />
+                <span>Copy</span>
+              </>
+            )}
+          </button>
+          <button
+            onClick={handleDownload}
+            className="flex items-center space-x-2 px-3 py-2 rounded-lg text-sm font-medium transition-all bg-blue-100 text-blue-700 hover:bg-blue-200 border border-blue-200"
+          >
+            <DownloadIcon />
+            <span>Download</span>
+          </button>
+        </div>
       </div>
       <div className="p-4">
         <pre className="bg-gray-50 p-4 rounded-lg overflow-auto text-xs max-h-96">
@@ -2427,6 +2432,14 @@ function DeleteIcon() {
   return (
     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+    </svg>
+  );
+}
+
+function DownloadIcon() {
+  return (
+    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
     </svg>
   );
 }
