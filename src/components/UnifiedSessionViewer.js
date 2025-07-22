@@ -4,14 +4,12 @@ import ReactMarkdown from 'react-markdown';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus, vs } from 'react-syntax-highlighter/dist/cjs/styles/prism';
 import { SESSION_TYPES } from '../utils/sessionParser';
-import SessionReplay from './SessionReplay';
 import { useAuth } from '../contexts/AuthContext';
 import { authenticatedFetch } from '../utils/auth';
 
 export default function UnifiedSessionViewer({ session, onSessionUpdate, sessionId }) {
   const [activeView, setActiveView] = useState('conversation');
   const [copySuccess, setCopySuccess] = useState(false);
-  const [isReplayMode, setIsReplayMode] = useState(false);
   const { user } = useAuth();
 
   const handleCopyRawData = async () => {
@@ -39,17 +37,13 @@ export default function UnifiedSessionViewer({ session, onSessionUpdate, session
     }
   };
 
-  // Show replay mode if activated
-  if (isReplayMode) {
-    return <SessionReplay session={session} onExit={() => setIsReplayMode(false)} />;
-  }
 
   return (
     <div className="max-w-6xl mx-auto p-6">
       {/* Session Header */}
       <SessionHeader 
         session={session} 
-        onStartReplay={() => setIsReplayMode(true)} 
+ 
         user={user}
         onSessionUpdate={onSessionUpdate}
         sessionId={sessionId}
@@ -133,7 +127,7 @@ function ViewToggleButton({ active, onClick, label }) {
   );
 }
 
-function SessionHeader({ session, onStartReplay, user, onSessionUpdate, sessionId }) {
+function SessionHeader({ session, user, onSessionUpdate, sessionId }) {
   const [isEditing, setIsEditing] = useState(false);
   const [editedData, setEditedData] = useState({
     title: session.metadata?.title || session.title || '',
@@ -348,15 +342,6 @@ function SessionHeader({ session, onStartReplay, user, onSessionUpdate, sessionI
               </>
             )}
             
-            {/* Replay Button */}
-            <button
-              onClick={onStartReplay}
-              className="flex items-center space-x-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white text-sm font-medium rounded-lg transition-colors"
-              title="Start interactive replay"
-            >
-              <PlayIcon />
-              <span>Replay</span>
-            </button>
           </div>
           
           {/* Summary */}
@@ -2341,13 +2326,6 @@ function CheckIcon() {
   );
 }
 
-function PlayIcon() {
-  return (
-    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-      <path d="M8 5v14l11-7z" />
-    </svg>
-  );
-}
 
 function ChevronRightIcon() {
   return (
