@@ -32,6 +32,11 @@ export default function SessionPage() {
         const response = await authenticatedFetch(`${endpointUrl}/sessions/${id}`);
         
         if (!response.ok) {
+          if (response.status === 404) {
+            // Session not found - this is expected for private sessions the user can't access
+            setSession(null);
+            return;
+          }
           throw new Error(`Failed to fetch session: ${response.status} ${response.statusText}`);
         }
         
@@ -144,18 +149,42 @@ export default function SessionPage() {
 
   if (!session) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">Session Not Found</h1>
-          <p className="text-gray-600 mb-4">The requested session could not be found.</p>
-          <button
-            onClick={() => router.push('/')}
-            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
-          >
-            Go Home
-          </button>
+      <>
+        <Head>
+          <title>Session Not Found - SessionBase</title>
+          <meta name="description" content="The requested session could not be found." />
+          <meta name="viewport" content="width=device-width, initial-scale=1" />
+          <link rel="icon" href="/favicon.ico" />
+        </Head>
+
+        <div className="min-h-screen bg-gray-50">
+          <Header />
+          
+          <div className="flex items-center justify-center" style={{ minHeight: 'calc(100vh - 64px)' }}>
+            <div className="text-center max-w-md mx-auto p-6">
+              <div className="text-gray-400 text-6xl mb-4">📄</div>
+              <h1 className="text-2xl font-bold text-gray-900 mb-2">Session Not Found</h1>
+              <p className="text-gray-600 mb-4">
+                The session you're looking for doesn't exist or isn't available.
+              </p>
+              <div className="space-y-2">
+                <button
+                  onClick={() => router.push('/')}
+                  className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors mr-2"
+                >
+                  Go Home
+                </button>
+                <button
+                  onClick={() => router.push('/discover')}
+                  className="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition-colors"
+                >
+                  Discover Sessions
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
-      </div>
+      </>
     );
   }
 
