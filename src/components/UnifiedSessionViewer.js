@@ -1354,6 +1354,17 @@ function MarkdownBlock({ content, isUser, allMarkdownBlocksCollapsed, forceMarkd
 function UnifiedMessageBubble({ message, sessionType, allCodeBlocksCollapsed, forceCollapseToggle, allMarkdownBlocksCollapsed, forceMarkdownCollapseToggle, allToolUseBlocksHidden, session }) {
   const [showRawData, setShowRawData] = useState(false);
   const [showToolDetails, setShowToolDetails] = useState(false);
+  const [copySuccess, setCopySuccess] = useState(false);
+
+  const copyToClipboard = async (text) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopySuccess(true);
+      setTimeout(() => setCopySuccess(false), 2000);
+    } catch (err) {
+      console.error('Failed to copy text:', err);
+    }
+  };
 
   // Determine message alignment and styling
   const isUser = message.type === 'user';
@@ -1425,13 +1436,38 @@ function UnifiedMessageBubble({ message, sessionType, allCodeBlocksCollapsed, fo
         </div>
 
         {/* Message Content */}
-        <div className={`rounded-lg p-4 ${
+        <div className={`relative rounded-lg p-4 ${
           isUser 
             ? 'bg-blue-600 text-white' 
             : isSystem
             ? 'bg-orange-50 border border-orange-200 shadow-sm'
             : 'bg-white border border-gray-200 shadow-sm'
         }`}>
+          {/* Copy Button - Hide for tool blocks, code blocks, and markdown blocks */}
+          {!isSystem && !shouldRenderCode && !shouldRenderMarkdown && (
+            <button
+              onClick={() => copyToClipboard(message.content)}
+              className={`absolute top-2 right-2 p-1.5 rounded-md transition-all ${
+                copySuccess
+                  ? 'bg-green-100 text-green-600'
+                  : isUser
+                  ? 'hover:bg-blue-500 text-blue-200 hover:text-white'
+                  : 'hover:bg-gray-100 text-gray-400 hover:text-gray-600'
+              }`}
+              title="Copy message"
+            >
+              {copySuccess ? (
+                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
+                </svg>
+              ) : (
+                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                </svg>
+              )}
+            </button>
+          )}
+
           {/* Main Content */}
           <div className="mb-3">
             {shouldRenderCode ? (
