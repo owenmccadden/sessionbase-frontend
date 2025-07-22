@@ -4,6 +4,27 @@ import { authenticatedFetch } from './auth';
 const API_BASE_URL = process.env.NEXT_PUBLIC_ENDPOINT_URL || 'https://api.sessionbase.ai';
 
 /**
+ * Submit email for teams feature updates
+ * This endpoint doesn't require authentication
+ */
+export async function submitTeamsEmail(email) {
+  const response = await fetch(`${API_BASE_URL}/teams/email-signup`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ email }),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.error || 'Failed to submit email');
+  }
+
+  return response.json();
+}
+
+/**
  * Discover sessions - works for both authenticated and unauthenticated users
  * Maps to GET /discover endpoint
  */
