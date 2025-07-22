@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import Link from 'next/link';
 import ReactMarkdown from 'react-markdown';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus, vs } from 'react-syntax-highlighter/dist/cjs/styles/prism';
@@ -1376,7 +1377,7 @@ function UnifiedMessageBubble({ message, sessionType, allCodeBlocksCollapsed, fo
       <div className={`max-w-4xl ${isUser ? 'ml-12' : 'mr-12'}`}>
         {/* Message Header */}
         <div className={`flex items-center mb-2 ${isUser ? 'justify-end' : 'justify-start'}`}>
-          <div className="flex items-center space-x-2 text-sm text-gray-500">
+          <div className="group flex items-center space-x-2 text-sm text-gray-500">
             <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-medium ${
               isUser ? '' : 
               isSystem ? 'bg-orange-100 text-orange-700' :
@@ -1402,12 +1403,16 @@ function UnifiedMessageBubble({ message, sessionType, allCodeBlocksCollapsed, fo
             }`}>
               {message.type === 'assistant' && sessionType === SESSION_TYPES.CLAUDE_CODE ? 'Claude' : 
                message.type === 'assistant' && sessionType === SESSION_TYPES.Q_CHAT ? 'Amazon Q' :
-               message.type === 'user' ? sessionAuthor.username :
+               message.type === 'user' ? (
+                sessionAuthor.userId ? (
+                  <Link href={`/users/${sessionAuthor.userId}`} className="hover:underline">
+                    {sessionAuthor.username}
+                  </Link>
+                ) : sessionAuthor.username
+               ) :
                message.type}
               {message.role && message.role !== message.type && ` (${message.role})`}
             </span>
-            <span>•</span>
-            <span>{message.timestamp.toLocaleString()}</span>
             {message.metadata?.model && (
               <>
                 <span>•</span>
@@ -1793,7 +1798,7 @@ function UserPromptsView({ session }) {
             {sortedUserMessages.map((message, index) => (
               <div key={message.id} className="border border-gray-200 rounded-lg p-4">
                 <div className="flex items-center justify-between mb-3">
-                  <div className="flex items-center space-x-2">
+                  <div className="group flex items-center space-x-2">
                     <img
                       src={sessionAuthor.avatarUrl}
                       alt={sessionAuthor.username}
@@ -1803,11 +1808,11 @@ function UserPromptsView({ session }) {
                       }}
                     />
                     <span className="text-sm font-medium text-gray-900">
-                      {sessionAuthor.username}
-                    </span>
-                    <span className="text-xs text-gray-500">•</span>
-                    <span className="text-xs text-gray-500">
-                      {message.timestamp.toLocaleString()}
+                      {sessionAuthor.userId ? (
+                        <Link href={`/users/${sessionAuthor.userId}`} className="hover:underline">
+                          {sessionAuthor.username}
+                        </Link>
+                      ) : sessionAuthor.username}
                     </span>
                     {message.metadata?.model && (
                       <>
@@ -1931,7 +1936,7 @@ function ToolCallDetailCard({ tool, allExpanded }) {
   return (
     <div className="border border-gray-200 rounded-lg p-4">
       <div className="flex items-center justify-between mb-3">
-        <div className="flex items-center space-x-2">
+        <div className="group flex items-center space-x-2">
           <span className="text-yellow-600">🔧</span>
           <span className="font-medium text-gray-900">{tool.name}</span>
           {tool.metadata?.orig_name && tool.metadata.orig_name !== tool.name && (
@@ -1940,9 +1945,6 @@ function ToolCallDetailCard({ tool, allExpanded }) {
             </span>
           )}
         </div>
-        <span className="text-xs text-gray-500">
-          {(tool.timestamp || tool.messageTimestamp).toLocaleString()}
-        </span>
       </div>
 
       {/* Tool ID */}
