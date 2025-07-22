@@ -148,22 +148,22 @@ export default function Discover() {
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50">
         <Header />
 
         {/* Search Section */}
-        <div className="bg-white border-b border-gray-200">
-          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <div className="bg-white/80 backdrop-blur-sm border-b border-gray-200/50 shadow-sm">
+          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             <form onSubmit={handleSearchSubmit} className="relative max-w-2xl mx-auto">
               <input
                 type="text"
                 placeholder="Search sessions by title, summary, or tags..."
                 value={searchInput}
                 onChange={handleSearch}
-                className="w-full px-4 py-3 text-lg border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-6 py-4 text-lg border border-gray-300 rounded-2xl shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white/90 backdrop-blur-sm transition-all duration-200"
               />
               <svg
-                className="absolute right-3 top-3.5 h-6 w-6 text-gray-400"
+                className="absolute right-4 top-4.5 h-6 w-6 text-gray-400"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -185,15 +185,31 @@ export default function Discover() {
 
 
             {/* Session Cards */}
-            <div className="space-y-4">
+            <div className="space-y-6">
               {sessionsLoading ? (
-                <div className="space-y-4">
+                <div className="space-y-6">
                   {[1, 2, 3].map((i) => (
-                    <div key={i} className="bg-white border border-gray-200 rounded-lg p-6 animate-pulse">
-                      <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
-                      <div className="h-3 bg-gray-200 rounded w-1/2 mb-4"></div>
-                      <div className="h-3 bg-gray-200 rounded w-full mb-2"></div>
-                      <div className="h-3 bg-gray-200 rounded w-2/3"></div>
+                    <div key={i} className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm animate-pulse">
+                      <div className="flex items-start justify-between mb-3">
+                        <div className="h-6 bg-gray-200 rounded-lg w-3/4"></div>
+                        <div className="h-6 bg-gray-200 rounded-full w-20"></div>
+                      </div>
+                      <div className="h-4 bg-gray-200 rounded w-full mb-2"></div>
+                      <div className="h-4 bg-gray-200 rounded w-2/3 mb-4"></div>
+                      <div className="flex gap-2 mb-4">
+                        <div className="h-6 bg-gray-200 rounded-full w-16"></div>
+                        <div className="h-6 bg-gray-200 rounded-full w-20"></div>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-2">
+                          <div className="h-6 w-6 bg-gray-200 rounded-full"></div>
+                          <div className="h-4 bg-gray-200 rounded w-20"></div>
+                        </div>
+                        <div className="flex items-center space-x-4">
+                          <div className="h-4 bg-gray-200 rounded w-16"></div>
+                          <div className="h-6 bg-gray-200 rounded-full w-24"></div>
+                        </div>
+                      </div>
                     </div>
                   ))}
                 </div>

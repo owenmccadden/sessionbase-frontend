@@ -22,7 +22,7 @@ export default function SessionCard({ session, onAuthRequired }) {
   const safeSession = {
     id: session?.sessionId || session?.id || '',
     title: session?.title || 'Untitled Session',
-    description: session?.description || 'No description available',
+    description: session?.description || session?.summary || session?.content || 'No description available',
     author: {
       username: session?.username || session?.author?.username || 'Anonymous',
       avatarUrl: session?.avatarUrl || session?.author?.avatarUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(session?.username || session?.author?.username || 'Anonymous')}&background=3b82f6&color=fff&size=24`,
@@ -52,32 +52,40 @@ export default function SessionCard({ session, onAuthRequired }) {
 
   return (
     <div 
-      className="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow cursor-pointer"
+      className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-200 cursor-pointer"
       onClick={handleCardClick}
     >
       {/* Content section */}
       <div className="flex-1 min-w-0">
         <div className="flex items-start justify-between mb-2">
-          <h3 className="text-lg font-semibold text-blue-600 hover:text-blue-800 transition-colors line-clamp-2">
+          <h3 className="text-xl font-bold text-gray-900 hover:text-blue-600 transition-colors mb-1 overflow-hidden" style={{
+            display: '-webkit-box',
+            WebkitLineClamp: 2,
+            WebkitBoxOrient: 'vertical'
+          }}>
             {safeSession.title}
           </h3>
           <div className="flex items-center text-xs text-gray-500 ml-4 flex-shrink-0">
-            <span className="bg-gray-100 px-2 py-1 rounded">
+            <span className="bg-blue-50 text-blue-700 px-3 py-1 rounded-full font-medium">
               {safeSession.aiModel}
             </span>
           </div>
         </div>
         
-        <p className="text-gray-600 text-sm mb-3 line-clamp-2">
+        <p className="text-gray-600 text-sm mb-4 leading-relaxed overflow-hidden" style={{
+          display: '-webkit-box',
+          WebkitLineClamp: 2,
+          WebkitBoxOrient: 'vertical'
+        }}>
           {safeSession.description}
         </p>
         
         {/* Tags */}
-        <div className="flex flex-wrap gap-2 mb-3">
+        <div className="flex flex-wrap gap-2 mb-4">
           {safeSession.tags.map((tag) => (
             <span
               key={tag}
-              className="inline-block bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded hover:bg-blue-200 transition-colors"
+              className="inline-block bg-blue-100 text-blue-800 text-xs px-3 py-1 rounded-full hover:bg-blue-200 transition-colors font-medium"
             >
               {tag}
             </span>
@@ -110,7 +118,7 @@ export default function SessionCard({ session, onAuthRequired }) {
               <span>modified {formatTimeAgo(safeSession.updatedAt)}</span>
             )}
             <div className="flex items-center text-xs">
-              <span className="bg-gray-100 px-2 py-1 rounded">
+              <span className="bg-green-50 text-green-700 px-3 py-1 rounded-full font-medium">
                 {safeSession.messageCount} messages
               </span>
             </div>
