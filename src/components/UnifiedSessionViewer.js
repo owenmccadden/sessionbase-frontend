@@ -532,65 +532,54 @@ function ConversationView({ session }) {
     <div className="space-y-4">
       {/* Sticky Controls */}
       {(hasCodeBlocks || hasMarkdownBlocks || hasToolUseBlocks) && (
-        <div className="fixed top-20 right-2 z-30">
-          <div className="flex flex-col items-end space-y-2 bg-white rounded-lg shadow-lg border border-gray-200 px-4 py-2 backdrop-blur-sm bg-white/95">
+        <div className="fixed top-20 right-4 z-30">
+          <div className="flex flex-col space-y-1 bg-white rounded-lg shadow-lg border border-gray-200 p-2 backdrop-blur-sm bg-white/95">
             {/* Code Blocks Toggle */}
             {hasCodeBlocks && (
-              <div className="flex items-center space-x-3">
-                <span className="text-sm text-gray-600 font-medium">Code Blocks:</span>
-                <button
-                  onClick={handleToggleAll}
-                  className={`text-sm px-4 py-2 rounded-lg transition-all duration-200 transform hover:scale-105 flex items-center space-x-2 ${
-                    allCodeBlocksCollapsed 
-                      ? 'bg-blue-600 text-white shadow-md hover:bg-blue-700' 
-                      : 'bg-gray-600 text-white shadow-md hover:bg-gray-700'
-                  }`}
-                >
-                  {allCodeBlocksCollapsed ? <ChevronRightIcon /> : <ChevronDownIcon />}
-                  <span className="font-medium">
-                    {allCodeBlocksCollapsed ? 'Expand All' : 'Collapse All'}
-                  </span>
-                </button>
-              </div>
+              <button
+                onClick={handleToggleAll}
+                title={`${allCodeBlocksCollapsed ? 'Expand' : 'Collapse'} all code blocks`}
+                className={`flex items-center space-x-2 px-3 py-2 rounded-md text-sm font-medium transition-all duration-200 hover:scale-105 ${
+                  allCodeBlocksCollapsed 
+                    ? 'bg-blue-100 text-blue-800 hover:bg-blue-200' 
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                }`}
+              >
+                {allCodeBlocksCollapsed ? <ChevronRightIcon /> : <ChevronDownIcon />}
+                <span>📄 Code</span>
+              </button>
             )}
 
             {/* Markdown Blocks Toggle */}
             {hasMarkdownBlocks && (
-              <div className="flex items-center space-x-3">
-                <span className="text-sm text-gray-600 font-medium">Markdown Blocks:</span>
-                <button
-                  onClick={handleToggleAllMarkdown}
-                  className={`text-sm px-4 py-2 rounded-lg transition-all duration-200 transform hover:scale-105 flex items-center space-x-2 ${
-                    allMarkdownBlocksCollapsed 
-                      ? 'bg-green-600 text-white shadow-md hover:bg-green-700' 
-                      : 'bg-gray-600 text-white shadow-md hover:bg-gray-700'
-                  }`}
-                >
-                  {allMarkdownBlocksCollapsed ? <ChevronRightIcon /> : <ChevronDownIcon />}
-                  <span className="font-medium">
-                    {allMarkdownBlocksCollapsed ? 'Expand All' : 'Collapse All'}
-                  </span>
-                </button>
-              </div>
+              <button
+                onClick={handleToggleAllMarkdown}
+                title={`${allMarkdownBlocksCollapsed ? 'Expand' : 'Collapse'} all markdown blocks`}
+                className={`flex items-center space-x-2 px-3 py-2 rounded-md text-sm font-medium transition-all duration-200 hover:scale-105 ${
+                  allMarkdownBlocksCollapsed 
+                    ? 'bg-green-100 text-green-800 hover:bg-green-200' 
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                }`}
+              >
+                {allMarkdownBlocksCollapsed ? <ChevronRightIcon /> : <ChevronDownIcon />}
+                <span>📝 Markdown</span>
+              </button>
             )}
             
             {/* Tool Use Blocks Toggle */}
             {hasToolUseBlocks && (
-              <div className="flex items-center space-x-3">
-                <span className="text-sm text-gray-600 font-medium">Tool Use:</span>
-                <button
-                  onClick={handleToggleAllToolUse}
-                  className={`text-sm px-4 py-2 rounded-lg transition-all duration-200 transform hover:scale-105 flex items-center space-x-2 ${
-                    allToolUseBlocksHidden 
-                      ? 'bg-orange-600 text-white shadow-md hover:bg-orange-700' 
-                      : 'bg-gray-600 text-white shadow-md hover:bg-gray-700'
-                  }`}
-                >
-                  <span className="font-medium">
-                    {allToolUseBlocksHidden ? 'Show All' : 'Hide All'}
-                  </span>
-                </button>
-              </div>
+              <button
+                onClick={handleToggleAllToolUse}
+                title={`${allToolUseBlocksHidden ? 'Show' : 'Hide'} all tool use blocks`}
+                className={`flex items-center space-x-2 px-3 py-2 rounded-md text-sm font-medium transition-all duration-200 hover:scale-105 ${
+                  allToolUseBlocksHidden 
+                    ? 'bg-orange-100 text-orange-800 hover:bg-orange-200' 
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                }`}
+              >
+                {allToolUseBlocksHidden ? <ChevronRightIcon /> : <ChevronDownIcon />}
+                <span>🔧 Tools</span>
+              </button>
             )}
           </div>
         </div>
