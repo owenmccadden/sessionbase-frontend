@@ -302,47 +302,6 @@ function SessionHeader({ session, user, onSessionUpdate, sessionId }) {
             )}
           </div>
           
-          {/* Action buttons - moved below title */}
-          <div className="flex items-center space-x-2 mb-3">
-            {/* Edit/Save/Cancel buttons */}
-            {isOwner && (
-              <>
-                {isEditing ? (
-                  <>
-                    <button
-                      onClick={handleSave}
-                      disabled={isSaving}
-                      className="flex items-center space-x-1 px-3 py-1 bg-green-600 hover:bg-green-700 disabled:bg-green-400 text-white text-sm font-medium rounded transition-colors"
-                    >
-                      {isSaving ? (
-                        <span className="animate-spin">⭮</span>
-                      ) : (
-                        <SaveIcon />
-                      )}
-                      <span>{isSaving ? 'Saving...' : 'Save'}</span>
-                    </button>
-                    <button
-                      onClick={handleCancel}
-                      disabled={isSaving}
-                      className="flex items-center space-x-1 px-3 py-1 bg-gray-600 hover:bg-gray-700 disabled:bg-gray-400 text-white text-sm font-medium rounded transition-colors"
-                    >
-                      <CancelIcon />
-                      <span>Cancel</span>
-                    </button>
-                  </>
-                ) : (
-                  <button
-                    onClick={() => setIsEditing(true)}
-                    className="flex items-center space-x-1 px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded transition-colors"
-                  >
-                    <EditIcon />
-                    <span>Edit</span>
-                  </button>
-                )}
-              </>
-            )}
-            
-          </div>
           
           {/* Summary */}
           {(isEditing || session.metadata?.summary) && (
@@ -422,8 +381,46 @@ function SessionHeader({ session, user, onSessionUpdate, sessionId }) {
         </div>
       </div>
       
-      {/* Visibility Badge - Bottom Right */}
-      <div className="absolute bottom-4 right-4">
+      {/* Visibility Badge and Edit Button - Bottom Right */}
+      <div className="absolute bottom-4 right-4 flex items-center space-x-2">
+        {/* Edit/Save/Cancel buttons */}
+        {isOwner && (
+          <>
+            {isEditing ? (
+              <>
+                <button
+                  onClick={handleSave}
+                  disabled={isSaving}
+                  className="flex items-center space-x-1 px-2 py-1 bg-green-600 hover:bg-green-700 disabled:bg-green-400 text-white text-xs font-medium rounded transition-colors"
+                >
+                  {isSaving ? (
+                    <span className="animate-spin">⭮</span>
+                  ) : (
+                    <SaveIcon />
+                  )}
+                  <span>{isSaving ? 'Saving...' : 'Save'}</span>
+                </button>
+                <button
+                  onClick={handleCancel}
+                  disabled={isSaving}
+                  className="flex items-center space-x-1 px-2 py-1 bg-gray-600 hover:bg-gray-700 disabled:bg-gray-400 text-white text-xs font-medium rounded transition-colors"
+                >
+                  <CancelIcon />
+                  <span>Cancel</span>
+                </button>
+              </>
+            ) : (
+              <button
+                onClick={() => setIsEditing(true)}
+                className="flex items-center space-x-1 px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium rounded transition-colors"
+              >
+                <EditIcon />
+                <span>Edit</span>
+              </button>
+            )}
+          </>
+        )}
+        
         <VisibilityBadge 
           isPrivate={session.metadata?.isPrivate === true} 
           onToggle={(isPrivate) => {
