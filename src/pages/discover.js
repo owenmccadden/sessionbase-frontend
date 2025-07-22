@@ -182,36 +182,7 @@ export default function Discover() {
         {/* Main Content */}
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <main className="w-full">
-            {/* Header */}
-            <div className="mb-6">
-              <h1 className="text-2xl font-bold text-gray-900">
-                Discover Sessions
-              </h1>
-              <p className="text-gray-600 mt-1">
-                {sessionsLoading ? 'Loading...' : `${sessions.length} sessions`}
-              </p>
-            </div>
 
-            {/* Sort Options */}
-            <div className="flex items-center space-x-4 mb-6 border-b border-gray-200">
-              {[
-                { key: 'popular', label: 'Most Popular' },
-                { key: 'newest', label: 'Newest' },
-                { key: 'views', label: 'Most Viewed' }
-              ].map((option) => (
-                <button
-                  key={option.key}
-                  onClick={() => setSortBy(option.key)}
-                  className={`pb-3 px-1 border-b-2 font-medium text-sm transition-colors ${
-                    sortBy === option.key
-                      ? 'border-blue-500 text-blue-600'
-                      : 'border-transparent text-gray-500 hover:text-gray-700'
-                  }`}
-                >
-                  {option.label}
-                </button>
-              ))}
-            </div>
 
             {/* Session Cards */}
             <div className="space-y-4">
