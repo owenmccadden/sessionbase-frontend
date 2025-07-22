@@ -1456,7 +1456,7 @@ function UnifiedMessageBubble({ message, sessionType, allCodeBlocksCollapsed, fo
           {!isSystem && !shouldRenderCode && !shouldRenderMarkdown && (
             <button
               onClick={() => copyToClipboard(message.content)}
-              className={`absolute top-2 right-2 p-1.5 rounded-md transition-all ${
+              className={`absolute top-1 right-1 p-1.5 rounded-md transition-all ${
                 copySuccess
                   ? 'bg-green-100 text-green-600'
                   : isUser
