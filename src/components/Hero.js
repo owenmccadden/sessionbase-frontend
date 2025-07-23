@@ -2,7 +2,7 @@ import { useState } from 'react';
 import WaitlistForm from './WaitlistForm';
 import DynamicSessionViewer from './DynamicSessionViewer';
 
-export default function Hero() {
+export default function Hero({ onShowAuth }) {
   const [showWaitlist, setShowWaitlist] = useState(false);
   const [copied, setCopied] = useState(false);
 
@@ -14,23 +14,23 @@ export default function Hero() {
 
   return (
     <section className="min-h-screen gradient-hero relative overflow-hidden">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 pb-16">
+      <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-6 pt-6 pb-16">
         <div className="grid lg:grid-cols-2 gap-12 items-center min-h-[80vh]">
           {/* Left Column */}
-          <div className="space-y-8">
-            <div className="space-y-6">
-              <h1 className="text-5xl lg:text-6xl font-semibold text-white leading-tight">
-                Capture, share, and search AI coding sessions.
+          <div className="space-y-6">
+            <div className="space-y-4">
+              <h1 className="text-6xl lg:text-7xl font-semibold text-white leading-tight">
+                Share & upload your AI coding agent sessions.
               </h1>
-              <p className="text-xl text-slate-200 leading-relaxed">
-                SessionBase allows you to share and store your coding agent sessions so you can preserve context.
+              <p className="text-2xl text-slate-200 leading-relaxed">
+                SessionBase helps you capture, organize, and share coding agent sessions across platforms, helping you and your dev team preserve valuable context.
               </p>
             </div>
 
             <div className="flex flex-col sm:flex-row gap-4">
               <button
-                onClick={() => setShowWaitlist(true)}
-                className="bg-white text-purple-600 px-8 py-4 rounded-lg font-semibold hover:bg-slate-100 transition-colors shadow-lg"
+                onClick={onShowAuth}
+                className="bg-white text-[#7B5FFF] px-8 py-4 rounded-lg font-semibold hover:bg-slate-100 transition-colors shadow-lg"
               >
                 Get Started — CLI Install
               </button>

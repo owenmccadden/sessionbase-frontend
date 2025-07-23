@@ -3,18 +3,18 @@ import Image from 'next/image';
 export default function LogosStrip() {
   const logos = [
     { 
-      name: "Claude", 
+      name: "Claude Code", 
       src: "/claude-logo.png",
       width: 120, 
       height: 40,
-      description: "Anthropic's Claude AI"
+      description: "Anthropic"
     },
     { 
-      name: "Amazon Q Chat", 
+      name: "Q Chat", 
       src: "/q-logo.png",
       width: 140, 
       height: 40,
-      description: "Amazon's Q Developer Chat"
+      description: "Amazon Q"
     },
   ];
 

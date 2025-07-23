@@ -26,7 +26,7 @@ export default function Landing() {
 
       <div className="min-h-screen">
         <Header />
-        <Hero />
+        <Hero onShowAuth={() => setShowAuthModal(true)} />
         <LogosStrip />
         <HowItWorks />
 
