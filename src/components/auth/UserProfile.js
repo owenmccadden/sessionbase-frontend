@@ -39,6 +39,7 @@ export default function UserProfile() {
           onError={(e) => {
             e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(user.username)}&background=3b82f6&color=fff&size=32`;
           }}
+          referrerPolicy="no-referrer"
         />
         <span className="text-gray-700 font-medium">{user.username}</span>
         <svg

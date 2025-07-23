@@ -83,6 +83,7 @@ export default function Login() {
                   src={user.avatarUrl}
                   alt={user.username}
                   className="w-16 h-16 rounded-full border-2 border-gray-200"
+                  referrerPolicy="no-referrer"
                 />
               )}
               <div>

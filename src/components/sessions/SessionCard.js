@@ -102,6 +102,7 @@ export default function SessionCard({ session, onAuthRequired }) {
               onError={(e) => {
                 e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(safeSession.author.username)}&background=3b82f6&color=fff&size=24`;
               }}
+              referrerPolicy="no-referrer"
             />
             <Link 
               href={`/users/${safeSession.author.userId || 'unknown'}`}

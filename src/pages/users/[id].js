@@ -127,6 +127,7 @@ export default function UserProfilePage() {
               onError={(e) => {
                 e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=3b82f6&color=fff&size=96`;
               }}
+              referrerPolicy="no-referrer"
             />
             <div className="flex-1 min-w-0">
               <h1 className="text-3xl font-bold text-gray-900 mb-2">{user.name}</h1>

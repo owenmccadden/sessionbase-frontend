@@ -1411,6 +1411,7 @@ function UnifiedMessageBubble({ message, sessionType, allCodeBlocksCollapsed, fo
                   onError={(e) => {
                     e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(sessionAuthor.username)}&background=3b82f6&color=fff&size=24`;
                   }}
+                  referrerPolicy="no-referrer"
                 />
               ) : isSystem ? '🔧' : 
                 sessionType === SESSION_TYPES.Q_CHAT ? 
@@ -1851,6 +1852,7 @@ function UserPromptsView({ session }) {
                       onError={(e) => {
                         e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(sessionAuthor.username)}&background=3b82f6&color=fff&size=24`;
                       }}
+                      referrerPolicy="no-referrer"
                     />
                     <span className="text-sm font-medium text-gray-900">
                       {sessionAuthor.userId ? (
