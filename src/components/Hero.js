@@ -20,7 +20,7 @@ export default function Hero({ onShowAuth }) {
           <div className="space-y-6">
             <div className="space-y-4">
               <h1 className="text-6xl lg:text-7xl font-semibold text-white leading-tight">
-                Share & upload your AI coding agent sessions.
+                Share & upload your AI coding sessions.
               </h1>
               <p className="text-2xl text-slate-200 leading-relaxed">
                 SessionBase helps you capture, organize, and share coding agent sessions across platforms, helping you and your dev team preserve valuable context.
@@ -73,7 +73,7 @@ export default function Hero({ onShowAuth }) {
                   </span>
                 </button>
               </div>
-              <div className="font-mono text-slate-100 text-lg flex items-center">
+              <div className="text-slate-100 text-lg flex items-center" style={{fontFamily: 'SF Mono, Monaco, Inconsolata, "Roboto Mono", Consolas, "Courier New", monospace'}}>
                 <span className="text-slate-400 mr-2">$</span>
                 <span>npm i -g @sessionbase/cli</span>
                 <span className="w-2 h-5 bg-slate-300 inline-block ml-1 animate-pulse"></span>

@@ -141,7 +141,7 @@ export default function Settings() {
                 <h3 className="text-sm font-medium text-gray-700 mb-3">1. Install the SessionBase CLI</h3>
                 <div className="relative">
                   <div className="bg-slate-800 border border-slate-700 rounded-lg p-4 pr-12">
-                    <code className="text-slate-100 text-sm font-mono block">
+                    <code className="text-slate-100 text-sm block" style={{fontFamily: 'SF Mono, Monaco, Inconsolata, "Roboto Mono", Consolas, "Courier New", monospace'}}>
                       npm i @sessionbase/cli
                     </code>
                   </div>
@@ -171,7 +171,7 @@ export default function Settings() {
                 <h3 className="text-sm font-medium text-gray-700 mb-3">2. Configure your authentication</h3>
                 <div className="relative">
                   <div className="bg-slate-800 border border-slate-700 rounded-lg p-4 pr-12">
-                    <code className="text-slate-100 text-sm font-mono block">
+                    <code className="text-slate-100 text-sm block" style={{fontFamily: 'SF Mono, Monaco, Inconsolata, "Roboto Mono", Consolas, "Courier New", monospace'}}>
                       sessionbase login --token YOUR_TOKEN
                     </code>
                   </div>
@@ -201,7 +201,7 @@ export default function Settings() {
                 <h3 className="text-sm font-medium text-gray-700 mb-3">3. Verify your setup</h3>
                 <div className="relative">
                   <div className="bg-slate-800 border border-slate-700 rounded-lg p-4 pr-12">
-                    <code className="text-slate-100 text-sm font-mono block">
+                    <code className="text-slate-100 text-sm block" style={{fontFamily: 'SF Mono, Monaco, Inconsolata, "Roboto Mono", Consolas, "Courier New", monospace'}}>
                       sessionbase whoami
                     </code>
                   </div>
@@ -268,7 +268,8 @@ export default function Settings() {
                       type={showToken ? "text" : "password"}
                       value={isAuthenticated ? (getAuthToken() || '') : ''}
                       readOnly
-                      className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-md bg-gray-50 text-sm font-mono"
+                      className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-md bg-gray-50 text-sm"
+                      style={{fontFamily: 'SF Mono, Monaco, Inconsolata, "Roboto Mono", Consolas, "Courier New", monospace'}}
                     />
                     <button
                       onClick={toggleTokenVisibility}
