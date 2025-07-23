@@ -24,3 +24,23 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+.gradient-hero {
+  background: linear-gradient(135deg, #7b5fff 0%, #6366f1 50%, transparent 100%);
+}
+
+.animate-code-typing {
+  animation: typing 3s steps(30, end) infinite;
+}
+
+@keyframes typing {
+  0% {
+    width: 0;
+  }
+  50% {
+    width: 100%;
+  }
+  100% {
+    width: 0;
+  }
+}

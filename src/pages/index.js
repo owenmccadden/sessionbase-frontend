@@ -4,6 +4,9 @@ import Head from 'next/head';
 import Link from 'next/link';
 import { useAuth } from '../contexts/AuthContext';
 import Header from '../components/Header';
+import Hero from '../components/Hero';
+import LogosStrip from '../components/LogosStrip';
+import HowItWorks from '../components/HowItWorks';
 import { loginWithGitHub, loginWithGoogle } from '../utils/auth';
 
 export default function Landing() {
@@ -21,107 +24,11 @@ export default function Landing() {
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen">
         <Header />
-
-        {/* Hero Section */}
-        <div className="relative bg-white overflow-hidden">
-          <div className="max-w-7xl mx-auto">
-            <div className="relative z-10 pb-8 bg-white sm:pb-16 md:pb-20 lg:max-w-2xl lg:w-full lg:pb-28 xl:pb-32">
-              <main className="mt-10 mx-auto max-w-7xl px-4 sm:mt-12 sm:px-6 md:mt-16 lg:mt-20 lg:px-8 xl:mt-28">
-                <div className="sm:text-center lg:text-left">
-                  <h1 className="text-4xl tracking-tight font-extrabold text-gray-900 sm:text-5xl md:text-6xl">
-                    <span className="block xl:inline">Share and discover</span>{' '}
-                    <span className="block text-blue-600 xl:inline">AI chat sessions</span>
-                  </h1>
-                  <p className="mt-3 text-base text-gray-500 sm:mt-5 sm:text-lg sm:max-w-xl sm:mx-auto md:mt-5 md:text-xl lg:mx-0">
-                    Learn from conversations with Claude, GPT-4, and other AI models. 
-                    Share your best prompts and discover solutions from the community.
-                  </p>
-                  <div className="mt-5 sm:mt-8 sm:flex sm:justify-center lg:justify-start">
-                    <div className="rounded-md shadow">
-                      <Link
-                        href="/discover"
-                        className="w-full flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 md:py-4 md:text-lg md:px-10"
-                      >
-                        Browse Sessions
-                      </Link>
-                    </div>
-                    <div className="mt-3 sm:mt-0 sm:ml-3">
-                      <button
-                        onClick={() => setShowAuthModal(true)}
-                        className="w-full flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-blue-700 bg-blue-100 hover:bg-blue-200 md:py-4 md:text-lg md:px-10"
-                      >
-                        Get Started
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </main>
-            </div>
-          </div>
-          <div className="lg:absolute lg:inset-y-0 lg:right-0 lg:w-1/2">
-            <div className="h-56 w-full bg-gradient-to-r from-blue-400 to-blue-600 sm:h-72 md:h-96 lg:w-full lg:h-full flex items-center justify-center">
-              <div className="text-white text-6xl">💬</div>
-            </div>
-          </div>
-        </div>
-
-        {/* Features Section */}
-        <div className="py-12 bg-gray-50">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="lg:text-center">
-              <h2 className="text-base text-blue-600 font-semibold tracking-wide uppercase">Features</h2>
-              <p className="mt-2 text-3xl leading-8 font-extrabold tracking-tight text-gray-900 sm:text-4xl">
-                Everything you need to share AI conversations
-              </p>
-            </div>
-
-            <div className="mt-10">
-              <div className="space-y-10 md:space-y-0 md:grid md:grid-cols-2 md:gap-x-8 md:gap-y-10">
-                <div className="relative">
-                  <div className="absolute flex items-center justify-center h-12 w-12 rounded-md bg-blue-500 text-white">
-                    <span className="text-2xl">🔍</span>
-                  </div>
-                  <p className="ml-16 text-lg leading-6 font-medium text-gray-900">Discover Sessions</p>
-                  <p className="mt-2 ml-16 text-base text-gray-500">
-                    Browse and search through community-shared AI conversations by topic, model, or keywords.
-                  </p>
-                </div>
-
-                <div className="relative">
-                  <div className="absolute flex items-center justify-center h-12 w-12 rounded-md bg-blue-500 text-white">
-                    <span className="text-2xl">📤</span>
-                  </div>
-                  <p className="ml-16 text-lg leading-6 font-medium text-gray-900">Share Your Sessions</p>
-                  <p className="mt-2 ml-16 text-base text-gray-500">
-                    Upload and share your best AI conversations with automatic formatting and syntax highlighting.
-                  </p>
-                </div>
-
-                <div className="relative">
-                  <div className="absolute flex items-center justify-center h-12 w-12 rounded-md bg-blue-500 text-white">
-                    <span className="text-2xl">🏷️</span>
-                  </div>
-                  <p className="ml-16 text-lg leading-6 font-medium text-gray-900">Organize with Tags</p>
-                  <p className="mt-2 ml-16 text-base text-gray-500">
-                    Tag your sessions by programming language, topic, or use case for easy discovery.
-                  </p>
-                </div>
-
-                <div className="relative">
-                  <div className="absolute flex items-center justify-center h-12 w-12 rounded-md bg-blue-500 text-white">
-                    <span className="text-2xl">👥</span>
-                  </div>
-                  <p className="ml-16 text-lg leading-6 font-medium text-gray-900">Team Collaboration</p>
-                  <p className="mt-2 ml-16 text-base text-gray-500">
-                    Work together with your team on private sessions and build shared knowledge bases.
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
+        <Hero />
+        <LogosStrip />
+        <HowItWorks />
 
         {/* Auth Modal */}
         {showAuthModal && (
