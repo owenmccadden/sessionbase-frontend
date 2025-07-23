@@ -155,9 +155,7 @@ export default function DynamicSessionViewer() {
           ) : (
             <div className="flex space-x-3">
               <div className="w-6 h-6 rounded-full bg-orange-500 flex items-center justify-center flex-shrink-0 mt-1">
-                <svg className="w-3 h-3 text-white" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
-                </svg>
+                <span className="text-sm">🤖</span>
               </div>
               <div className="flex-1">
                 <div className="flex items-center space-x-2 mb-2">
