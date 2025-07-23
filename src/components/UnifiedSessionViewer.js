@@ -120,9 +120,9 @@ function SessionHeader({ session, user, onSessionUpdate, sessionId }) {
 
   // Check if user is the owner of the session
   const isOwner = user && session.author && (
-    user.id === session.author.userId || 
-    user.userId === session.author.userId ||
-    user.id === session.author.id
+    (user.id && session.author.userId && String(user.id) === String(session.author.userId)) ||
+    (user.userId && session.author.userId && String(user.userId) === String(session.author.userId)) ||
+    (user.id && session.author.id && String(user.id) === String(session.author.id))
   );
 
   const handleSave = async () => {
