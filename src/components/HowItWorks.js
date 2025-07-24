@@ -2,7 +2,9 @@ export default function HowItWorks() {
   const steps = [
     {
       title: "Capture",
-      description: "Automatically save your AI conversations from any supported platform with a single command.",
+      description: "Use platform-specific commands to save your coding session to a file.",
+      command: "/save session.json",
+      docsLink: "https://docs.sessionbase.ai",
       icon: (
         <svg className="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path
@@ -16,7 +18,8 @@ export default function HowItWorks() {
     },
     {
       title: "Upload",
-      description: "Sessions are securely stored in the cloud with full-text search and intelligent tagging.",
+      description: "Upload your session file to the cloud with full-text search and intelligent tagging.",
+      command: "sessionbase upload session.json",
       icon: (
         <svg className="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path
@@ -31,13 +34,14 @@ export default function HowItWorks() {
     {
       title: "Share",
       description: "Generate shareable links for your sessions to include in documentation, PRs, or team discussions.",
+      shareUrl: "sessionbase.ai/sessions/f47ac10b-58cc-4372-a567-0e02b2c3d479",
       icon: (
         <svg className="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path
             strokeLinecap="round"
             strokeLinejoin="round"
             strokeWidth={1.5}
-            d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.367 2.684 3 3 0 00-5.367-2.684z"
+            d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
           />
         </svg>
       ),
@@ -45,28 +49,63 @@ export default function HowItWorks() {
   ];
 
   return (
-    <section className="py-24 bg-slate-50">
+    <section className="py-24 bg-gradient-to-br from-purple-50 to-indigo-100">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-16">
           <h2 className="text-4xl font-semibold text-slate-900 mb-4">How it works</h2>
           <p className="text-xl text-slate-600 max-w-2xl mx-auto">
-            Three simple steps to preserve and share your AI conversations
+            Three simple steps to preserve and share your AI coding sessions
           </p>
         </div>
 
-        <div className="grid md:grid-cols-3 gap-8">
+        <div className="grid md:grid-cols-3 gap-8 md:items-stretch">
           {steps.map((step, index) => (
-            <div key={step.title} className="text-center relative">
-              <div className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-shadow">
-                <div className="text-purple-600 mb-6 flex justify-center">{step.icon}</div>
+            <div key={step.title} className="text-center relative flex">
+              <div className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 border border-slate-100 group flex flex-col flex-1">
+                <div className="mb-6 flex justify-center group-hover:scale-110 transition-transform duration-300" style={{color: '#7B5FFF'}}>{step.icon}</div>
                 <h3 className="text-2xl font-semibold text-slate-900 mb-4">{step.title}</h3>
-                <p className="text-slate-600 leading-relaxed">{step.description}</p>
+                <p className="text-slate-600 leading-relaxed mb-6 flex-1">
+                  {step.description}
+                  {step.docsLink && (
+                    <>
+                      {' '}
+                      <a 
+                        href={step.docsLink} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="underline hover:opacity-80"
+                        style={{color: '#7B5FFF'}}
+                      >
+                        See docs
+                      </a>
+                    </>
+                  )}
+                </p>
+                <div className="mt-auto">
+                  {step.command && (
+                    <div className="bg-slate-800 border border-slate-700 rounded-lg p-3">
+                      <code className="text-slate-100 text-sm block" style={{fontFamily: 'SF Mono, Monaco, Inconsolata, "Roboto Mono", Consolas, "Courier New", monospace'}}>
+                        <span className="text-slate-400 mr-2">{step.command.startsWith('/') ? '>' : '$'}</span>
+                        {step.command}
+                      </code>
+                    </div>
+                  )}
+                  {step.shareUrl && (
+                    <div className="rounded-lg p-3" style={{backgroundColor: '#7B5FFF10', borderColor: '#7B5FFF30', borderWidth: '1px'}}>
+                      <code className="text-sm block" style={{fontFamily: 'SF Mono, Monaco, Inconsolata, "Roboto Mono", Consolas, "Courier New", monospace', color: '#7B5FFF'}}>
+                        {step.shareUrl}
+                      </code>
+                    </div>
+                  )}
+                </div>
               </div>
               {index < steps.length - 1 && (
                 <div className="hidden md:block absolute top-1/2 right-0 transform translate-x-1/2 -translate-y-1/2">
-                  <svg className="w-6 h-6 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                  </svg>
+                  <div className="rounded-full p-2" style={{backgroundColor: '#7B5FFF20'}}>
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{color: '#7B5FFF'}}>
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                  </div>
                 </div>
               )}
             </div>
