@@ -1661,10 +1661,10 @@ function UnifiedToolUseDisplay({ toolUse, isUser }) {
         ? 'bg-blue-500 border border-blue-400' 
         : 'bg-yellow-50 border border-yellow-200'
     }`}>
-      <div className="flex items-center justify-between mb-2">
-        <div className="flex items-center space-x-2">
+      <div className="flex items-start justify-between mb-2 gap-3">
+        <div className="flex items-center space-x-2 flex-1 min-w-0">
           <span className={isUser ? 'text-blue-100' : 'text-yellow-600'}>🔧</span>
-          <span className={`font-medium ${
+          <span className={`font-medium break-words ${
             isUser ? 'text-blue-100' : 'text-yellow-900'
           }`}>
             Tool: {toolUse.name}
@@ -1672,7 +1672,7 @@ function UnifiedToolUseDisplay({ toolUse, isUser }) {
         </div>
         <button
           onClick={() => setShowInput(!showInput)}
-          className={`text-xs underline ${
+          className={`text-xs underline whitespace-nowrap flex-shrink-0 ${
             isUser 
               ? 'text-blue-200 hover:text-blue-100' 
               : 'text-yellow-600 hover:text-yellow-800'
