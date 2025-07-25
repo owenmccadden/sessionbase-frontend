@@ -1580,8 +1580,12 @@ function UnifiedMessageBubble({ message, sessionType, allCodeBlocksCollapsed, fo
 
 function RawMessageDataDisplay({ message }) {
   const [copySuccess, setCopySuccess] = useState(false);
+  const [showNormalized, setShowNormalized] = useState(false);
   
-  const rawText = JSON.stringify(message, null, 2);
+  // Use original raw data if available, otherwise fall back to normalized message
+  const displayData = showNormalized ? message : (message.originalRawData || message);
+  const rawText = JSON.stringify(displayData, null, 2);
+  const hasOriginalData = !!message.originalRawData;
 
   const handleCopy = async () => {
     try {
@@ -1605,7 +1609,19 @@ function RawMessageDataDisplay({ message }) {
   return (
     <div className="mt-2 bg-gray-50 border border-gray-200 rounded">
       <div className="px-3 py-2 border-b border-gray-200 flex items-center justify-between">
-        <span className="text-xs font-medium text-gray-700">Message Raw Data</span>
+        <div className="flex items-center space-x-3">
+          <span className="text-xs font-medium text-gray-700">
+            {showNormalized ? 'Normalized Message Data' : 'Original Raw Data'}
+          </span>
+          {hasOriginalData && (
+            <button
+              onClick={() => setShowNormalized(!showNormalized)}
+              className="text-xs text-blue-600 hover:text-blue-800 underline"
+            >
+              Show {showNormalized ? 'Original' : 'Normalized'}
+            </button>
+          )}
+        </div>
         <button
           onClick={handleCopy}
           className={`flex items-center space-x-1 px-2 py-1 rounded text-xs font-medium transition-all ${

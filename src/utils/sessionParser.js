@@ -409,7 +409,8 @@ function parseGeminiSession(data) {
         partsCount: msg.parts ? msg.parts.length : 0
       },
       toolCalls: toolCalls.length > 0 ? toolCalls : undefined,
-      toolResults: toolResults.length > 0 ? toolResults : undefined
+      toolResults: toolResults.length > 0 ? toolResults : undefined,
+      originalRawData: msg
     };
   });
   
