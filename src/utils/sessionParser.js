@@ -56,6 +56,11 @@ export function detectSessionFormat(data) {
           return SESSION_TYPES.CLAUDE_CODE;
         }
         
+        // Gemini CLI JSONL detection
+        if (firstLine.role && firstLine.parts) {
+          return SESSION_TYPES.GEMINI_CLI;
+        }
+        
         return SESSION_TYPES.UNKNOWN;
       }
       
@@ -83,7 +88,12 @@ export function detectSessionFormat(data) {
       return SESSION_TYPES.CURSOR;
     }
     
-    // Gemini CLI detection
+    // Gemini CLI detection - array of messages with role and parts structure
+    if (Array.isArray(data) && data.length > 0 && data[0].role && data[0].parts) {
+      return SESSION_TYPES.GEMINI_CLI;
+    }
+    
+    // Legacy Gemini CLI detection
     if (data.gemini_session || (data.model && data.model.includes('gemini'))) {
       return SESSION_TYPES.GEMINI_CLI;
     }
@@ -317,17 +327,96 @@ function parseCursorSession(data) {
 }
 
 /**
- * Parse Gemini CLI format (placeholder - implement based on actual Gemini format)
+ * Parse Gemini CLI format
  */
 function parseGeminiSession(data) {
-  // Placeholder implementation
+  let messages = [];
+  
+  if (typeof data === 'string') {
+    try {
+      data = JSON.parse(data);
+    } catch (error) {
+      // Handle JSONL format - each line is a separate JSON object
+      const lines = data.trim().split('\n').filter(line => line.trim());
+      messages = lines.map(line => JSON.parse(line));
+      data = messages;
+    }
+  }
+  
+  if (Array.isArray(data)) {
+    messages = data;
+  } else {
+    // Handle wrapped format or single session object
+    messages = data.messages || [data];
+  }
+  
+  const normalizedMessages = messages.map((msg, index) => {
+    const messageId = `gemini-${index}`;
+    const role = msg.role || 'unknown';
+    
+    // Extract content from parts array
+    let content = '';
+    let toolCalls = [];
+    let toolResults = [];
+    
+    if (msg.parts && Array.isArray(msg.parts)) {
+      msg.parts.forEach(part => {
+        if (part.text) {
+          content += part.text;
+        } else if (part.functionCall) {
+          // Handle function calls (tool use)
+          toolCalls.push({
+            id: part.functionCall.id || `tool-${index}`,
+            name: part.functionCall.name,
+            input: part.functionCall.args,
+            timestamp: new Date()
+          });
+          content += `Using tool: ${part.functionCall.name}`;
+        } else if (part.functionResponse) {
+          // Handle function responses (tool results)
+          toolResults.push({
+            tool_use_id: part.functionResponse.id,
+            content: part.functionResponse.response?.output || JSON.stringify(part.functionResponse.response),
+            is_error: part.functionResponse.response?.error ? true : false
+          });
+          content += `Tool result: ${part.functionResponse.name}`;
+        }
+      });
+    }
+    
+    // Determine message type based on role and content
+    let messageType = role;
+    if (role === 'model') {
+      messageType = 'assistant';
+    } else if (role === 'user') {
+      messageType = 'user';
+    }
+    
+    return {
+      id: messageId,
+      type: messageType,
+      role: messageType,
+      content: content.trim() || JSON.stringify(msg),
+      timestamp: new Date(), // Gemini CLI doesn't seem to include timestamps
+      metadata: {
+        originalRole: role,
+        partsCount: msg.parts ? msg.parts.length : 0
+      },
+      toolCalls: toolCalls.length > 0 ? toolCalls : undefined,
+      toolResults: toolResults.length > 0 ? toolResults : undefined
+    };
+  });
+  
   return {
-    id: data.gemini_session || 'gemini-session',
+    id: data.gemini_session || `gemini-session-${Date.now()}`,
     type: SESSION_TYPES.GEMINI_CLI,
     title: 'Gemini CLI Session',
-    metadata: {},
-    messages: [],
-    stats: { totalMessages: 0, userMessages: 0, assistantMessages: 0 },
+    metadata: {
+      totalMessages: normalizedMessages.length,
+      hasToolCalls: normalizedMessages.some(msg => msg.toolCalls && msg.toolCalls.length > 0)
+    },
+    messages: normalizedMessages,
+    stats: calculateStats(normalizedMessages),
     rawData: data
   };
 }

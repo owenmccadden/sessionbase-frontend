@@ -277,7 +277,7 @@ function SessionHeader({ session, user, onSessionUpdate, sessionId }) {
       case SESSION_TYPES.CURSOR:
         return '⚡';
       case SESSION_TYPES.GEMINI_CLI:
-        return '💎';
+        return <img src="/gemini-cli-logo.png" alt="Gemini CLI" className="w-8 h-8" />;
       default:
         return '❓';
     }
@@ -1416,7 +1416,9 @@ function UnifiedMessageBubble({ message, sessionType, allCodeBlocksCollapsed, fo
               ) : isSystem ? '🔧' : 
                 sessionType === SESSION_TYPES.Q_CHAT ? 
                   <img src="/q-logo.png" alt="Amazon Q" className="w-4 h-4" /> :
-                  <img src="/claude-logo.png" alt="Claude" className="w-4 h-4" />
+                  sessionType === SESSION_TYPES.GEMINI_CLI ? 
+                    <img src="/gemini-cli-logo.png" alt="Gemini CLI" className="w-4 h-4" /> :
+                    <img src="/claude-logo.png" alt="Claude" className="w-4 h-4" />
               }
             </span>
             <span className={`font-medium ${
@@ -1424,6 +1426,7 @@ function UnifiedMessageBubble({ message, sessionType, allCodeBlocksCollapsed, fo
             }`}>
               {message.type === 'assistant' && sessionType === SESSION_TYPES.CLAUDE_CODE ? 'Claude' : 
                message.type === 'assistant' && sessionType === SESSION_TYPES.Q_CHAT ? 'Amazon Q' :
+               message.type === 'assistant' && sessionType === SESSION_TYPES.GEMINI_CLI ? 'Gemini' :
                message.type === 'user' ? (
                 sessionAuthor.userId ? (
                   <Link href={`/users/${sessionAuthor.userId}`} className="hover:underline">
