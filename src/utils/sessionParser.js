@@ -389,7 +389,13 @@ function parseGeminiSession(data) {
     if (role === 'model') {
       messageType = 'assistant';
     } else if (role === 'user') {
-      messageType = 'user';
+      // Check if this is actually a tool result disguised as a user message
+      const hasToolResponse = msg.parts && msg.parts.some(part => part.functionResponse);
+      if (hasToolResponse) {
+        messageType = 'tool';
+      } else {
+        messageType = 'user';
+      }
     }
     
     return {
