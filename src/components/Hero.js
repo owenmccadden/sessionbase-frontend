@@ -20,10 +20,10 @@ export default function Hero({ onShowAuth }) {
           <div className="space-y-6">
             <div className="space-y-4">
               <h1 className="text-6xl lg:text-7xl font-semibold text-white leading-tight">
-                Share & upload your AI coding sessions.
+                Capture & share your AI coding sessions.
               </h1>
               <p className="text-2xl text-slate-200 leading-relaxed">
-                SessionBase helps you capture, organize, and share coding agent sessions across platforms, helping you and your dev team preserve valuable context.
+                SessionBase helps you preserve, organize, and share coding agent sessions across platforms, helping you and your dev team maintain valuable context.
               </p>
             </div>
 
