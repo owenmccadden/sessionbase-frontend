@@ -48,6 +48,7 @@ export function detectSessionFormat(data) {
     if (typeof data === 'string') {
       // Check if it looks like JSONL (multiple lines with JSON objects)
       if (data.includes('\n{') && data.split('\n').filter(line => line.trim()).length > 1) {
+        
         const lines = data.trim().split('\n');
         const firstLine = JSON.parse(lines[0]);
         
@@ -69,7 +70,7 @@ export function detectSessionFormat(data) {
     }
     
     // Claude Code wrapped format detection (new format with messages array)
-    if (data.messages && Array.isArray(data.messages) && data.platform) {
+    if (data.messages && Array.isArray(data.messages)) {
       // Check if messages have Claude Code structure
       const firstMessage = data.messages[0];
       if (firstMessage && firstMessage.sessionId && firstMessage.type && firstMessage.message && firstMessage.uuid) {
@@ -108,10 +109,12 @@ export function detectSessionFormat(data) {
 /**
  * Parse and normalize session data regardless of format
  * @param {string|Object} rawData - Raw session data
+ * @param {string} knownSessionType - Optional known session type from metadata
  * @returns {NormalizedSession} Normalized session object
  */
-export function parseSession(rawData) {
-  const sessionType = detectSessionFormat(rawData);
+export function parseSession(rawData, knownSessionType = null) {
+  // Use known session type if provided, otherwise detect
+  const sessionType = knownSessionType || detectSessionFormat(rawData);
   
   switch (sessionType) {
     case SESSION_TYPES.Q_CHAT:
@@ -132,13 +135,72 @@ export function parseSession(rawData) {
  */
 function parseQChatSession(data) {
   if (typeof data === 'string') {
-    data = JSON.parse(data);
+    // Check if this is JSONL format (CLI Q Chat upload)
+    if (data.includes('\n{') && data.split('\n').filter(line => line.trim()).length > 1) {
+      // Parse JSONL format - each line is a separate JSON object
+      const lines = data.trim().split('\n').filter(line => line.trim());
+      const messages = lines.map(line => JSON.parse(line));
+      
+      // Convert to the expected Q Chat format with messages array
+      data = {
+        messages: messages,
+        conversationId: messages[0]?.sessionId || 'qchat-session',
+        platform: 'q-chat'
+      };
+    } else {
+      // Regular JSON format
+      data = JSON.parse(data);
+    }
   }
   
   const messages = [];
   let messageId = 0;
   
-  // Process Q Chat history structure
+  // Handle new Q Chat format from CLI (with messages array)
+  if (data.messages && Array.isArray(data.messages)) {
+    data.messages.forEach((msg, index) => {
+      const normalizedMessage = {
+        id: msg.uuid || `qchat-${index}`,
+        type: msg.type,
+        role: msg.message?.role || msg.type,
+        content: msg.message?.content || '',
+        timestamp: new Date(msg.timestamp),
+        metadata: {
+          uuid: msg.uuid,
+          sessionId: msg.sessionId,
+          cwd: msg.cwd,
+          version: msg.version,
+          userType: msg.userType,
+          gitBranch: msg.gitBranch,
+          parentUuid: msg.parentUuid,
+          isSidechain: msg.isSidechain
+        },
+        context: {
+          cwd: msg.cwd,
+          sessionId: msg.sessionId,
+          version: msg.version
+        }
+      };
+      
+      messages.push(normalizedMessage);
+    });
+    
+    return {
+      id: data.conversationId || data.sessionId || 'qchat-session',
+      type: SESSION_TYPES.Q_CHAT,
+      title: data.title || 'Q Chat Session',
+      metadata: {
+        conversationId: data.conversationId,
+        platform: data.platform,
+        directoryPath: data.directoryPath
+      },
+      messages,
+      stats: calculateStats(messages),
+      rawData: data
+    };
+  }
+  
+  // Process legacy Q Chat history structure
   data.history.forEach((exchange, exchangeIndex) => {
     exchange.forEach((message, messageIndex) => {
       const normalizedMessage = {

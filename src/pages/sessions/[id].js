@@ -83,7 +83,14 @@ export default function SessionPage() {
         }
         
         // Use unified parser to detect format and normalize data
-        const normalizedSession = parseSession(parsedSessionData);
+        // Pass sessionType from metadata if available to avoid incorrect detection
+        const knownSessionType = sessionMetadata?.sessionType ? 
+          (sessionMetadata.sessionType === 'q-chat' ? SESSION_TYPES.Q_CHAT :
+           sessionMetadata.sessionType === 'claude' ? SESSION_TYPES.CLAUDE_CODE :
+           sessionMetadata.sessionType === 'gemini_cli' ? SESSION_TYPES.GEMINI_CLI :
+           null) : null;
+        
+        const normalizedSession = parseSession(parsedSessionData, knownSessionType);
         
         // Add metadata to the normalized session if we have it
         if (sessionMetadata) {
