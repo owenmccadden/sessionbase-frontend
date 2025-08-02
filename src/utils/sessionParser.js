@@ -182,6 +182,49 @@ function parseQChatSession(data) {
         }
       };
       
+      // Handle toolCalls in new format
+      if (msg.message?.toolCalls && Array.isArray(msg.message.toolCalls)) {
+        normalizedMessage.toolCalls = msg.message.toolCalls.map(tool => ({
+          id: tool.id,
+          name: tool.name,
+          input: tool.input,
+          timestamp: new Date(tool.timestamp || msg.timestamp),
+          metadata: tool.metadata || {
+            orig_name: tool.metadata?.orig_name,
+            orig_args: tool.metadata?.orig_args
+          }
+        }));
+      }
+      
+      // Handle toolResults in new format
+      if (msg.message?.toolResults && Array.isArray(msg.message.toolResults)) {
+        normalizedMessage.toolResults = msg.message.toolResults.map(result => {
+          let content = result.content;
+          
+          // Handle nested Json.content structure
+          if (Array.isArray(result.content)) {
+            const jsonContent = result.content.find(item => item.Json?.content);
+            if (jsonContent?.Json?.content) {
+              // Extract text from the nested content array
+              const textContent = jsonContent.Json.content
+                .filter(item => item.type === 'text')
+                .map(item => item.text)
+                .join('\n');
+              content = textContent || JSON.stringify(jsonContent.Json.content, null, 2);
+            } else {
+              content = JSON.stringify(result.content, null, 2);
+            }
+          }
+          
+          return {
+            tool_use_id: result.tool_use_id,
+            content: content,
+            status: result.status,
+            is_error: result.status === 'Error'
+          };
+        });
+      }
+      
       messages.push(normalizedMessage);
     });
     
