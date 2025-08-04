@@ -106,16 +106,6 @@ export default function Teams() {
 
                 <div className="py-4">
                   <h4 className="font-medium text-gray-900 mb-2 flex items-center">
-                    <ExternalLink className="w-5 h-5 mr-3 text-gray-400" />
-                    Session Linking
-                  </h4>
-                  <p className="text-gray-500 text-sm leading-relaxed">
-                    Link AI sessions in PRs and internal docs for better team knowledge sharing.
-                  </p>
-                </div>
-
-                <div className="py-4">
-                  <h4 className="font-medium text-gray-900 mb-2 flex items-center">
                     <BookOpen className="w-5 h-5 mr-3 text-gray-400" />
                     Team Knowledge Base
                   </h4>
@@ -126,11 +116,21 @@ export default function Teams() {
 
                 <div className="py-4">
                   <h4 className="font-medium text-gray-900 mb-2 flex items-center">
+                    <ExternalLink className="w-5 h-5 mr-3 text-gray-400" />
+                    Session Linking
+                  </h4>
+                  <p className="text-gray-500 text-sm leading-relaxed">
+                    Link AI sessions in PRs and internal docs for better team knowledge sharing.
+                  </p>
+                </div>
+
+                <div className="py-4">
+                  <h4 className="font-medium text-gray-900 mb-2 flex items-center">
                     <Settings className="w-5 h-5 mr-3 text-gray-400" />
                     Advanced Sharing
                   </h4>
                   <p className="text-gray-500 text-sm leading-relaxed">
-                    Granular permissions and enterprise-grade access controls.
+                    Granular permissions and access controls.
                   </p>
                 </div>
               </div>

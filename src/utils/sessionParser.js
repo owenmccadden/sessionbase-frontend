@@ -243,58 +243,78 @@ function parseQChatSession(data) {
     };
   }
   
-  // Process legacy Q Chat history structure
+  // Process Q Chat history structure where each exchange has user/assistant properties
   data.history.forEach((exchange, exchangeIndex) => {
-    exchange.forEach((message, messageIndex) => {
-      const normalizedMessage = {
-        id: `${exchangeIndex}-${messageIndex}-${messageId++}`,
+    // Handle user message
+    if (exchange.user) {
+      const userMessage = {
+        id: `${exchangeIndex}-user-${messageId++}`,
+        type: 'user',
+        role: 'user',
         exchangeIndex,
-        messageIndex,
-        timestamp: new Date(), // Q Chat doesn't seem to have timestamps
+        messageIndex: 0,
+        timestamp: new Date(exchange.request_metadata?.request_start_timestamp_ms || Date.now()),
         metadata: {
-          additional_context: message.additional_context,
-          env_context: message.env_context
+          additional_context: exchange.user.additional_context,
+          env_context: exchange.user.env_context,
+          request_metadata: exchange.request_metadata
         }
       };
-      
-      // Handle different message types in Q Chat
-      if (message.content?.Prompt) {
-        normalizedMessage.type = 'user';
-        normalizedMessage.role = 'user';
-        normalizedMessage.content = message.content.Prompt.prompt;
-      } else if (message.ToolUse) {
-        normalizedMessage.type = 'assistant';
-        normalizedMessage.role = 'assistant';
-        normalizedMessage.content = message.ToolUse.content || '';
-        // Extract detailed tool information from Q Chat format
-        normalizedMessage.toolCalls = (message.ToolUse.tool_uses || []).map(tool => ({
+
+      // Extract user content
+      if (exchange.user.content?.Prompt) {
+        userMessage.content = exchange.user.content.Prompt.prompt;
+      } else if (exchange.user.content?.ToolUseResults) {
+        userMessage.type = 'tool';
+        userMessage.role = 'tool';
+        userMessage.content = 'Tool execution results';
+        userMessage.toolResults = exchange.user.content.ToolUseResults.tool_use_results.map(result => ({
+          tool_use_id: result.tool_use_id,
+          content: result.content,
+          status: result.status,
+          is_error: result.status === 'Error'
+        }));
+      } else {
+        userMessage.content = '';
+      }
+
+      messages.push(userMessage);
+    }
+
+    // Handle assistant message
+    if (exchange.assistant) {
+      const assistantMessage = {
+        id: `${exchangeIndex}-assistant-${messageId++}`,
+        type: 'assistant',
+        role: 'assistant',
+        exchangeIndex,
+        messageIndex: 1,
+        timestamp: new Date(exchange.request_metadata?.stream_end_timestamp_ms || Date.now()),
+        metadata: {
+          request_metadata: exchange.request_metadata
+        }
+      };
+
+      if (exchange.assistant.ToolUse) {
+        assistantMessage.content = exchange.assistant.ToolUse.content || '';
+        assistantMessage.toolCalls = (exchange.assistant.ToolUse.tool_uses || []).map(tool => ({
           id: tool.id,
           name: tool.name || tool.orig_name,
           input: tool.args || tool.orig_args,
-          timestamp: new Date(), // Q Chat doesn't have individual tool timestamps
+          timestamp: new Date(),
           metadata: {
             orig_name: tool.orig_name,
-            orig_args: tool.orig_args,
-            summary: tool.args?.summary || tool.orig_args?.summary
+            orig_args: tool.orig_args
           }
         }));
-      } else if (message.content?.ToolUseResults) {
-        normalizedMessage.type = 'tool';
-        normalizedMessage.role = 'tool';
-        normalizedMessage.content = 'Tool execution results';
-        normalizedMessage.toolResults = message.content.ToolUseResults.tool_use_results;
-      } else if (message.Response) {
-        normalizedMessage.type = 'assistant';
-        normalizedMessage.role = 'assistant';
-        normalizedMessage.content = message.Response.content;
+      } else if (exchange.assistant.Response) {
+        assistantMessage.content = exchange.assistant.Response.content;
       } else {
-        normalizedMessage.type = 'system';
-        normalizedMessage.role = 'system';
-        normalizedMessage.content = JSON.stringify(message.content || message);
+        assistantMessage.content = JSON.stringify(exchange.assistant);
       }
-      
-      messages.push(normalizedMessage);
-    });
+
+      messages.push(assistantMessage);
+    }
   });
   
   return {
