@@ -28,15 +28,22 @@ export default function Hero({ onShowAuth }) {
             </div>
 
             <div className="flex flex-col sm:flex-row gap-4">
-              <button
-                onClick={onShowAuth}
-                className="bg-white text-[#7B5FFF] px-8 py-4 rounded-lg font-semibold hover:bg-slate-100 transition-colors shadow-lg"
+              <a
+                href="https://docs.sessionbase.ai/cli/installation"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="bg-white text-[#7B5FFF] px-8 py-4 rounded-lg font-semibold hover:bg-slate-100 transition-colors shadow-lg text-center"
               >
                 Get Started — CLI Install
-              </button>
-              <button className="border border-white/30 text-white px-8 py-4 rounded-lg font-semibold hover:bg-white/10 transition-colors">
+              </a>
+              <a
+                href="https://docs.sessionbase.ai/mcp-server/installation"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="border border-white/30 text-white px-8 py-4 rounded-lg font-semibold hover:bg-white/10 transition-colors text-center"
+              >
                 MCP Setup
-              </button>
+              </a>
             </div>
           </div>
 

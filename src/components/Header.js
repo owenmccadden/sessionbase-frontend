@@ -32,9 +32,12 @@ export default function Header() {
                 My Sessions
               </Link>
             )}
-            <Link href="/teams" className="text-gray-500 hover:text-gray-700">
+            <Link href="/teams" className="text-gray-700 hover:text-gray-900 font-medium">
               Teams
             </Link>
+            <a href="https://docs.sessionbase.ai" target="_blank" rel="noopener noreferrer" className="text-gray-700 hover:text-gray-900 font-medium">
+              Docs
+            </a>
           </nav>
 
           {/* Mobile menu button */}
