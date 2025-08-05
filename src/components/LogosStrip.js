@@ -5,29 +5,32 @@ export default function LogosStrip() {
     { 
       name: "Q Chat", 
       src: "/q-logo.png",
-      width: 140, 
-      height: 40,
+      width: 210, 
+      height: 60,
       description: "Amazon Q",
       status: "Available", 
-      gradient: "from-orange-500 to-red-600"
+      gradient: "from-orange-500 to-red-600",
+      url: "https://docs.aws.amazon.com/amazonq/latest/qdeveloper-ug/command-line-installing.html"
     },
     { 
       name: "Claude Code", 
       src: "/claude-logo.png",
-      width: 120, 
-      height: 40,
+      width: 180, 
+      height: 60,
       description: "Anthropic",
       status: "Available",
-      gradient: "from-purple-500 to-indigo-600"
+      gradient: "from-purple-500 to-indigo-600",
+      url: "https://docs.anthropic.com/en/docs/claude-code/quickstart"
     },
     { 
       name: "Gemini CLI", 
       src: "/gemini-cli-logo.png",
-      width: 130, 
-      height: 40,
+      width: 195, 
+      height: 60,
       description: "Google",
       status: "Available", 
-      gradient: "from-blue-500 to-green-600"
+      gradient: "from-blue-500 to-green-600",
+      url: "https://github.com/google-gemini/gemini-cli"
     },
   ];
 
@@ -41,8 +44,11 @@ export default function LogosStrip() {
         
         <div className="flex justify-center items-center space-x-16 lg:space-x-24">
           {logos.map((logo) => (
-            <div
+            <a
               key={logo.name}
+              href={logo.url}
+              target="_blank"
+              rel="noopener noreferrer"
               className="group flex flex-col items-center space-y-3 transition-all duration-300 hover:scale-105"
             >
               <div className="relative bg-white rounded-xl p-6 shadow-lg border border-slate-100 group-hover:shadow-xl transition-all duration-300">
@@ -58,7 +64,7 @@ export default function LogosStrip() {
                 <p className="text-slate-700 font-medium text-sm">{logo.name}</p>
                 <p className="text-slate-500 text-xs mt-1">{logo.description}</p>
               </div>
-            </div>
+            </a>
           ))}
         </div>
 
