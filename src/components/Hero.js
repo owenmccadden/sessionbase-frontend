@@ -82,7 +82,7 @@ export default function Hero({ onShowAuth }) {
               </div>
               <div className="text-slate-100 text-lg flex items-center" style={{fontFamily: 'SF Mono, Monaco, Inconsolata, "Roboto Mono", Consolas, "Courier New", monospace'}}>
                 <span className="text-slate-400 mr-2">$</span>
-                <span>npm i -g @sessionbase/cli</span>
+                <span>npm install -g @sessionbase/cli</span>
                 <span className="w-2 h-5 bg-slate-300 inline-block ml-1 animate-pulse"></span>
               </div>
             </div>

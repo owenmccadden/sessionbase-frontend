@@ -51,66 +51,87 @@ export default function HowItWorks() {
   return (
     <section className="py-24 bg-gradient-to-br from-purple-50 to-indigo-100">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-16">
-          <h2 className="text-4xl font-semibold text-slate-900 mb-4">How it works</h2>
-          <p className="text-xl text-slate-600 max-w-2xl mx-auto">
-            Three simple steps to preserve and share your AI coding sessions
-          </p>
-        </div>
+        {/* Pull Behavior Section */}
+        <div className="mb-20">
+          <div className="text-center mb-12">
+            <h3 className="text-3xl font-semibold text-slate-900 mb-4">Continue Anywhere, Collaborate Everywhere</h3>
+            <p className="text-lg text-slate-600 max-w-3xl mx-auto">
+              Start a session on one machine, pull it on another, or share with teammates for true collaborative AI coding
+            </p>
+          </div>
 
-        <div className="grid md:grid-cols-3 gap-8 md:items-stretch">
-          {steps.map((step, index) => (
-            <div key={step.title} className="text-center relative flex">
-              <div className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 border border-slate-100 group flex flex-col flex-1">
-                <div className="mb-6 flex justify-center group-hover:scale-110 transition-transform duration-300" style={{color: '#7B5FFF'}}>{step.icon}</div>
-                <h3 className="text-2xl font-semibold text-slate-900 mb-4">{step.title}</h3>
-                <p className="text-slate-600 leading-relaxed mb-6 flex-1">
-                  {step.description}
-                  {step.docsLink && (
-                    <>
-                      {' '}
-                      <a 
-                        href={step.docsLink} 
-                        target="_blank" 
-                        rel="noopener noreferrer"
-                        className="underline hover:opacity-80"
-                        style={{color: '#7B5FFF'}}
-                      >
-                        See docs
-                      </a>
-                    </>
-                  )}
-                </p>
-                <div className="mt-auto">
-                  {step.command && (
-                    <div className="bg-slate-800 border border-slate-700 rounded-lg p-3">
-                      <code className="text-slate-100 text-sm block" style={{fontFamily: 'SF Mono, Monaco, Inconsolata, "Roboto Mono", Consolas, "Courier New", monospace'}}>
-                        <span className="text-slate-400 mr-2">{step.command.startsWith('/') ? '>' : '$'}</span>
-                        {step.command}
-                      </code>
-                    </div>
-                  )}
-                  {step.shareUrl && (
-                    <div className="rounded-lg p-3" style={{backgroundColor: '#7B5FFF10', borderColor: '#7B5FFF30', borderWidth: '1px'}}>
-                      <code className="text-sm block" style={{fontFamily: 'SF Mono, Monaco, Inconsolata, "Roboto Mono", Consolas, "Courier New", monospace', color: '#7B5FFF'}}>
-                        {step.shareUrl}
-                      </code>
-                    </div>
-                  )}
+          <div className="grid lg:grid-cols-2 gap-12 items-center">
+            <div className="space-y-6">
+              <div className="flex items-start space-x-4">
+                <div className="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center" style={{backgroundColor: '#7B5FFF'}}>
+                  <span className="text-white font-semibold text-sm">1</span>
+                </div>
+                <div>
+                  <h4 className="text-lg font-semibold text-slate-900 mb-2">Push from Laptop</h4>
+                  <p className="text-slate-600">Start debugging an API integration on your laptop. Push the session with context and progress.</p>
                 </div>
               </div>
-              {index < steps.length - 1 && (
-                <div className="hidden md:block absolute top-1/2 right-0 transform translate-x-1/2 -translate-y-1/2">
-                  <div className="rounded-full p-2" style={{backgroundColor: '#7B5FFF20'}}>
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{color: '#7B5FFF'}}>
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                    </svg>
+
+              <div className="flex items-start space-x-4">
+                <div className="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center" style={{backgroundColor: '#7B5FFF'}}>
+                  <span className="text-white font-semibold text-sm">2</span>
+                </div>
+                <div>
+                  <h4 className="text-lg font-semibold text-slate-900 mb-2">Pull on Remote Host</h4>
+                  <p className="text-slate-600">Later, pull the same session on your development server or workstation. Pick up exactly where you left off.</p>
+                </div>
+              </div>
+
+              <div className="flex items-start space-x-4">
+                <div className="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center" style={{backgroundColor: '#7B5FFF'}}>
+                  <span className="text-white font-semibold text-sm">3</span>
+                </div>
+                <div>
+                  <h4 className="text-lg font-semibold text-slate-900 mb-2">Share & Fork</h4>
+                  <p className="text-slate-600">Share a session link with teammates. They can view it in the browser, fork it to their own workspace, or pull it directly to their machine.</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-slate-900 rounded-xl p-6">
+              <div className="space-y-4">
+                <div>
+                  <div className="flex items-center space-x-2 mb-2">
+                    <div className="w-3 h-3 rounded-full bg-red-500"></div>
+                    <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
+                    <div className="w-3 h-3 rounded-full bg-green-500"></div>
                   </div>
                 </div>
-              )}
+                <div className="space-y-4">
+                  <div>
+                    <span className="text-slate-400">$ </span>
+                    <span className="text-slate-100">sessionbase push --claude</span>
+                  </div>
+                  <div className="text-green-400 text-sm ml-4">
+                    ✓ Pushed as <span className="text-purple-400">sb_7k9m2x</span>
+                  </div>
+                  
+                  <div className="pt-3">
+                    <span className="text-slate-400">$ </span>
+                    <span className="text-slate-100">sessionbase pull sb_7k9m2x</span>
+                  </div>
+                  <div className="text-green-400 text-sm ml-4">
+                    ✓ Session restored
+                  </div>
+
+                  <div className="pt-3">
+                    <span className="text-slate-400"># </span>
+                    <span className="text-slate-300">Share link: sessionbase.ai/sessions/7k9m2x</span>
+                  </div>
+                  <div className="text-slate-400 text-sm ml-4">
+                    View in browser → Fork to local workspace
+                  </div>
+                </div>
+              </div>
             </div>
-          ))}
+          </div>
         </div>
+
       </div>
     </section>
   );
