@@ -7,7 +7,6 @@ import Header from '../components/Header';
 import Hero from '../components/Hero';
 import LogosStrip from '../components/LogosStrip';
 import HowItWorks from '../components/HowItWorks';
-import NaturalLanguageSection from '../components/NaturalLanguageSection';
 import { loginWithGitHub, loginWithGoogle } from '../utils/auth';
 
 export default function Landing() {
@@ -30,7 +29,6 @@ export default function Landing() {
         <Hero onShowAuth={() => setShowAuthModal(true)} />
         <LogosStrip />
         <HowItWorks />
-        <NaturalLanguageSection />
 
         {/* Auth Modal */}
         {showAuthModal && (
