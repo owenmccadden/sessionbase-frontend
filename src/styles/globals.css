@@ -2,7 +2,9 @@
 
 :root {
   --background: #ffffff;
-  --foreground: #171717;
+  --foreground: #0f172a; /* slate-900 */
+  --brand-primary: #6366f1; /* indigo-500 */
+  --brand-accent: #7b5fff; /* hero start */
 }
 
 @theme inline {
@@ -26,7 +28,7 @@ body {
 }
 
 .gradient-hero {
-  background: linear-gradient(135deg, #7b5fff 0%, #6366f1 50%, transparent 100%);
+  background: linear-gradient(135deg, var(--brand-accent) 0%, var(--brand-primary) 45%, rgba(99,102,241,0.08) 100%);
 }
 
 .animate-code-typing {
