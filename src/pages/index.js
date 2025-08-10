@@ -4,6 +4,7 @@ import Head from 'next/head';
 import Link from 'next/link';
 import { useAuth } from '../contexts/AuthContext';
 import Header from '../components/Header';
+import MobileBanner from '../components/MobileBanner';
 import Hero from '../components/Hero';
 import LogosStrip from '../components/LogosStrip';
 import McpIntegration from '../components/McpIntegration';
@@ -15,7 +16,18 @@ export default function Landing() {
   const { isAuthenticated, loading } = useAuth();
   const router = useRouter();
   const [showAuthModal, setShowAuthModal] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
 
+  useEffect(() => {
+    const checkIfMobile = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
+
+    checkIfMobile();
+    window.addEventListener('resize', checkIfMobile);
+
+    return () => window.removeEventListener('resize', checkIfMobile);
+  }, []);
 
   return (
     <>
@@ -26,17 +38,20 @@ export default function Landing() {
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
-      <div className="min-h-screen">
-        <Header />
-        <Hero onShowAuth={() => setShowAuthModal(true)} />
-        <LogosStrip />
-        <McpIntegration />
-        <HowItWorks />
-        <Footer />
+      {isMobile ? (
+        <MobileBanner />
+      ) : (
+        <div className="min-h-screen">
+          <Header />
+          <Hero onShowAuth={() => setShowAuthModal(true)} />
+          <LogosStrip />
+          <McpIntegration />
+          <HowItWorks />
+          <Footer />
 
-        {/* Auth Modal */}
-        {showAuthModal && (
-          <div className="fixed inset-0 bg-opacity-10 backdrop-blur-sm flex items-center justify-center z-50">
+          {/* Auth Modal */}
+          {showAuthModal && (
+            <div className="fixed inset-0 bg-opacity-10 backdrop-blur-sm flex items-center justify-center z-50">
             <div className="bg-white rounded-lg p-10 max-w-lg w-full mx-4 shadow-2xl relative">
               <button
                 onClick={() => setShowAuthModal(false)}
@@ -111,9 +126,9 @@ export default function Landing() {
               </div>
             </div>
           </div>
-        )}
-
-      </div>
+          )}
+        </div>
+      )}
     </>
   );
 }

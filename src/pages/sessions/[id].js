@@ -235,7 +235,7 @@ export default function SessionPage() {
       </Head>
 
       <div className="min-h-screen bg-gray-50 dark:bg-slate-900">
-        <Header />
+        <Header showMobileBanner={true} />
 
         {/* Unified Session Viewer */}
         <UnifiedSessionViewer 

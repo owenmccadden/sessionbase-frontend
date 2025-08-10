@@ -10,7 +10,19 @@ import { authenticatedFetch } from '../utils/auth';
 export default function UnifiedSessionViewer({ session, onSessionUpdate, sessionId }) {
   const [activeView, setActiveView] = useState('conversation');
   const [copySuccess, setCopySuccess] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
   const { user } = useAuth();
+
+  useEffect(() => {
+    const checkIfMobile = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
+
+    checkIfMobile();
+    window.addEventListener('resize', checkIfMobile);
+
+    return () => window.removeEventListener('resize', checkIfMobile);
+  }, []);
 
   const handleCopyRawData = async () => {
     try {
@@ -39,48 +51,49 @@ export default function UnifiedSessionViewer({ session, onSessionUpdate, session
 
 
   return (
-    <div className="max-w-6xl mx-auto p-6">
+    <div className={isMobile ? "px-4 py-4" : "max-w-6xl mx-auto p-6"}>
       {/* Session Header */}
       <SessionHeader 
         session={session} 
- 
         user={user}
         onSessionUpdate={onSessionUpdate}
         sessionId={sessionId}
+        isMobile={isMobile}
       />
       
-      {/* View Toggle and Copy Button */}
-      <div className="mb-6 flex items-center justify-between">
-        <div className="flex space-x-1 bg-gray-100 dark:bg-slate-600 dark:bg-slate-700 p-1 rounded-lg w-fit">
-          <ViewToggleButton
-            active={activeView === 'conversation'}
-            onClick={() => setActiveView('conversation')}
-            label="Conversation"
-          />
-          <ViewToggleButton
-            active={activeView === 'user-prompts'}
-            onClick={() => setActiveView('user-prompts')}
-            label="User Prompts"
-          />
-          <ViewToggleButton
-            active={activeView === 'tools'}
-            onClick={() => setActiveView('tools')}
-            label={`Tools (${session.stats.toolCalls})`}
-          />
-          <ViewToggleButton
-            active={activeView === 'raw'}
-            onClick={() => setActiveView('raw')}
-            label="Raw Data"
-          />
+      {/* View Toggle and Copy Button - Hidden on Mobile */}
+      {!isMobile && (
+        <div className="mb-6 flex items-center justify-between">
+          <div className="flex space-x-1 bg-gray-100 dark:bg-slate-600 dark:bg-slate-700 p-1 rounded-lg w-fit">
+            <ViewToggleButton
+              active={activeView === 'conversation'}
+              onClick={() => setActiveView('conversation')}
+              label="Conversation"
+            />
+            <ViewToggleButton
+              active={activeView === 'user-prompts'}
+              onClick={() => setActiveView('user-prompts')}
+              label="User Prompts"
+            />
+            <ViewToggleButton
+              active={activeView === 'tools'}
+              onClick={() => setActiveView('tools')}
+              label={`Tools (${session.stats.toolCalls})`}
+            />
+            <ViewToggleButton
+              active={activeView === 'raw'}
+              onClick={() => setActiveView('raw')}
+              label="Raw Data"
+            />
+          </div>
         </div>
-
-      </div>
+      )}
 
       {/* Content Views */}
-      {activeView === 'conversation' && <ConversationView session={session} />}
-      {activeView === 'user-prompts' && <UserPromptsView session={session} />}
-      {activeView === 'tools' && <ToolsView session={session} />}
-      {activeView === 'raw' && <RawDataView session={session} />}
+      {(activeView === 'conversation' || isMobile) && <ConversationView session={session} isMobile={isMobile} />}
+      {!isMobile && activeView === 'user-prompts' && <UserPromptsView session={session} />}
+      {!isMobile && activeView === 'tools' && <ToolsView session={session} />}
+      {!isMobile && activeView === 'raw' && <RawDataView session={session} />}
     </div>
   );
 }
@@ -100,7 +113,7 @@ function ViewToggleButton({ active, onClick, label }) {
   );
 }
 
-function SessionHeader({ session, user, onSessionUpdate, sessionId }) {
+function SessionHeader({ session, user, onSessionUpdate, sessionId, isMobile }) {
   const [isEditing, setIsEditing] = useState(false);
   const [editedData, setEditedData] = useState({
     title: session.metadata?.title || session.title || '',
@@ -293,9 +306,9 @@ function SessionHeader({ session, user, onSessionUpdate, sessionId }) {
   };
 
   return (
-    <div className="bg-white dark:bg-slate-800 rounded-lg shadow-sm border border-gray-200 dark:border-slate-700 p-6 mb-6 relative min-h-[160px]">
-      <div className="flex items-start justify-between">
-        <div className="flex-1 pr-4">
+    <div className={`bg-white dark:bg-slate-800 rounded-lg shadow-sm border border-gray-200 dark:border-slate-700 mb-6 relative min-h-[160px] ${isMobile ? 'p-4' : 'p-6'}`}>
+      <div className={isMobile ? "space-y-3" : "flex items-start justify-between"}>
+        <div className={isMobile ? "space-y-2" : "flex-1 pr-4"}>
           <div className="mb-2">
             {isEditing ? (
               <input
@@ -382,87 +395,152 @@ function SessionHeader({ session, user, onSessionUpdate, sessionId }) {
           )}
         </div>
         
-        {/* Platform Badge - Top Right */}
-        <div className="flex items-center space-x-2 bg-gray-50 dark:bg-slate-700 dark:bg-slate-700 px-3 py-2 rounded-lg border border-gray-200 dark:border-slate-600">
-          <span className="text-sm">{getSessionIcon(session.type)}</span>
-          <span className="text-sm font-medium text-gray-700 dark:text-gray-300 dark:text-gray-200">
-            {getSessionTypeLabel(session.type)}
-          </span>
-        </div>
+        {/* Platform Badge - Desktop Only */}
+        {!isMobile && (
+          <div className="flex items-center space-x-3 bg-gray-50 dark:bg-slate-700 px-4 py-3 rounded-lg border border-gray-200 dark:border-slate-600">
+            <span className="flex-shrink-0">{getSessionIcon(session.type)}</span>
+            <span className="text-sm font-medium text-gray-700 dark:text-gray-300 whitespace-nowrap">
+              {getSessionTypeLabel(session.type)}
+            </span>
+          </div>
+        )}
       </div>
       
-      {/* Visibility Badge and Edit Button - Bottom Right */}
-      <div className="absolute bottom-4 right-4 flex items-center space-x-2">
-        {/* Edit/Save/Cancel buttons */}
-        {isOwner && (
-          <>
-            {isEditing ? (
+      {/* Mobile: Platform Badge and Action Buttons in a row */}
+      {isMobile ? (
+        <div className="mt-4 flex flex-wrap items-center gap-2 justify-between">
+          {/* Platform Badge */}
+          <div className="flex items-center space-x-2 bg-gray-50 dark:bg-slate-700 px-3 py-2 rounded-lg border border-gray-200 dark:border-slate-600">
+            <span className="flex-shrink-0">{getSessionIcon(session.type)}</span>
+            <span className="text-sm font-medium text-gray-700 dark:text-gray-300 whitespace-nowrap">
+              {getSessionTypeLabel(session.type)}
+            </span>
+          </div>
+          
+          {/* Action Buttons */}
+          <div className="flex items-center gap-2">
+            {isOwner && (
               <>
-                <button
-                  onClick={handleSave}
-                  disabled={isSaving}
-                  className="flex items-center space-x-1 px-2 py-1 bg-secondary hover:bg-secondary-hover disabled:bg-secondary/50 text-white text-xs font-medium rounded transition-colors"
-                >
-                  {isSaving ? (
-                    <span className="animate-spin">⭮</span>
-                  ) : (
-                    <SaveIcon />
-                  )}
-                  <span>{isSaving ? 'Saving...' : 'Save'}</span>
-                </button>
-                <button
-                  onClick={handleCancel}
-                  disabled={isSaving}
-                  className="flex items-center space-x-1 px-2 py-1 bg-gray-600 dark:bg-slate-600 hover:bg-gray-700 dark:hover:bg-slate-500 disabled:bg-gray-400 dark:disabled:bg-slate-500 text-white text-xs font-medium rounded transition-colors"
-                >
-                  <CancelIcon />
-                  <span>Cancel</span>
-                </button>
-                {showDeleteConfirm ? (
-                  <button
-                    onClick={handleDelete}
-                    disabled={isDeleting}
-                    className="flex items-center space-x-1 px-2 py-1 bg-red-600 hover:bg-red-700 disabled:bg-red-400 text-white text-xs font-medium rounded transition-colors"
-                  >
-                    {isDeleting ? (
-                      <span className="animate-spin">⭮</span>
-                    ) : (
-                      <DeleteIcon />
-                    )}
-                    <span>{isDeleting ? 'Deleting...' : 'Confirm Delete'}</span>
-                  </button>
+                {isEditing ? (
+                  <>
+                    <button
+                      onClick={handleSave}
+                      disabled={isSaving}
+                      className="flex items-center space-x-1 px-2 py-1 bg-secondary hover:bg-secondary-hover disabled:bg-secondary/50 text-white text-xs font-medium rounded transition-colors"
+                    >
+                      {isSaving ? (
+                        <span className="animate-spin">⭮</span>
+                      ) : (
+                        <SaveIcon />
+                      )}
+                      <span>{isSaving ? 'Saving...' : 'Save'}</span>
+                    </button>
+                    <button
+                      onClick={handleCancel}
+                      disabled={isSaving}
+                      className="flex items-center space-x-1 px-2 py-1 bg-gray-600 dark:bg-slate-600 hover:bg-gray-700 dark:hover:bg-slate-500 disabled:bg-gray-400 dark:disabled:bg-slate-500 text-white text-xs font-medium rounded transition-colors"
+                    >
+                      <CancelIcon />
+                      <span>Cancel</span>
+                    </button>
+                  </>
                 ) : (
                   <button
-                    onClick={() => setShowDeleteConfirm(true)}
-                    className="flex items-center space-x-1 px-2 py-1 bg-red-600 hover:bg-red-700 text-white text-xs font-medium rounded transition-colors"
+                    onClick={() => setIsEditing(true)}
+                    className="flex items-center space-x-1 px-2 py-1 bg-primary hover:bg-primary-hover text-white text-xs font-medium rounded transition-colors"
                   >
-                    <DeleteIcon />
-                    <span>Delete</span>
+                    <EditIcon />
+                    <span>Edit</span>
                   </button>
                 )}
               </>
-            ) : (
-              <button
-                onClick={() => setIsEditing(true)}
-                className="flex items-center space-x-1 px-2 py-1 bg-primary hover:bg-primary-hover text-white text-xs font-medium rounded transition-colors"
-              >
-                <EditIcon />
-                <span>Edit</span>
-              </button>
             )}
-          </>
-        )}
-        
-        <VisibilityBadge 
-          isPrivate={session.metadata?.isPrivate === true} 
-          onToggle={(isPrivate) => {
-            if (isOwner) {
-              handleVisibilityToggle(isPrivate);
-            }
-          }}
-          isOwner={isOwner}
-        />
-      </div>
+            
+            <VisibilityBadge 
+              isPrivate={session.metadata?.isPrivate === true} 
+              onToggle={(isPrivate) => {
+                if (isOwner) {
+                  handleVisibilityToggle(isPrivate);
+                }
+              }}
+              isOwner={isOwner}
+            />
+          </div>
+        </div>
+      ) : (
+        /* Desktop: Visibility Badge and Edit Button - Bottom Right */
+        <div className="absolute bottom-4 right-4 flex items-center space-x-2">
+          {/* Edit/Save/Cancel buttons */}
+          {isOwner && (
+            <>
+              {isEditing ? (
+                <>
+                  <button
+                    onClick={handleSave}
+                    disabled={isSaving}
+                    className="flex items-center space-x-1 px-2 py-1 bg-secondary hover:bg-secondary-hover disabled:bg-secondary/50 text-white text-xs font-medium rounded transition-colors"
+                  >
+                    {isSaving ? (
+                      <span className="animate-spin">⭮</span>
+                    ) : (
+                      <SaveIcon />
+                    )}
+                    <span>{isSaving ? 'Saving...' : 'Save'}</span>
+                  </button>
+                  <button
+                    onClick={handleCancel}
+                    disabled={isSaving}
+                    className="flex items-center space-x-1 px-2 py-1 bg-gray-600 dark:bg-slate-600 hover:bg-gray-700 dark:hover:bg-slate-500 disabled:bg-gray-400 dark:disabled:bg-slate-500 text-white text-xs font-medium rounded transition-colors"
+                  >
+                    <CancelIcon />
+                    <span>Cancel</span>
+                  </button>
+                  {showDeleteConfirm ? (
+                    <button
+                      onClick={handleDelete}
+                      disabled={isDeleting}
+                      className="flex items-center space-x-1 px-2 py-1 bg-red-600 hover:bg-red-700 disabled:bg-red-400 text-white text-xs font-medium rounded transition-colors"
+                    >
+                      {isDeleting ? (
+                        <span className="animate-spin">⭮</span>
+                      ) : (
+                        <DeleteIcon />
+                      )}
+                      <span>{isDeleting ? 'Deleting...' : 'Confirm Delete'}</span>
+                    </button>
+                  ) : (
+                    <button
+                      onClick={() => setShowDeleteConfirm(true)}
+                      className="flex items-center space-x-1 px-2 py-1 bg-red-600 hover:bg-red-700 text-white text-xs font-medium rounded transition-colors"
+                    >
+                      <DeleteIcon />
+                      <span>Delete</span>
+                    </button>
+                  )}
+                </>
+              ) : (
+                <button
+                  onClick={() => setIsEditing(true)}
+                  className="flex items-center space-x-1 px-2 py-1 bg-primary hover:bg-primary-hover text-white text-xs font-medium rounded transition-colors"
+                >
+                  <EditIcon />
+                  <span>Edit</span>
+                </button>
+              )}
+            </>
+          )}
+          
+          <VisibilityBadge 
+            isPrivate={session.metadata?.isPrivate === true} 
+            onToggle={(isPrivate) => {
+              if (isOwner) {
+                handleVisibilityToggle(isPrivate);
+              }
+            }}
+            isOwner={isOwner}
+          />
+        </div>
+      )}
     </div>
   );
 }
@@ -476,12 +554,23 @@ function StatCard({ value, label, color }) {
   );
 }
 
-function ConversationView({ session }) {
-  const [allCodeBlocksCollapsed, setAllCodeBlocksCollapsed] = useState(false);
-  const [allMarkdownBlocksCollapsed, setAllMarkdownBlocksCollapsed] = useState(false);
+function ConversationView({ session, isMobile }) {
+  const [allCodeBlocksCollapsed, setAllCodeBlocksCollapsed] = useState(isMobile || false);
+  const [allMarkdownBlocksCollapsed, setAllMarkdownBlocksCollapsed] = useState(isMobile || false);
   const [forceCollapseToggle, setForceCollapseToggle] = useState(0);
   const [forceMarkdownCollapseToggle, setForceMarkdownCollapseToggle] = useState(0);
-  const [allToolUseBlocksHidden, setAllToolUseBlocksHidden] = useState(false);
+  const [allToolUseBlocksHidden, setAllToolUseBlocksHidden] = useState(isMobile || false);
+
+  // Update collapsed states when mobile state changes
+  useEffect(() => {
+    if (isMobile) {
+      setAllCodeBlocksCollapsed(true);
+      setAllMarkdownBlocksCollapsed(true);
+      setAllToolUseBlocksHidden(true);
+      setForceCollapseToggle(prev => prev + 1);
+      setForceMarkdownCollapseToggle(prev => prev + 1);
+    }
+  }, [isMobile]);
 
   const handleToggleAll = () => {
     setAllCodeBlocksCollapsed(!allCodeBlocksCollapsed);
@@ -524,8 +613,8 @@ function ConversationView({ session }) {
 
   return (
     <div className="space-y-4">
-      {/* Sticky Controls */}
-      {(hasCodeBlocks || hasMarkdownBlocks || hasToolUseBlocks) && (
+      {/* Sticky Controls - Hidden on Mobile */}
+      {!isMobile && (hasCodeBlocks || hasMarkdownBlocks || hasToolUseBlocks) && (
         <div className="fixed top-20 right-4 z-30">
           <div className="flex flex-col space-y-1 bg-white dark:bg-slate-800 rounded-lg shadow-lg border border-gray-200 dark:border-slate-700 p-2 backdrop-blur-sm bg-white/95 dark:bg-slate-800/95">
             {/* Code Blocks Toggle */}

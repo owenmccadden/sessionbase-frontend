@@ -218,4 +218,92 @@ body {
     0% { transform: translate(0, 0); }
     100% { transform: translate(30px, 30px); }
   }
+
+  /* Basic mobile responsive fixes */
+  body {
+    font-size: 14px;
+    overflow-x: hidden;
+  }
+
+  /* Ensure content doesn't overflow */
+  * {
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+
+  /* Make text more readable on mobile */
+  h1 { font-size: 1.75rem; }
+  h2 { font-size: 1.5rem; }
+  h3 { font-size: 1.25rem; }
+
+  /* Ensure buttons and interactive elements are touch-friendly */
+  button, a {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  /* Basic layout adjustments */
+  .container {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+
+  /* Session page mobile improvements */
+  .session-content {
+    font-size: 14px;
+    line-height: 1.6;
+  }
+
+  /* Code blocks mobile styling */
+  pre {
+    font-size: 12px !important;
+    overflow-x: auto;
+    background: #f8f9fa !important;
+    border: 1px solid #e9ecef !important;
+    border-radius: 6px !important;
+    padding: 0.75rem !important;
+    margin: 0.5rem 0 !important;
+  }
+
+  .dark pre {
+    background: #1e293b !important;
+    border-color: #334155 !important;
+  }
+
+  /* Message bubbles mobile styling */
+  .message-bubble {
+    margin-bottom: 1rem !important;
+    padding: 0.75rem !important;
+    border-radius: 8px !important;
+  }
+
+  /* Improve button spacing and touch targets */
+  .btn-mobile {
+    min-height: 44px;
+    padding: 0.75rem 1rem;
+    font-size: 14px;
+  }
+
+  /* Session header mobile adjustments */
+  .session-header {
+    padding: 1rem !important;
+    margin-bottom: 1rem !important;
+  }
+
+  .session-header h1 {
+    font-size: 1.25rem !important;
+    line-height: 1.4 !important;
+    margin-bottom: 0.5rem !important;
+  }
+
+  /* Tool use and markdown content mobile */
+  .tool-content, .markdown-content {
+    font-size: 13px !important;
+    line-height: 1.5 !important;
+  }
+
+  /* Improve readability for code syntax highlighting */
+  .language-javascript, .language-python, .language-bash {
+    font-size: 11px !important;
+  }
 }
