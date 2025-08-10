@@ -6,6 +6,7 @@ import { useAuth } from '../contexts/AuthContext';
 import Header from '../components/Header';
 import Hero from '../components/Hero';
 import LogosStrip from '../components/LogosStrip';
+import McpIntegration from '../components/McpIntegration';
 import HowItWorks from '../components/HowItWorks';
 import Footer from '../components/Footer';
 import { loginWithGitHub, loginWithGoogle } from '../utils/auth';
@@ -29,6 +30,7 @@ export default function Landing() {
         <Header />
         <Hero onShowAuth={() => setShowAuthModal(true)} />
         <LogosStrip />
+        <McpIntegration />
         <HowItWorks />
         <Footer />
 
