@@ -119,10 +119,10 @@ export default function SessionPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 dark:bg-slate-900 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading session...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-gray-600 dark:text-gray-300">Loading session...</p>
         </div>
       </div>
     );
@@ -130,21 +130,21 @@ export default function SessionPage() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 dark:bg-slate-900 flex items-center justify-center">
         <div className="text-center max-w-md mx-auto p-6">
           <div className="text-red-500 text-6xl mb-4">⚠️</div>
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">Error Loading Session</h1>
-          <p className="text-gray-600 mb-4">{error}</p>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Error Loading Session</h1>
+          <p className="text-gray-600 dark:text-gray-300 mb-4">{error}</p>
           <div className="space-y-2">
             <button
               onClick={() => router.reload()}
-              className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors mr-2"
+              className="bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary-hover transition-colors mr-2"
             >
               Try Again
             </button>
             <button
               onClick={() => router.push('/')}
-              className="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition-colors"
+              className="bg-gray-600 dark:bg-slate-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 dark:hover:bg-slate-500 transition-colors"
             >
               Go Home
             </button>
@@ -164,26 +164,26 @@ export default function SessionPage() {
           <link rel="icon" href="/favicon.ico" />
         </Head>
 
-        <div className="min-h-screen bg-gray-50">
+        <div className="min-h-screen bg-gray-50 dark:bg-slate-900">
           <Header />
           
           <div className="flex items-center justify-center" style={{ minHeight: 'calc(100vh - 64px)' }}>
             <div className="text-center max-w-md mx-auto p-6">
-              <div className="text-gray-400 text-6xl mb-4">📄</div>
-              <h1 className="text-2xl font-bold text-gray-900 mb-2">Session Not Found</h1>
-              <p className="text-gray-600 mb-4">
+              <div className="text-gray-400 dark:text-gray-500 text-6xl mb-4">📄</div>
+              <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Session Not Found</h1>
+              <p className="text-gray-600 dark:text-gray-300 mb-4">
                 The session you're looking for doesn't exist or isn't available.
               </p>
               <div className="space-y-2">
                 <button
                   onClick={() => router.push('/')}
-                  className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors mr-2"
+                  className="bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary-hover transition-colors mr-2"
                 >
                   Go Home
                 </button>
                 <button
                   onClick={() => router.push('/discover')}
-                  className="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition-colors"
+                  className="bg-gray-600 dark:bg-slate-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 dark:hover:bg-slate-500 transition-colors"
                 >
                   Discover Sessions
                 </button>
@@ -234,7 +234,7 @@ export default function SessionPage() {
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-gray-50 dark:bg-slate-900">
         <Header />
 
         {/* Unified Session Viewer */}

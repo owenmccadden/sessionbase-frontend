@@ -4,7 +4,7 @@ export default function LoginButton({ className = '' }) {
   return (
     <Link
       href="/login"
-      className={`inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600/90 backdrop-blur-sm hover:bg-blue-700/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all cursor-pointer ${className}`}
+      className={`inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-primary/90 backdrop-blur-sm hover:bg-primary-hover/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-all cursor-pointer ${className}`}
     >
       <svg
         className="w-5 h-5 mr-2"

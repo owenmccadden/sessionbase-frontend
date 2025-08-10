@@ -1,10 +1,33 @@
 @import "tailwindcss";
 
+@theme {
+  --default-transition-duration: 150ms;
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-primary-light: var(--primary-light);
+  --color-primary-dark: var(--primary-dark);
+  --color-secondary: var(--secondary);
+  --color-secondary-hover: var(--secondary-hover);
+  --color-secondary-light: var(--secondary-light);
+  --color-secondary-dark: var(--secondary-dark);
+}
+
+@variant dark (.dark &);
+
 :root {
   --background: #ffffff;
   --foreground: #0f172a; /* slate-900 */
-  --brand-primary: #6366f1; /* indigo-500 */
-  --brand-accent: #7b5fff; /* hero start */
+  --primary: #93bfec; /* main theme color */
+  --primary-hover: #7aa8dc; /* darker version for hover */
+  --primary-light: #a8ccf0; /* lighter version */
+  --primary-dark: #6191c7; /* darker version */
+  --secondary: #7ecf9b; /* secondary theme color - complementary green */
+  --secondary-hover: #6bb584; /* darker version for hover */
+  --secondary-light: #9bdaaf; /* lighter version */
+  --secondary-dark: #5ba16f; /* darker version */
+  --brand-accent: #0b1220; /* deep slate for hero */
+  --border-color: #e2e8f0; /* slate-200 */
+  --surface: #f8fafc; /* slate-50 */
 }
 
 @theme inline {
@@ -16,19 +39,35 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --background: #0b1220;
+    --foreground: #e5e7eb; /* slate-200 */
+    --border-color: #334155; /* slate-700 */
+    --surface: #1e293b; /* slate-800 */
   }
+}
+
+/* Explicit class-based dark mode overrides to align with toggle */
+.dark {
+  --background: #0b1220;
+  --foreground: #e5e7eb;
+  --border-color: #334155; /* slate-700 */
+  --surface: #1e293b; /* slate-800 */
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+  transition: background-color 0.2s ease, color 0.2s ease;
 }
 
 .gradient-hero {
-  background: linear-gradient(135deg, var(--brand-accent) 0%, var(--brand-primary) 45%, rgba(99,102,241,0.08) 100%);
+  /* Light hero by default; dark variant via .dark */
+  background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+}
+
+.dark .gradient-hero {
+  background: linear-gradient(135deg, #0b1220 0%, #0f172a 70%, rgba(15,23,42,0.85) 100%);
 }
 
 .animate-code-typing {

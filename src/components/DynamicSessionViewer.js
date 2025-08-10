@@ -145,28 +145,28 @@ export default function DynamicSessionViewer() {
   const currentMessages = sessionData[currentSession].slice(0, visibleMessages);
 
   return (
-    <div className="p-6 space-y-4 h-80 overflow-y-auto bg-gray-50">
+    <div className="p-6 space-y-4 h-80 overflow-y-auto bg-slate-50 dark:bg-slate-900">
       {currentMessages.map((message, index) => (
         <div key={index} className="space-y-3">
           {message.type === "user" ? (
             <div className="flex justify-end">
-              <div className="bg-blue-500 text-white rounded-2xl px-4 py-3 max-w-xs text-sm">{message.content}</div>
+              <div className="bg-primary text-white rounded-2xl px-4 py-3 max-w-xs text-sm">{message.content}</div>
             </div>
           ) : (
             <div className="flex space-x-3">
-              <div className="w-6 h-6 rounded-full bg-orange-500 flex items-center justify-center flex-shrink-0 mt-1">
+              <div className="w-6 h-6 rounded-full bg-primary/10 text-primary flex items-center justify-center flex-shrink-0 mt-1 dark:bg-primary-light/20 dark:text-primary-light">
                 <span className="text-sm">🤖</span>
               </div>
               <div className="flex-1">
                 <div className="flex items-center space-x-2 mb-2">
-                  <span className="text-sm font-medium text-slate-700">Claude</span>
-                  <span className="text-xs text-slate-500">claude-sonnet-4-20250514</span>
+                  <span className="text-sm font-medium text-slate-800 dark:text-slate-200">Claude</span>
+                  <span className="text-xs text-slate-500 dark:text-slate-400">claude-sonnet-4-20250514</span>
                 </div>
 
                 {message.contentType === "tool" && (
-                  <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mb-3">
+                  <div className="bg-primary/5 border border-primary/20 rounded-lg p-3 mb-3 dark:bg-primary-light/10 dark:border-primary-light/20">
                     <div className="flex items-center space-x-2">
-                      <svg className="w-4 h-4 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg className="w-4 h-4 text-primary dark:text-primary-light" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path
                           strokeLinecap="round"
                           strokeLinejoin="round"
@@ -180,16 +180,16 @@ export default function DynamicSessionViewer() {
                           d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
                         />
                       </svg>
-                      <span className="text-sm font-medium text-yellow-800">Tool: {message.toolName}</span>
+                      <span className="text-sm font-medium text-primary-dark dark:text-primary-light">Tool: {message.toolName}</span>
                     </div>
                   </div>
                 )}
 
                 {message.contentType === "code" && (
-                  <div className="bg-slate-900 rounded-lg overflow-hidden">
-                    <div className="bg-slate-800 px-4 py-2 flex items-center justify-between">
+                  <div className="bg-slate-100 dark:bg-slate-900 rounded-lg overflow-hidden border border-slate-200 dark:border-slate-800">
+                    <div className="bg-slate-200 dark:bg-slate-800 px-4 py-2 flex items-center justify-between border-b border-slate-300 dark:border-slate-700">
                       <div className="flex items-center space-x-2">
-                        <svg className="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg className="w-4 h-4 text-slate-600 dark:text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path
                             strokeLinecap="round"
                             strokeLinejoin="round"
@@ -197,10 +197,10 @@ export default function DynamicSessionViewer() {
                             d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
                           />
                         </svg>
-                        <span className="text-sm text-slate-300">{message.filename}</span>
-                        <span className="text-xs text-slate-500">{message.language}</span>
+                        <span className="text-sm text-slate-700 dark:text-slate-300">{message.filename}</span>
+                        <span className="text-xs text-slate-500 dark:text-slate-500">{message.language}</span>
                       </div>
-                      <button className="text-slate-400 hover:text-white">
+                      <button className="text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white">
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path
                             strokeLinecap="round"
@@ -211,17 +211,17 @@ export default function DynamicSessionViewer() {
                         </svg>
                       </button>
                     </div>
-                    <pre className="p-4 text-sm text-slate-100 overflow-x-auto">
+                    <pre className="p-4 text-sm text-slate-800 dark:text-slate-100 overflow-x-auto bg-white dark:bg-slate-900">
                       <code>{message.content}</code>
                     </pre>
                   </div>
                 )}
 
                 {message.contentType === "markdown" && (
-                  <div className="bg-white border border-slate-200 rounded-lg">
-                    <div className="bg-slate-50 px-4 py-2 border-b border-slate-200 flex items-center justify-between">
+                  <div className="bg-white border border-slate-200 rounded-lg dark:bg-slate-900 dark:border-slate-800">
+                    <div className="bg-slate-50 px-4 py-2 border-b border-slate-200 flex items-center justify-between dark:bg-slate-800 dark:border-slate-800">
                       <div className="flex items-center space-x-2">
-                        <svg className="w-4 h-4 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg className="w-4 h-4 text-slate-600 dark:text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path
                             strokeLinecap="round"
                             strokeLinejoin="round"
@@ -229,9 +229,9 @@ export default function DynamicSessionViewer() {
                             d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
                           />
                         </svg>
-                        <span className="text-sm font-medium text-slate-700">Markdown Content</span>
+                        <span className="text-sm font-medium text-slate-700 dark:text-slate-200">Markdown Content</span>
                       </div>
-                      <button className="text-slate-500 hover:text-slate-700">
+                      <button className="text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200">
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path
                             strokeLinecap="round"
@@ -243,18 +243,18 @@ export default function DynamicSessionViewer() {
                       </button>
                     </div>
                     <div className="p-4 prose prose-sm max-w-none">
-                      <div className="whitespace-pre-wrap text-sm text-slate-700">{message.content}</div>
+                      <div className="whitespace-pre-wrap text-sm text-slate-700 dark:text-slate-300">{message.content}</div>
                     </div>
                   </div>
                 )}
 
                 {message.contentType === "text" && (
-                  <div className="bg-white rounded-lg p-4 border border-slate-200">
-                    <p className="text-sm text-slate-700 leading-relaxed">{message.content}</p>
+                  <div className="bg-white rounded-lg p-4 border border-slate-200 dark:bg-slate-900 dark:border-slate-800">
+                    <p className="text-sm text-slate-700 leading-relaxed dark:text-slate-300">{message.content}</p>
                   </div>
                 )}
 
-                <button className="text-xs text-slate-500 hover:text-slate-700 mt-2">Show Raw Data</button>
+                <button className="text-xs text-slate-500 hover:text-slate-700 mt-2 dark:text-slate-400 dark:hover:text-slate-200">Show Raw Data</button>
               </div>
             </div>
           )}

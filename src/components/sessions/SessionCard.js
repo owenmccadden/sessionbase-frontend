@@ -52,27 +52,27 @@ export default function SessionCard({ session, onAuthRequired }) {
 
   return (
     <div 
-      className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-200 cursor-pointer"
+      className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl p-6 shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-200 cursor-pointer"
       onClick={handleCardClick}
     >
       {/* Content section */}
       <div className="flex-1 min-w-0">
         <div className="flex items-start justify-between mb-2">
-          <h3 className="text-xl font-bold text-gray-900 hover:text-blue-600 transition-colors mb-1 overflow-hidden" style={{
+          <h3 className="text-xl font-bold text-gray-900 dark:text-white hover:text-primary dark:hover:text-primary-light transition-colors mb-1 overflow-hidden" style={{
             display: '-webkit-box',
             WebkitLineClamp: 2,
             WebkitBoxOrient: 'vertical'
           }}>
             {safeSession.title}
           </h3>
-          <div className="flex items-center text-xs text-gray-500 ml-4 flex-shrink-0">
-            <span className="bg-blue-50 text-blue-700 px-3 py-1 rounded-full font-medium">
+          <div className="flex items-center text-xs text-gray-500 dark:text-gray-400 ml-4 flex-shrink-0">
+            <span className="bg-primary/10 text-primary dark:text-primary-light px-3 py-1 rounded-full font-medium">
               {safeSession.aiModel}
             </span>
           </div>
         </div>
         
-        <p className="text-gray-600 text-sm mb-4 leading-relaxed overflow-hidden" style={{
+        <p className="text-gray-600 dark:text-gray-300 text-sm mb-4 leading-relaxed overflow-hidden" style={{
           display: '-webkit-box',
           WebkitLineClamp: 2,
           WebkitBoxOrient: 'vertical'
@@ -85,7 +85,7 @@ export default function SessionCard({ session, onAuthRequired }) {
           {safeSession.tags.map((tag) => (
             <span
               key={tag}
-              className="inline-block bg-blue-100 text-blue-800 text-xs px-3 py-1 rounded-full hover:bg-blue-200 transition-colors font-medium"
+              className="inline-block bg-primary/10 text-primary dark:bg-primary-light/20 dark:text-primary-light text-xs px-3 py-1 rounded-full hover:bg-primary/20 dark:hover:bg-primary-light/30 transition-colors font-medium"
             >
               {tag}
             </span>
@@ -93,7 +93,7 @@ export default function SessionCard({ session, onAuthRequired }) {
         </div>
         
         {/* Author and timestamp */}
-        <div className="flex items-center justify-between text-sm text-gray-500">
+        <div className="flex items-center justify-between text-sm text-gray-500 dark:text-gray-400">
           <div className="flex items-center space-x-2">
             <img
               src={safeSession.author.avatarUrl}
@@ -106,7 +106,7 @@ export default function SessionCard({ session, onAuthRequired }) {
             />
             <Link 
               href={`/users/${safeSession.author.userId || 'unknown'}`}
-              className="font-medium text-blue-600 hover:text-blue-800 transition-colors"
+              className="font-medium text-primary hover:text-primary-hover transition-colors"
               onClick={(e) => e.stopPropagation()}
             >
               {safeSession.author.username}
@@ -119,7 +119,7 @@ export default function SessionCard({ session, onAuthRequired }) {
               <span>modified {formatTimeAgo(safeSession.updatedAt)}</span>
             )}
             <div className="flex items-center text-xs">
-              <span className="bg-green-50 text-green-700 px-3 py-1 rounded-full font-medium">
+              <span className="bg-secondary/10 text-secondary-dark dark:bg-secondary-light/20 dark:text-secondary-light px-3 py-1 rounded-full font-medium">
                 {safeSession.messageCount} messages
               </span>
             </div>

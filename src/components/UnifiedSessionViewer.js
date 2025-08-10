@@ -51,7 +51,7 @@ export default function UnifiedSessionViewer({ session, onSessionUpdate, session
       
       {/* View Toggle and Copy Button */}
       <div className="mb-6 flex items-center justify-between">
-        <div className="flex space-x-1 bg-gray-100 p-1 rounded-lg w-fit">
+        <div className="flex space-x-1 bg-gray-100 dark:bg-slate-600 dark:bg-slate-700 p-1 rounded-lg w-fit">
           <ViewToggleButton
             active={activeView === 'conversation'}
             onClick={() => setActiveView('conversation')}
@@ -68,11 +68,6 @@ export default function UnifiedSessionViewer({ session, onSessionUpdate, session
             label={`Tools (${session.stats.toolCalls})`}
           />
           <ViewToggleButton
-            active={activeView === 'stats'}
-            onClick={() => setActiveView('stats')}
-            label="Statistics"
-          />
-          <ViewToggleButton
             active={activeView === 'raw'}
             onClick={() => setActiveView('raw')}
             label="Raw Data"
@@ -85,7 +80,6 @@ export default function UnifiedSessionViewer({ session, onSessionUpdate, session
       {activeView === 'conversation' && <ConversationView session={session} />}
       {activeView === 'user-prompts' && <UserPromptsView session={session} />}
       {activeView === 'tools' && <ToolsView session={session} />}
-      {activeView === 'stats' && <StatsView session={session} />}
       {activeView === 'raw' && <RawDataView session={session} />}
     </div>
   );
@@ -97,8 +91,8 @@ function ViewToggleButton({ active, onClick, label }) {
       onClick={onClick}
       className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
         active
-          ? 'bg-white text-blue-600 shadow-sm'
-          : 'text-gray-600 hover:text-gray-900'
+          ? 'bg-white dark:bg-slate-600 text-primary dark:text-primary-light shadow-sm'
+          : 'text-gray-600 dark:text-gray-300 dark:text-gray-300 hover:text-gray-900 dark:text-white dark:hover:text-white'
       }`}
     >
       {label}
@@ -299,7 +293,7 @@ function SessionHeader({ session, user, onSessionUpdate, sessionId }) {
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6 relative min-h-[160px]">
+    <div className="bg-white dark:bg-slate-800 rounded-lg shadow-sm border border-gray-200 dark:border-slate-700 p-6 mb-6 relative min-h-[160px]">
       <div className="flex items-start justify-between">
         <div className="flex-1 pr-4">
           <div className="mb-2">
@@ -308,11 +302,11 @@ function SessionHeader({ session, user, onSessionUpdate, sessionId }) {
                 type="text"
                 value={editedData.title}
                 onChange={(e) => setEditedData({...editedData, title: e.target.value})}
-                className="w-full text-2xl font-bold text-gray-900 border border-gray-300 rounded px-3 py-2 bg-white"
+                className="w-full text-2xl font-bold text-gray-900 dark:text-white dark:text-white border border-gray-300 dark:border-gray-600 dark:border-gray-600 rounded px-3 py-2 bg-white dark:bg-slate-700"
                 placeholder="Session title"
               />
             ) : (
-              <h1 className="text-2xl font-bold text-gray-900">
+              <h1 className="text-2xl font-bold text-gray-900 dark:text-white dark:text-white">
                 {session.metadata?.title || session.title}
               </h1>
             )}
@@ -326,12 +320,12 @@ function SessionHeader({ session, user, onSessionUpdate, sessionId }) {
                 <textarea
                   value={editedData.summary}
                   onChange={(e) => setEditedData({...editedData, summary: e.target.value})}
-                  className="w-full text-gray-700 text-sm leading-relaxed border border-gray-300 rounded px-2 py-1 resize-none"
+                  className="w-full text-gray-700 dark:text-gray-300 dark:text-gray-300 text-sm leading-relaxed border border-gray-300 dark:border-gray-600 dark:border-gray-600 rounded px-2 py-1 resize-none bg-white dark:bg-slate-700"
                   placeholder="Session summary"
                   rows="2"
                 />
               ) : (
-                <p className="text-gray-700 text-sm leading-relaxed">
+                <p className="text-gray-700 dark:text-gray-300 dark:text-gray-300 text-sm leading-relaxed">
                   {session.metadata.summary}
                 </p>
               )}
@@ -345,13 +339,13 @@ function SessionHeader({ session, user, onSessionUpdate, sessionId }) {
                 {(isEditing ? editedData.tags : session.metadata.tags).map((tag) => (
                   <span
                     key={tag}
-                    className="inline-flex items-center bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded hover:bg-blue-200 transition-colors"
+                    className="inline-flex items-center bg-primary/10 text-primary-dark dark:bg-primary-light/20 dark:text-primary-light text-xs px-2 py-1 rounded hover:bg-primary/20 dark:hover:bg-primary-light/30 transition-colors"
                   >
                     {tag}
                     {isEditing && (
                       <button
                         onClick={() => handleRemoveTag(tag)}
-                        className="ml-1 text-blue-600 hover:text-blue-800"
+                        className="ml-1 text-primary-dark dark:text-primary-light hover:text-primary dark:hover:text-primary-hover"
                       >
                         ×
                       </button>
@@ -366,12 +360,12 @@ function SessionHeader({ session, user, onSessionUpdate, sessionId }) {
                     value={newTag}
                     onChange={(e) => setNewTag(e.target.value)}
                     onKeyPress={(e) => e.key === 'Enter' && handleAddTag()}
-                    className="text-xs border border-gray-300 rounded px-2 py-1 bg-white"
+                    className="text-xs border border-gray-300 dark:border-gray-600 dark:border-gray-600 rounded px-2 py-1 bg-white dark:bg-slate-700 text-gray-900 dark:text-white dark:text-white"
                     placeholder="Add tag"
                   />
                   <button
                     onClick={handleAddTag}
-                    className="text-xs bg-blue-600 hover:bg-blue-700 text-white px-2 py-1 rounded"
+                    className="text-xs bg-primary hover:bg-primary-hover text-white px-2 py-1 rounded"
                   >
                     Add
                   </button>
@@ -381,17 +375,17 @@ function SessionHeader({ session, user, onSessionUpdate, sessionId }) {
           )}
           
           {session.metadata.cwd && (
-            <div className="text-sm text-gray-600">
+            <div className="text-sm text-gray-600 dark:text-gray-300 dark:text-gray-300">
               <span className="font-medium">Working Directory:</span>
-              <code className="ml-1 bg-gray-100 px-2 py-1 rounded">{session.metadata.cwd}</code>
+              <code className="ml-1 bg-gray-100 dark:bg-slate-600 dark:bg-slate-700 px-2 py-1 rounded text-gray-900 dark:text-white dark:text-white">{session.metadata.cwd}</code>
             </div>
           )}
         </div>
         
         {/* Platform Badge - Top Right */}
-        <div className="flex items-center space-x-2 bg-gray-50 px-3 py-2 rounded-lg border border-gray-200">
+        <div className="flex items-center space-x-2 bg-gray-50 dark:bg-slate-700 dark:bg-slate-700 px-3 py-2 rounded-lg border border-gray-200 dark:border-slate-600">
           <span className="text-sm">{getSessionIcon(session.type)}</span>
-          <span className="text-sm font-medium text-gray-700">
+          <span className="text-sm font-medium text-gray-700 dark:text-gray-300 dark:text-gray-200">
             {getSessionTypeLabel(session.type)}
           </span>
         </div>
@@ -407,7 +401,7 @@ function SessionHeader({ session, user, onSessionUpdate, sessionId }) {
                 <button
                   onClick={handleSave}
                   disabled={isSaving}
-                  className="flex items-center space-x-1 px-2 py-1 bg-green-600 hover:bg-green-700 disabled:bg-green-400 text-white text-xs font-medium rounded transition-colors"
+                  className="flex items-center space-x-1 px-2 py-1 bg-secondary hover:bg-secondary-hover disabled:bg-secondary/50 text-white text-xs font-medium rounded transition-colors"
                 >
                   {isSaving ? (
                     <span className="animate-spin">⭮</span>
@@ -419,7 +413,7 @@ function SessionHeader({ session, user, onSessionUpdate, sessionId }) {
                 <button
                   onClick={handleCancel}
                   disabled={isSaving}
-                  className="flex items-center space-x-1 px-2 py-1 bg-gray-600 hover:bg-gray-700 disabled:bg-gray-400 text-white text-xs font-medium rounded transition-colors"
+                  className="flex items-center space-x-1 px-2 py-1 bg-gray-600 dark:bg-slate-600 hover:bg-gray-700 dark:hover:bg-slate-500 disabled:bg-gray-400 dark:disabled:bg-slate-500 text-white text-xs font-medium rounded transition-colors"
                 >
                   <CancelIcon />
                   <span>Cancel</span>
@@ -450,7 +444,7 @@ function SessionHeader({ session, user, onSessionUpdate, sessionId }) {
             ) : (
               <button
                 onClick={() => setIsEditing(true)}
-                className="flex items-center space-x-1 px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium rounded transition-colors"
+                className="flex items-center space-x-1 px-2 py-1 bg-primary hover:bg-primary-hover text-white text-xs font-medium rounded transition-colors"
               >
                 <EditIcon />
                 <span>Edit</span>
@@ -477,7 +471,7 @@ function StatCard({ value, label, color }) {
   return (
     <div className="text-center">
       <div className={`text-lg font-semibold ${color}`}>{value}</div>
-      <div className="text-sm text-gray-600">{label}</div>
+      <div className="text-sm text-gray-600 dark:text-gray-300 dark:text-gray-300">{label}</div>
     </div>
   );
 }
@@ -505,10 +499,10 @@ function ConversationView({ session }) {
 
   if (session.messages.length === 0) {
     return (
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8 text-center">
-        <div className="text-gray-400 text-4xl mb-4">💬</div>
-        <h3 className="text-lg font-medium text-gray-900 mb-2">No Messages</h3>
-        <p className="text-gray-600">This session doesn't contain any messages to display.</p>
+      <div className="bg-white dark:bg-slate-800 rounded-lg shadow-sm border border-gray-200 dark:border-slate-700 p-8 text-center">
+        <div className="text-gray-400 dark:text-gray-500 dark:text-gray-500 dark:text-gray-400 dark:text-gray-500 text-4xl mb-4">💬</div>
+        <h3 className="text-lg font-medium text-gray-900 dark:text-white dark:text-white mb-2">No Messages</h3>
+        <p className="text-gray-600 dark:text-gray-300 dark:text-gray-300">This session doesn't contain any messages to display.</p>
       </div>
     );
   }
@@ -533,7 +527,7 @@ function ConversationView({ session }) {
       {/* Sticky Controls */}
       {(hasCodeBlocks || hasMarkdownBlocks || hasToolUseBlocks) && (
         <div className="fixed top-20 right-4 z-30">
-          <div className="flex flex-col space-y-1 bg-white rounded-lg shadow-lg border border-gray-200 p-2 backdrop-blur-sm bg-white/95">
+          <div className="flex flex-col space-y-1 bg-white dark:bg-slate-800 rounded-lg shadow-lg border border-gray-200 dark:border-slate-700 p-2 backdrop-blur-sm bg-white/95 dark:bg-slate-800/95">
             {/* Code Blocks Toggle */}
             {hasCodeBlocks && (
               <button
@@ -541,8 +535,8 @@ function ConversationView({ session }) {
                 title={`${allCodeBlocksCollapsed ? 'Expand' : 'Collapse'} all code blocks`}
                 className={`flex items-center space-x-2 px-3 py-2 rounded-md text-sm font-medium transition-all duration-200 hover:scale-105 ${
                   allCodeBlocksCollapsed 
-                    ? 'bg-blue-100 text-blue-800 hover:bg-blue-200' 
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    ? 'bg-primary/10 text-primary-dark dark:bg-primary-light/20 dark:text-primary-light hover:bg-primary/20 dark:hover:bg-primary-light/30' 
+                    : 'bg-gray-100 dark:bg-slate-600 dark:bg-slate-600 text-gray-700 dark:text-gray-300 dark:text-gray-200 hover:bg-gray-200 dark:bg-slate-500 dark:hover:bg-slate-500'
                 }`}
               >
                 {allCodeBlocksCollapsed ? <ChevronRightIcon /> : <ChevronDownIcon />}
@@ -557,8 +551,8 @@ function ConversationView({ session }) {
                 title={`${allMarkdownBlocksCollapsed ? 'Expand' : 'Collapse'} all markdown blocks`}
                 className={`flex items-center space-x-2 px-3 py-2 rounded-md text-sm font-medium transition-all duration-200 hover:scale-105 ${
                   allMarkdownBlocksCollapsed 
-                    ? 'bg-green-100 text-green-800 hover:bg-green-200' 
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    ? 'bg-secondary/10 text-secondary-dark dark:bg-secondary-light/20 dark:text-secondary-light hover:bg-secondary/20 dark:hover:bg-secondary-light/30' 
+                    : 'bg-gray-100 dark:bg-slate-600 dark:bg-slate-600 text-gray-700 dark:text-gray-300 dark:text-gray-200 hover:bg-gray-200 dark:bg-slate-500 dark:hover:bg-slate-500'
                 }`}
               >
                 {allMarkdownBlocksCollapsed ? <ChevronRightIcon /> : <ChevronDownIcon />}
@@ -573,8 +567,8 @@ function ConversationView({ session }) {
                 title={`${allToolUseBlocksHidden ? 'Show' : 'Hide'} all tool use blocks`}
                 className={`flex items-center space-x-2 px-3 py-2 rounded-md text-sm font-medium transition-all duration-200 hover:scale-105 ${
                   allToolUseBlocksHidden 
-                    ? 'bg-orange-100 text-orange-800 hover:bg-orange-200' 
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    ? 'bg-orange-100 dark:bg-orange-900/30 text-orange-800 dark:text-orange-300 hover:bg-orange-200 dark:hover:bg-orange-900/50' 
+                    : 'bg-gray-100 dark:bg-slate-600 dark:bg-slate-600 text-gray-700 dark:text-gray-300 dark:text-gray-200 hover:bg-gray-200 dark:bg-slate-500 dark:hover:bg-slate-500'
                 }`}
               >
                 {allToolUseBlocksHidden ? <ChevronRightIcon /> : <ChevronDownIcon />}
@@ -612,135 +606,11 @@ function ConversationView({ session }) {
   );
 }
 
-// Conservative heuristics to detect if user content is likely a code block
-function detectUserCodeContent(content) {
-  if (!content || typeof content !== 'string') return 'text';
-  
-  const cleanContent = content.trim();
-  
-  // If content is very short (less than 3 lines), bias toward text unless very obvious
-  const lines = cleanContent.split('\n');
-  if (lines.length < 3 && cleanContent.length < 100) {
-    // Only detect very obvious single-line code patterns
-    const obviousSingleLineCode = [
-      /^(import|export|from|require)\s+.+$/,           // JS/TS imports
-      /^(function|const|let|var|class)\s+\w+.*[{(].*$/,  // JS/TS declarations with opening brace/paren
-      /^(def|class)\s+\w+.*:.*$/,                      // Python def/class
-      /^(public|private|protected|static)\s+(class|interface|enum)\s+\w+/,  // Java/C# class declarations
-      /^#include\s*<.+>$/,                             // C/C++ includes
-      /^(package|func|import|var)\s+/,                 // Go
-      /^(use|fn|impl|struct|enum)\s+/,                 // Rust
-    ];
-    
-    if (obviousSingleLineCode.some(pattern => pattern.test(cleanContent))) {
-      return 'code';
-    }
-    return 'text';
-  }
-  
-  // For longer content, use more comprehensive detection
-  
-  // Check for markdown fencing (very strong indicator)
-  if (/^```[\w]*\s*\n[\s\S]*\n```\s*$/m.test(cleanContent)) {
-    return 'code';
-  }
-  
-  // Check for multiple clear code indicators (need at least 2 for confidence)
-  let codeIndicators = 0;
-  
-  // Strong code patterns that are unlikely to appear in normal text
-  const strongCodePatterns = [
-    /^(import|export|from|require)\s+/m,              // Module imports
-    /^(function|const|let|var|class)\s+\w+/m,         // JS/TS declarations  
-    /^(def|class)\s+\w+.*:/m,                         // Python def/class
-    /^(public|private|protected|static)\s+(class|interface|enum|void|int|string)/m, // Java/C# modifiers
-    /^#include\s*[<"]/m,                              // C/C++ includes
-    /^(package|func|import|var)\s+\w+/m,              // Go keywords
-    /^(use|fn|impl|struct|enum)\s+/m,                 // Rust keywords
-    /^\s*<[a-zA-Z][^>]*>/m,                           // HTML/XML tags
-    /^SELECT|INSERT|UPDATE|DELETE|CREATE|DROP/im,     // SQL keywords
-  ];
-  
-  // Count strong indicators
-  codeIndicators += strongCodePatterns.filter(pattern => pattern.test(cleanContent)).length;
-  
-  // Additional indicators (weaker, so need more of these)
-  const weakCodePatterns = [
-    /[{}\[\]();]/,                                    // Common code punctuation
-    /\w+\s*\(\s*.*\s*\)/,                            // Function calls
-    /\w+\.\w+/,                                      // Object property access
-    /[=!<>]=|[<>]/,                                  // Comparison operators
-    /\+\+|--|[+\-*/%]=?/,                           // Arithmetic operators
-    /\/\/.*$|\/\*[\s\S]*?\*\//m,                     // Comments
-    /^\s*[\w\-]+\s*:\s*[^;]+;?\s*$/m,               // CSS-like property declarations
-  ];
-  
-  // Count weak indicators
-  const weakMatches = weakCodePatterns.filter(pattern => pattern.test(cleanContent)).length;
-  codeIndicators += Math.min(weakMatches / 3, 2); // Cap weak indicators contribution
-  
-  // Structure-based indicators
-  const structureIndicators = [
-    // Multiple lines with consistent indentation (2+ levels)
-    /^\s{2,}\w+/m && /^\s{4,}\w+/m,
-    // Multiple lines starting with keywords
-    lines.filter(line => /^\s*(if|for|while|function|def|class|public|private|import|export|const|let|var)\s+/.test(line)).length >= 2,
-    // Bracket/brace balance suggesting code structure
-    cleanContent.split('').filter(c => c === '{').length >= 2 && cleanContent.split('').filter(c => c === '}').length >= 2,
-  ];
-  
-  codeIndicators += structureIndicators.filter(Boolean).length;
-  
-  // Bias against natural language patterns
-  const naturalLanguagePatterns = [
-    /\b(the|and|or|but|however|therefore|because|although|since|while|during|after|before)\b/gi,
-    /\b(is|are|was|were|will|would|could|should|might|may)\b/gi,
-    /\b(this|that|these|those|here|there|where|when|how|why|what)\b/gi,
-  ];
-  
-  const naturalLanguageWords = naturalLanguagePatterns.reduce((count, pattern) => {
-    const matches = cleanContent.match(pattern);
-    return count + (matches ? matches.length : 0);
-  }, 0);
-  
-  // If there's a lot of natural language, reduce confidence
-  if (naturalLanguageWords > cleanContent.split(/\s+/).length * 0.1) {
-    codeIndicators -= 1;
-  }
-  
-  // Decision threshold: need significant evidence for code detection
-  // This is deliberately conservative to avoid false positives
-  if (codeIndicators >= 3) {
-    return 'code';
-  }
-  
-  // Check for markdown patterns as secondary option
-  const markdownPatterns = [
-    /^#{1,6}\s+/m,           // Headers
-    /\*\*.*?\*\*/,           // Bold
-    /^\s*[-*+]\s+/m,         // Lists
-    /^\s*\d+\.\s+/m,         // Numbered lists
-    /\[.*?\]\(.*?\)/,        // Links
-    /!\[.*?\]\(.*?\)/,       // Images
-    /^\s*\|.*\|.*\|/m,       // Tables
-    /^\s*>\s+/m,             // Blockquotes
-  ];
-  
-  if (markdownPatterns.some(pattern => pattern.test(cleanContent))) {
-    return 'markdown';
-  }
-  
-  return 'text';
-}
+
 
 // Helper function to determine content type based on file extension and patterns
 function getContentType(content, message) {
   if (!content || typeof content !== 'string') return 'text';
-  
-  // For user messages, use conservative heuristics to detect obvious code blocks
-  if (message?.type === 'user') {
-    return detectUserCodeContent(content);
-  }
   
   // Clean content for pattern detection first
   const cleanContent = cleanContentForMarkdown(content);
@@ -872,6 +742,8 @@ function getContentType(content, message) {
 }
 
 // Helper function to detect language from file extension
+
+
 function getLanguageFromPath(filePath) {
   if (!filePath) return '';
   
@@ -957,10 +829,17 @@ function cleanContentForMarkdown(content) {
   return cleanedContent.trim();
 }
 
-function CodeBlock({ content, language, filePath, isUser, allCodeBlocksCollapsed, forceCollapseToggle }) {
+function CodeBlock({ content, language, filePath, allCodeBlocksCollapsed, forceCollapseToggle }) {
   const [showLineNumbers, setShowLineNumbers] = useState(true);
   const [copySuccess, setCopySuccess] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState(() => {
+    // Initialize with the current theme state
+    if (typeof document !== 'undefined') {
+      return document.documentElement.classList.contains('dark');
+    }
+    return false;
+  });
 
   // React to global collapse/expand controls immediately
   React.useEffect(() => {
@@ -968,6 +847,25 @@ function CodeBlock({ content, language, filePath, isUser, allCodeBlocksCollapsed
       setIsCollapsed(allCodeBlocksCollapsed);
     }
   }, [allCodeBlocksCollapsed, forceCollapseToggle]);
+
+  // Track dark mode changes
+  React.useEffect(() => {
+    const checkDarkMode = () => {
+      setIsDarkMode(document.documentElement.classList.contains('dark'));
+    };
+    
+    // Check initial state
+    checkDarkMode();
+    
+    // Watch for theme changes
+    const observer = new MutationObserver(checkDarkMode);
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['class']
+    });
+    
+    return () => observer.disconnect();
+  }, []);
 
   const handleCopy = async () => {
     try {
@@ -979,14 +877,13 @@ function CodeBlock({ content, language, filePath, isUser, allCodeBlocksCollapsed
     }
   };
 
-  // Get appropriate syntax highlighting theme
-  const syntaxTheme = isUser ? vscDarkPlus : vs;
+  // Get appropriate syntax highlighting theme based on current theme
+  const syntaxTheme = isDarkMode ? vscDarkPlus : vs;
   
   // Custom style overrides for better integration
   const customStyle = {
     margin: 0,
     padding: '1rem',
-    background: 'transparent',
     fontSize: '0.875rem',
     fontFamily: 'ui-monospace, SFMono-Regular, "SF Mono", Consolas, "Liberation Mono", Menlo, monospace',
   };
@@ -1000,34 +897,20 @@ function CodeBlock({ content, language, filePath, isUser, allCodeBlocksCollapsed
   };
 
   return (
-    <div className={`rounded-lg overflow-hidden ${
-      isUser 
-        ? 'bg-gray-900 border border-gray-700' 
-        : 'bg-white border border-gray-200 shadow-sm'
-    }`}>
+    <div className="rounded-lg overflow-hidden bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 shadow-sm">
       {/* Header with file path and controls */}
-      <div className={`px-4 py-2 border-b flex items-center justify-between ${
-        isUser 
-          ? 'bg-gray-800 border-gray-700 text-gray-100' 
-          : 'bg-gray-50 border-gray-200 text-gray-700'
-      }`}>
+      <div className="px-4 py-2 border-b border-gray-200 dark:border-slate-600 flex items-center justify-between bg-gray-50 dark:bg-slate-700 text-gray-700 dark:text-gray-300">
         <div className="flex items-center space-x-2">
           <button
             onClick={() => setIsCollapsed(!isCollapsed)}
-            className={`text-sm hover:opacity-70 ${
-              isUser ? 'text-gray-300' : 'text-gray-500'
-            }`}
+            className="text-sm hover:opacity-70 text-gray-500 dark:text-gray-400"
           >
             {isCollapsed ? <ChevronRightIcon /> : <ChevronDownIcon />}
           </button>
           <span className="text-sm font-mono">📄</span>
           <span className="text-sm font-medium">{filePath || 'Code Block'}</span>
           {language && (
-            <span className={`text-xs px-2 py-1 rounded ${
-              isUser 
-                ? 'bg-gray-700 text-gray-200' 
-                : 'bg-gray-200 text-gray-600'
-            }`}>
+            <span className="text-xs px-2 py-1 rounded bg-gray-200 dark:bg-slate-500 text-gray-600 dark:text-gray-300">
               {language}
             </span>
           )}
@@ -1037,11 +920,7 @@ function CodeBlock({ content, language, filePath, isUser, allCodeBlocksCollapsed
             <>
               <button
                 onClick={() => setShowLineNumbers(!showLineNumbers)}
-                className={`text-xs px-2 py-1 rounded transition-colors ${
-                  isUser 
-                    ? 'hover:bg-gray-700 text-gray-300' 
-                    : 'hover:bg-gray-200 text-gray-600'
-                }`}
+                className="text-xs px-2 py-1 rounded transition-colors hover:bg-gray-200 dark:hover:bg-slate-500 text-gray-600 dark:text-gray-300"
               >
                 {showLineNumbers ? 'Hide' : 'Show'} Lines
               </button>
@@ -1049,8 +928,8 @@ function CodeBlock({ content, language, filePath, isUser, allCodeBlocksCollapsed
                 onClick={handleCopy}
                 className={`text-xs px-2 py-1 rounded flex items-center space-x-1 transition-colors ${
                   copySuccess
-                    ? (isUser ? 'bg-green-600 text-white' : 'bg-green-100 text-green-700')
-                    : (isUser ? 'hover:bg-gray-700 text-gray-300' : 'hover:bg-gray-200 text-gray-600')
+                    ? 'bg-secondary text-white dark:bg-secondary-light dark:text-slate-900'
+                    : 'hover:bg-gray-200 dark:hover:bg-slate-500 text-gray-600 dark:text-gray-300'
                 }`}
               >
                 {copySuccess ? (
@@ -1072,11 +951,7 @@ function CodeBlock({ content, language, filePath, isUser, allCodeBlocksCollapsed
       
       {/* Code content - CSS display toggle for maximum speed */}
       <div 
-        className={`overflow-x-auto ${
-          isUser 
-            ? 'bg-gray-900' 
-            : 'bg-white'
-        }`}
+        className="overflow-x-auto bg-slate-50 dark:bg-slate-800"
         style={{ display: isCollapsed ? 'none' : 'block' }}
       >
         <SyntaxHighlighter
@@ -1094,9 +969,7 @@ function CodeBlock({ content, language, filePath, isUser, allCodeBlocksCollapsed
       
       {/* Collapsed state preview - CSS display toggle */}
       <div 
-        className={`px-4 py-2 text-sm italic ${
-          isUser ? 'text-gray-400' : 'text-gray-500'
-        }`}
+        className="px-4 py-2 text-sm italic text-gray-500 dark:text-gray-400"
         style={{ display: isCollapsed ? 'block' : 'none' }}
       >
         {content.split('\n').length} lines • Click to expand
@@ -1105,7 +978,7 @@ function CodeBlock({ content, language, filePath, isUser, allCodeBlocksCollapsed
   );
 }
 
-function MarkdownBlock({ content, isUser, allMarkdownBlocksCollapsed, forceMarkdownCollapseToggle }) {
+function MarkdownBlock({ content, allMarkdownBlocksCollapsed, forceMarkdownCollapseToggle }) {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [copySuccess, setCopySuccess] = useState(false);
 
@@ -1127,23 +1000,13 @@ function MarkdownBlock({ content, isUser, allMarkdownBlocksCollapsed, forceMarkd
   };
 
   return (
-    <div className={`rounded-lg overflow-hidden ${
-      isUser 
-        ? 'bg-slate-700 border border-slate-600' 
-        : 'bg-white border border-gray-200 shadow-sm'
-    }`}>
+    <div className="rounded-lg overflow-hidden bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 shadow-sm">
       {/* Header with controls */}
-      <div className={`px-4 py-2 border-b flex items-center justify-between ${
-        isUser 
-          ? 'bg-slate-800 border-slate-600 text-slate-100' 
-          : 'bg-gray-50 border-gray-200 text-gray-700'
-      }`}>
+      <div className="px-4 py-2 border-b border-gray-200 dark:border-slate-600 flex items-center justify-between bg-gray-50 dark:bg-slate-700 text-gray-700 dark:text-gray-300">
         <div className="flex items-center space-x-2">
           <button
             onClick={() => setIsCollapsed(!isCollapsed)}
-            className={`text-sm hover:opacity-70 ${
-              isUser ? 'text-slate-300' : 'text-gray-500'
-            }`}
+            className="text-sm hover:opacity-70 text-gray-500 dark:text-gray-400"
           >
             {isCollapsed ? <ChevronRightIcon /> : <ChevronDownIcon />}
           </button>
@@ -1155,9 +1018,9 @@ function MarkdownBlock({ content, isUser, allMarkdownBlocksCollapsed, forceMarkd
             <button
               onClick={handleCopy}
               className={`text-xs px-2 py-1 rounded flex items-center space-x-1 transition-colors ${
-                copySuccess
-                  ? (isUser ? 'bg-green-600 text-white' : 'bg-green-100 text-green-700')
-                  : (isUser ? 'hover:bg-slate-600 text-slate-200' : 'hover:bg-gray-200 text-gray-600')
+              copySuccess
+              ? 'bg-secondary text-white dark:bg-secondary-light dark:text-slate-900'
+              : 'hover:bg-gray-200 dark:hover:bg-slate-500 text-gray-600 dark:text-gray-300'
               }`}
             >
               {copySuccess ? (
@@ -1178,76 +1041,54 @@ function MarkdownBlock({ content, isUser, allMarkdownBlocksCollapsed, forceMarkd
       
       {/* Markdown content - CSS display toggle for maximum speed */}
       <div 
-        className={`${
-          isUser 
-            ? 'bg-slate-700' 
-            : 'bg-white'
-        }`}
+        className="bg-white dark:bg-slate-800"
         style={{ display: isCollapsed ? 'none' : 'block' }}
       >
-        <div className={`p-4 ${isUser ? 'text-slate-100' : 'text-gray-700'}`}>
+        <div className="p-4 text-gray-700 dark:text-gray-300">
           <ReactMarkdown 
             components={{
               h1: ({children}) => (
-                <h1 className={`text-xl font-bold mb-2 ${
-                  isUser ? 'text-slate-50' : 'text-gray-900'
-                }`}>
+                <h1 className="text-xl font-bold mb-2 text-gray-900 dark:text-white">
                   {children}
                 </h1>
               ),
               h2: ({children}) => (
-                <h2 className={`text-lg font-bold mb-2 ${
-                  isUser ? 'text-slate-50' : 'text-gray-900'
-                }`}>
+                <h2 className="text-lg font-bold mb-2 text-gray-900 dark:text-white">
                   {children}
                 </h2>
               ),
               h3: ({children}) => (
-                <h3 className={`text-base font-bold mb-1 ${
-                  isUser ? 'text-slate-50' : 'text-gray-900'
-                }`}>
+                <h3 className="text-base font-bold mb-1 text-gray-900 dark:text-white">
                   {children}
                 </h3>
               ),
               p: ({children}) => (
-                <p className={`mb-2 ${
-                  isUser ? 'text-slate-100' : 'text-gray-700'
-                }`}>
+                <p className="mb-2 text-gray-700 dark:text-gray-300">
                   {children}
                 </p>
               ),
               strong: ({children}) => (
-                <strong className={`font-bold ${
-                  isUser ? 'text-slate-50' : 'text-gray-900'
-                }`}>
+                <strong className="font-bold text-gray-900 dark:text-white">
                   {children}
                 </strong>
               ),
               em: ({children}) => (
-                <em className={`italic ${
-                  isUser ? 'text-slate-200' : 'text-gray-600'
-                }`}>
+                <em className="italic text-gray-600 dark:text-gray-300">
                   {children}
                 </em>
               ),
               ul: ({children}) => (
-                <ul className={`list-disc list-inside mb-2 space-y-0.5 ${
-                  isUser ? 'text-slate-100' : 'text-gray-700'
-                }`}>
+                <ul className="list-disc list-inside mb-2 space-y-0.5 text-gray-700 dark:text-gray-300">
                   {children}
                 </ul>
               ),
               ol: ({children}) => (
-                <ol className={`list-decimal list-inside mb-2 space-y-0.5 ${
-                  isUser ? 'text-slate-100' : 'text-gray-700'
-                }`}>
+                <ol className="list-decimal list-inside mb-2 space-y-0.5 text-gray-700 dark:text-gray-300">
                   {children}
                 </ol>
               ),
               li: ({children}) => (
-                <li className={`${
-                  isUser ? 'text-slate-100' : 'text-gray-700'
-                }`}>
+                <li className="text-gray-700 dark:text-gray-300">
                   {children}
                 </li>
               ),
@@ -1257,11 +1098,7 @@ function MarkdownBlock({ content, isUser, allMarkdownBlocksCollapsed, forceMarkd
                 if (isInline) {
                   return (
                     <code 
-                      className={`px-1 py-0.5 rounded text-sm font-mono ${
-                        isUser 
-                          ? 'bg-slate-600 text-slate-200' 
-                          : 'bg-gray-100 text-gray-900'
-                      }`} 
+                    className="px-1 py-0.5 rounded text-sm font-mono bg-gray-100 dark:bg-slate-600 text-gray-900 dark:text-white"
                       {...props}
                     >
                       {children}
@@ -1269,11 +1106,7 @@ function MarkdownBlock({ content, isUser, allMarkdownBlocksCollapsed, forceMarkd
                   );
                 }
                 return (
-                  <pre className={`p-3 rounded-lg overflow-x-auto mb-3 ${
-                    isUser 
-                      ? 'bg-slate-600 text-slate-200' 
-                      : 'bg-gray-100 text-gray-900'
-                  }`}>
+                  <pre className="p-3 rounded-lg overflow-x-auto mb-3 bg-gray-100 dark:bg-slate-600 text-gray-900 dark:text-white">
                     <code className="text-sm font-mono" {...props}>
                       {children}
                     </code>
@@ -1284,51 +1117,31 @@ function MarkdownBlock({ content, isUser, allMarkdownBlocksCollapsed, forceMarkd
                 return children;
               },
               blockquote: ({children}) => (
-                <blockquote className={`border-l-4 pl-4 italic mb-3 ${
-                  isUser 
-                    ? 'border-slate-400 text-slate-200' 
-                    : 'border-gray-300 text-gray-600'
-                }`}>
+                <blockquote className="border-l-4 pl-4 italic mb-3 border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300">
                   {children}
                 </blockquote>
               ),
               table: ({children}) => (
                 <div className="overflow-x-auto mb-3">
-                  <table className={`min-w-full divide-y ${
-                    isUser 
-                      ? 'divide-slate-500' 
-                      : 'divide-gray-200'
-                  }`}>
+                  <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-600">
                     {children}
                   </table>
                 </div>
               ),
               th: ({children}) => (
-                <th className={`px-3 py-2 text-left text-xs font-medium uppercase tracking-wider ${
-                  isUser 
-                    ? 'bg-slate-600 text-slate-200' 
-                    : 'bg-gray-50 text-gray-500'
-                }`}>
+                <th className="px-3 py-2 text-left text-xs font-medium uppercase tracking-wider bg-gray-50 dark:bg-slate-700 text-gray-500 dark:text-gray-400">
                   {children}
                 </th>
               ),
               td: ({children}) => (
-                <td className={`px-3 py-2 text-sm ${
-                  isUser 
-                    ? 'text-slate-100' 
-                    : 'text-gray-900'
-                }`}>
+                <td className="px-3 py-2 text-sm text-gray-900 dark:text-white">
                   {children}
                 </td>
               ),
               a: ({children, href}) => (
                 <a 
                   href={href}
-                  className={`underline ${
-                    isUser 
-                      ? 'text-slate-300 hover:text-slate-200' 
-                      : 'text-blue-600 hover:text-blue-800'
-                  }`}
+                  className="underline text-primary hover:text-primary-hover"
                   target="_blank"
                   rel="noopener noreferrer"
                 >
@@ -1336,9 +1149,7 @@ function MarkdownBlock({ content, isUser, allMarkdownBlocksCollapsed, forceMarkd
                 </a>
               ),
               hr: () => (
-                <hr className={`my-4 border-t ${
-                  isUser ? 'border-slate-500' : 'border-gray-300'
-                }`} />
+                <hr className="my-4 border-t border-gray-300 dark:border-gray-600" />
               )
             }}
           >
@@ -1349,9 +1160,7 @@ function MarkdownBlock({ content, isUser, allMarkdownBlocksCollapsed, forceMarkd
       
       {/* Collapsed state preview */}
       <div 
-        className={`px-4 py-2 text-sm italic ${
-          isUser ? 'text-slate-300' : 'text-gray-500'
-        }`}
+        className="px-4 py-2 text-sm italic text-gray-500 dark:text-gray-400"
         style={{ display: isCollapsed ? 'block' : 'none' }}
       >
         Markdown content • Click to expand
@@ -1397,7 +1206,7 @@ function UnifiedMessageBubble({ message, sessionType, allCodeBlocksCollapsed, fo
       <div className={`max-w-4xl ${isUser ? 'ml-12' : 'mr-12'}`}>
         {/* Message Header */}
         <div className={`flex items-center mb-2 ${isUser ? 'justify-end' : 'justify-start'}`}>
-          <div className="group flex items-center space-x-2 text-sm text-gray-500">
+          <div className="group flex items-center space-x-2 text-sm text-gray-500 dark:text-gray-400 dark:text-gray-500">
             <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-medium ${
               isUser ? '' : 
               isSystem ? 'bg-orange-100 text-orange-700' :
@@ -1440,7 +1249,7 @@ function UnifiedMessageBubble({ message, sessionType, allCodeBlocksCollapsed, fo
             {message.metadata?.model && (
               <>
                 <span>•</span>
-                <span className="text-xs bg-gray-100 px-2 py-1 rounded">
+                <span className="text-xs bg-gray-100 dark:bg-slate-600 px-2 py-1 rounded">
                   {message.metadata.model}
                 </span>
               </>
@@ -1451,10 +1260,10 @@ function UnifiedMessageBubble({ message, sessionType, allCodeBlocksCollapsed, fo
         {/* Message Content */}
         <div className={`relative rounded-lg p-4 ${
           isUser 
-            ? 'bg-blue-600 text-white' 
+            ? 'bg-primary text-white' 
             : isSystem
-            ? 'bg-orange-50 border border-orange-200 shadow-sm'
-            : 'bg-white border border-gray-200 shadow-sm'
+            ? 'bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-700 shadow-sm text-gray-900 dark:text-gray-100'
+            : 'bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 shadow-sm text-gray-900 dark:text-gray-100'
         }`}>
           {/* Copy Button - Hide for tool blocks, code blocks, and markdown blocks */}
           {!isSystem && !shouldRenderCode && !shouldRenderMarkdown && (
@@ -1462,10 +1271,10 @@ function UnifiedMessageBubble({ message, sessionType, allCodeBlocksCollapsed, fo
               onClick={() => copyToClipboard(message.content)}
               className={`absolute top-1 right-1 p-1.5 rounded-md transition-all ${
                 copySuccess
-                  ? 'bg-green-100 text-green-600'
+                  ? 'bg-secondary/20 text-secondary-dark dark:bg-secondary-light/30 dark:text-secondary-light'
                   : isUser
-                  ? 'hover:bg-blue-500 text-blue-200 hover:text-white'
-                  : 'hover:bg-gray-100 text-gray-400 hover:text-gray-600'
+                  ? 'hover:bg-primary-light/20 text-primary-light hover:text-white'
+                  : 'hover:bg-gray-100 dark:hover:bg-slate-600 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300'
               }`}
               title="Copy message"
             >
@@ -1484,18 +1293,19 @@ function UnifiedMessageBubble({ message, sessionType, allCodeBlocksCollapsed, fo
           {/* Main Content */}
           <div className="mb-3">
             {shouldRenderCode ? (
+              // NOTE: User code blocks don't get language-specific syntax highlighting because
+              // user messages lack metadata.toolUseResult.file.filePath that AI tool results have.
+              // They use the unified CodeBlock component but render as plain text.
               <CodeBlock 
                 content={cleanContentForMarkdown(message.content)}
-                language={getLanguageFromPath(message?.metadata?.toolUseResult?.file?.filePath)}
+                language={getLanguageFromPath(message?.metadata?.toolUseResult?.file?.filePath) || 'text'}
                 filePath={message?.metadata?.toolUseResult?.file?.filePath}
-                isUser={isUser}
                 allCodeBlocksCollapsed={allCodeBlocksCollapsed}
                 forceCollapseToggle={forceCollapseToggle}
               />
             ) : shouldRenderMarkdown ? (
               <MarkdownBlock 
                 content={message.content}
-                isUser={isUser}
                 allMarkdownBlocksCollapsed={allMarkdownBlocksCollapsed}
                 forceMarkdownCollapseToggle={forceMarkdownCollapseToggle}
               />
@@ -1533,8 +1343,8 @@ function UnifiedMessageBubble({ message, sessionType, allCodeBlocksCollapsed, fo
           {message.metadata?.additional_context && (
             <div className={`mt-3 p-3 rounded border-l-4 ${
               isUser 
-                ? 'bg-blue-500 border-blue-300 text-blue-100' 
-                : 'bg-blue-100 border-blue-400 text-blue-800'
+                ? 'bg-primary/5 dark:bg-primary-light/100 border-blue-300 text-blue-100' 
+                : 'bg-primary/10 dark:bg-primary-light/20 border-blue-400 text-primary-hover'
             }`}>
               <div className="text-xs font-medium mb-1">Additional Context</div>
               <div className="text-xs whitespace-pre-wrap">
@@ -1546,7 +1356,7 @@ function UnifiedMessageBubble({ message, sessionType, allCodeBlocksCollapsed, fo
           {/* Environment Context */}
           {message.metadata?.env_context?.env_state && (
             <div className={`mt-3 p-3 rounded ${
-              isUser ? 'bg-blue-500 text-blue-100' : 'bg-gray-50 text-gray-700'
+              isUser ? 'bg-primary/5 dark:bg-primary-light/100 text-blue-100' : 'bg-gray-50 dark:bg-slate-700 text-gray-700 dark:text-gray-300'
             }`}>
               <div className="text-xs font-medium mb-2">Environment Context</div>
               <div className="text-xs space-y-1">
@@ -1563,7 +1373,7 @@ function UnifiedMessageBubble({ message, sessionType, allCodeBlocksCollapsed, fo
         }`}>
           <button
             onClick={() => setShowRawData(!showRawData)}
-            className="text-gray-500 hover:text-gray-700 underline"
+            className="text-gray-500 dark:text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:text-gray-300 underline"
           >
             {showRawData ? 'Hide' : 'Show'} Raw Data
           </button>
@@ -1607,16 +1417,16 @@ function RawMessageDataDisplay({ message }) {
   };
 
   return (
-    <div className="mt-2 bg-gray-50 border border-gray-200 rounded">
+    <div className="mt-2 bg-gray-50 dark:bg-slate-700 border border-gray-200 rounded">
       <div className="px-3 py-2 border-b border-gray-200 flex items-center justify-between">
         <div className="flex items-center space-x-3">
-          <span className="text-xs font-medium text-gray-700">
+          <span className="text-xs font-medium text-gray-700 dark:text-gray-300">
             {showNormalized ? 'Normalized Message Data' : 'Original Raw Data'}
           </span>
           {hasOriginalData && (
             <button
               onClick={() => setShowNormalized(!showNormalized)}
-              className="text-xs text-blue-600 hover:text-blue-800 underline"
+              className="text-xs text-primary hover:text-primary-hover underline"
             >
               Show {showNormalized ? 'Original' : 'Normalized'}
             </button>
@@ -1627,7 +1437,7 @@ function RawMessageDataDisplay({ message }) {
           className={`flex items-center space-x-1 px-2 py-1 rounded text-xs font-medium transition-all ${
             copySuccess
               ? 'bg-green-100 text-green-700'
-              : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+              : 'bg-gray-200 dark:bg-slate-500 text-gray-700 dark:text-gray-300 hover:bg-gray-300'
           }`}
         >
           {copySuccess ? (
@@ -1644,7 +1454,7 @@ function RawMessageDataDisplay({ message }) {
         </button>
       </div>
       <div className="p-3">
-        <pre className="text-xs text-gray-600 overflow-auto">
+        <pre className="text-xs text-gray-600 dark:text-gray-300 overflow-auto">
           {rawText}
         </pre>
       </div>
@@ -1658,7 +1468,7 @@ function UnifiedToolUseDisplay({ toolUse, isUser }) {
   return (
     <div className={`rounded-lg p-4 ${
       isUser 
-        ? 'bg-blue-500 border border-blue-400' 
+        ? 'bg-primary/5 dark:bg-primary-light/100 border border-blue-400' 
         : 'bg-yellow-50 border border-yellow-200'
     }`}>
       <div className="flex items-start justify-between mb-2 gap-3">
@@ -1755,7 +1565,7 @@ function UnifiedToolResultDisplay({ results, showDetails, onToggleDetails, isUse
         <div className="flex items-center space-x-2">
           <span className={isUser ? 'text-blue-100' : 'text-yellow-600'}>✅</span>
           <span className={`font-medium text-sm ${
-            isUser ? 'text-blue-100' : 'text-gray-700'
+            isUser ? 'text-blue-100' : 'text-gray-700 dark:text-gray-300'
           }`}>
             Tool Execution Results
           </span>
@@ -1765,7 +1575,7 @@ function UnifiedToolResultDisplay({ results, showDetails, onToggleDetails, isUse
           className={`text-xs underline ml-4 ${
             isUser 
               ? 'text-blue-200 hover:text-blue-100' 
-              : 'text-gray-500 hover:text-gray-700'
+              : 'text-gray-500 dark:text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:text-gray-300'
           }`}
         >
           {showDetails ? 'Hide' : 'Show'} Details
@@ -1777,7 +1587,7 @@ function UnifiedToolResultDisplay({ results, showDetails, onToggleDetails, isUse
           {results.map((result, index) => (
             <div key={index} className={`p-3 rounded ${
               isUser 
-                ? 'bg-blue-500 text-blue-100' 
+                ? 'bg-primary/5 dark:bg-primary-light/100 text-blue-100' 
                 : 'bg-yellow-50 border border-yellow-200 text-yellow-800'
             }`}>
               <pre className="text-xs overflow-auto">
@@ -1794,7 +1604,7 @@ function UnifiedToolResultDisplay({ results, showDetails, onToggleDetails, isUse
 function UsageStats({ usage, isUser }) {
   return (
     <div className={`flex items-center space-x-4 text-xs ${
-      isUser ? 'text-blue-200' : 'text-gray-500'
+      isUser ? 'text-blue-200' : 'text-gray-500 dark:text-gray-400 dark:text-gray-500'
     }`}>
       {usage.input_tokens && (
         <span>Input: {usage.input_tokens.toLocaleString()} tokens</span>
@@ -1811,8 +1621,8 @@ function UsageStats({ usage, isUser }) {
       {usage.service_tier && (
         <span className={`px-2 py-1 rounded ${
           isUser 
-            ? 'bg-blue-500 text-blue-100' 
-            : 'bg-gray-100 text-gray-700'
+            ? 'bg-primary/5 dark:bg-primary-light/100 text-blue-100' 
+            : 'bg-gray-100 dark:bg-slate-600 text-gray-700 dark:text-gray-300'
         }`}>
           {usage.service_tier}
         </span>
@@ -1846,17 +1656,17 @@ function UserPromptsView({ session }) {
   };
   
   return (
-    <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+    <div className="bg-white dark:bg-slate-800 rounded-lg shadow-sm border border-gray-200 dark:border-slate-700">
       <div className="p-4 border-b border-gray-200">
-        <h3 className="text-lg font-semibold text-gray-900">User Prompts</h3>
-        <p className="text-sm text-gray-600">All messages sent by the user in this session</p>
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-white">User Prompts</h3>
+        <p className="text-sm text-gray-600 dark:text-gray-300">All messages sent by the user in this session</p>
       </div>
       
       <div className="p-4">
         {sortedUserMessages.length === 0 ? (
           <div className="text-center py-8">
-            <div className="text-gray-400 text-4xl mb-4">💬</div>
-            <p className="text-gray-600">No user messages found</p>
+            <div className="text-gray-400 dark:text-gray-500 text-4xl mb-4">💬</div>
+            <p className="text-gray-600 dark:text-gray-300">No user messages found</p>
           </div>
         ) : (
           <div className="space-y-4">
@@ -1873,7 +1683,7 @@ function UserPromptsView({ session }) {
                       }}
                       referrerPolicy="no-referrer"
                     />
-                    <span className="text-sm font-medium text-gray-900">
+                    <span className="text-sm font-medium text-gray-900 dark:text-white">
                       {sessionAuthor.userId ? (
                         <Link href={`/users/${sessionAuthor.userId}`} className="hover:underline">
                           {sessionAuthor.username}
@@ -1882,7 +1692,7 @@ function UserPromptsView({ session }) {
                     </span>
                     {message.metadata?.model && (
                       <>
-                        <span className="text-xs text-gray-500">•</span>
+                        <span className="text-xs text-gray-500 dark:text-gray-400 dark:text-gray-500">•</span>
                         <span className="text-xs bg-purple-100 text-purple-700 px-2 py-1 rounded">
                           {message.metadata.model}
                         </span>
@@ -1891,7 +1701,7 @@ function UserPromptsView({ session }) {
                   </div>
                   <button
                     onClick={() => copyToClipboard(message.content, message.id)}
-                    className="text-gray-400 hover:text-gray-600 transition-colors p-1 rounded hover:bg-gray-100"
+                    className="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:text-gray-300 transition-colors p-1 rounded hover:bg-gray-100 dark:bg-slate-600"
                     title="Copy prompt"
                   >
                     {copiedId === message.id ? (
@@ -1905,7 +1715,7 @@ function UserPromptsView({ session }) {
                     )}
                   </button>
                 </div>
-                <div className="text-sm text-gray-700 whitespace-pre-wrap">
+                <div className="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap">
                   {message.content}
                 </div>
                 {message.toolCalls && message.toolCalls.length > 0 && (
@@ -1944,19 +1754,19 @@ function ToolsView({ session }) {
   };
   
   return (
-    <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+    <div className="bg-white dark:bg-slate-800 rounded-lg shadow-sm border border-gray-200 dark:border-slate-700">
       <div className="p-4 border-b border-gray-200">
         <div className="flex items-center justify-between">
           <div>
-            <h3 className="text-lg font-semibold text-gray-900">Tool Usage</h3>
-            <p className="text-sm text-gray-600">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Tool Usage</h3>
+            <p className="text-sm text-gray-600 dark:text-gray-300">
               {toolCalls.length} tool call{toolCalls.length !== 1 ? 's' : ''} in this session
             </p>
           </div>
           {toolCalls.length > 0 && (
             <button
               onClick={toggleAllExpanded}
-              className="flex items-center space-x-1 text-sm text-blue-600 hover:text-blue-800 px-3 py-1 rounded-md hover:bg-blue-50 transition-colors"
+              className="flex items-center space-x-1 text-sm text-primary hover:text-primary-hover px-3 py-1 rounded-md hover:bg-primary/5 dark:bg-primary-light/10 transition-colors"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 {allExpanded ? (
@@ -1974,8 +1784,8 @@ function ToolsView({ session }) {
       <div className="p-4">
         {toolCalls.length === 0 ? (
           <div className="text-center py-8">
-            <div className="text-gray-400 text-4xl mb-4">🔧</div>
-            <p className="text-gray-600">No tools were used in this session</p>
+            <div className="text-gray-400 dark:text-gray-500 text-4xl mb-4">🔧</div>
+            <p className="text-gray-600 dark:text-gray-300">No tools were used in this session</p>
           </div>
         ) : (
           <div className="space-y-4">
@@ -2004,9 +1814,9 @@ function ToolCallDetailCard({ tool, allExpanded }) {
       <div className="flex items-center justify-between mb-3">
         <div className="group flex items-center space-x-2">
           <span className="text-yellow-600">🔧</span>
-          <span className="font-medium text-gray-900">{tool.name}</span>
+          <span className="font-medium text-gray-900 dark:text-white">{tool.name}</span>
           {tool.metadata?.orig_name && tool.metadata.orig_name !== tool.name && (
-            <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded">
+            <span className="text-xs bg-gray-100 dark:bg-slate-600 text-gray-600 dark:text-gray-300 px-2 py-1 rounded">
               orig: {tool.metadata.orig_name}
             </span>
           )}
@@ -2015,15 +1825,15 @@ function ToolCallDetailCard({ tool, allExpanded }) {
 
       {/* Tool ID */}
       {tool.id && (
-        <div className="text-xs text-gray-600 mb-2">
-          ID: <code className="bg-gray-100 px-1 rounded">{tool.id}</code>
+        <div className="text-xs text-gray-600 dark:text-gray-300 mb-2">
+          ID: <code className="bg-gray-100 dark:bg-slate-600 px-1 rounded">{tool.id}</code>
         </div>
       )}
 
       {/* Summary (Q Chat feature) */}
       {tool.metadata?.summary && (
-        <div className="mb-3 p-3 bg-blue-50 border border-blue-200 rounded">
-          <div className="text-sm font-medium text-blue-800 mb-1">Summary:</div>
+        <div className="mb-3 p-3 bg-primary/5 dark:bg-primary-light/10 border border-blue-200 rounded">
+          <div className="text-sm font-medium text-primary-hover mb-1">Summary:</div>
           <div className="text-sm text-blue-700">{tool.metadata.summary}</div>
         </div>
       )}
@@ -2032,7 +1842,7 @@ function ToolCallDetailCard({ tool, allExpanded }) {
       {tool.input && (
         <div className="mb-3">
           <div className="flex items-center justify-between mb-2">
-            <div className="text-sm font-medium text-gray-700">Input Parameters:</div>
+            <div className="text-sm font-medium text-gray-700 dark:text-gray-300">Input Parameters:</div>
             <button
               onClick={() => setShowInput(!showInput)}
               className="text-xs text-yellow-600 hover:text-yellow-800 underline"
@@ -2041,7 +1851,7 @@ function ToolCallDetailCard({ tool, allExpanded }) {
             </button>
           </div>
           {showInput && (
-            <pre className="text-xs bg-gray-50 p-2 rounded border overflow-auto">
+            <pre className="text-xs bg-gray-50 dark:bg-slate-700 p-2 rounded border overflow-auto">
               {JSON.stringify(tool.input, null, 2)}
             </pre>
           )}
@@ -2053,7 +1863,7 @@ function ToolCallDetailCard({ tool, allExpanded }) {
        JSON.stringify(tool.metadata.orig_args) !== JSON.stringify(tool.input) && (
         <div className="mb-3">
           <div className="flex items-center justify-between mb-2">
-            <div className="text-sm font-medium text-gray-700">Original Arguments:</div>
+            <div className="text-sm font-medium text-gray-700 dark:text-gray-300">Original Arguments:</div>
             <button
               onClick={() => setShowOriginalArgs(!showOriginalArgs)}
               className="text-xs text-yellow-600 hover:text-yellow-800 underline"
@@ -2072,208 +1882,7 @@ function ToolCallDetailCard({ tool, allExpanded }) {
   );
 }
 
-function StatsView({ session }) {
-  // Calculate token percentages for the chart
-  const inputPercentage = session.stats.totalTokens > 0 ? (session.stats.inputTokens / session.stats.totalTokens) * 100 : 0;
-  const outputPercentage = session.stats.totalTokens > 0 ? (session.stats.outputTokens / session.stats.totalTokens) * 100 : 0;
 
-  return (
-    <div className="space-y-6">
-      {/* Message Statistics */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Message Statistics</h3>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="text-center p-4 bg-gray-50 rounded-lg">
-            <div className="text-2xl font-bold text-gray-900">{session.stats.totalMessages}</div>
-            <div className="text-sm text-gray-600 mt-1">Total Messages</div>
-          </div>
-          <div className="text-center p-4 bg-blue-50 rounded-lg">
-            <div className="text-2xl font-bold text-blue-600">{session.stats.userMessages}</div>
-            <div className="text-sm text-gray-600 mt-1">User Messages</div>
-          </div>
-          <div className="text-center p-4 bg-purple-50 rounded-lg">
-            <div className="text-2xl font-bold text-purple-600">{session.stats.assistantMessages}</div>
-            <div className="text-sm text-gray-600 mt-1">Assistant Messages</div>
-          </div>
-          <div className="text-center p-4 bg-orange-50 rounded-lg">
-            <div className="text-2xl font-bold text-orange-600">{session.stats.toolCalls}</div>
-            <div className="text-sm text-gray-600 mt-1">Tool Calls</div>
-          </div>
-        </div>
-        
-        {/* Additional message types if they exist */}
-        {(session.stats.toolMessages > 0 || session.stats.systemMessages > 0) && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-            {session.stats.toolMessages > 0 && (
-              <div className="text-center p-4 bg-yellow-50 rounded-lg">
-                <div className="text-2xl font-bold text-yellow-600">{session.stats.toolMessages}</div>
-                <div className="text-sm text-gray-600 mt-1">Tool Messages</div>
-              </div>
-            )}
-            {session.stats.systemMessages > 0 && (
-              <div className="text-center p-4 bg-gray-50 rounded-lg">
-                <div className="text-2xl font-bold text-gray-600">{session.stats.systemMessages}</div>
-                <div className="text-sm text-gray-600 mt-1">System Messages</div>
-              </div>
-            )}
-          </div>
-        )}
-      </div>
-
-      {/* Token Usage Chart */}
-      {session.stats.totalTokens > 0 && (
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-6">Token Usage</h3>
-          
-          {/* Visual Chart */}
-          <div className="mb-6">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-sm font-medium text-gray-700">Token Distribution</span>
-              <span className="text-sm text-gray-600">{session.stats.totalTokens.toLocaleString()} total</span>
-            </div>
-            <div className="flex w-full h-8 bg-gray-100 rounded-full overflow-hidden">
-              <div 
-                className="bg-blue-500 flex items-center justify-center text-white text-xs font-medium"
-                style={{ width: `${inputPercentage}%` }}
-              >
-                {inputPercentage > 15 && `${Math.round(inputPercentage)}%`}
-              </div>
-              <div 
-                className="bg-green-500 flex items-center justify-center text-white text-xs font-medium"
-                style={{ width: `${outputPercentage}%` }}
-              >
-                {outputPercentage > 15 && `${Math.round(outputPercentage)}%`}
-              </div>
-            </div>
-          </div>
-
-          {/* Token Details */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="flex items-center justify-between p-4 bg-blue-50 rounded-lg">
-              <div className="flex items-center gap-3">
-                <div className="w-4 h-4 bg-blue-500 rounded"></div>
-                <span className="text-sm font-medium text-gray-700">Input Tokens</span>
-              </div>
-              <div className="text-right">
-                <div className="text-lg font-bold text-blue-600">{session.stats.inputTokens.toLocaleString()}</div>
-                <div className="text-xs text-gray-600">{Math.round(inputPercentage)}%</div>
-              </div>
-            </div>
-            <div className="flex items-center justify-between p-4 bg-green-50 rounded-lg">
-              <div className="flex items-center gap-3">
-                <div className="w-4 h-4 bg-green-500 rounded"></div>
-                <span className="text-sm font-medium text-gray-700">Output Tokens</span>
-              </div>
-              <div className="text-right">
-                <div className="text-lg font-bold text-green-600">{session.stats.outputTokens.toLocaleString()}</div>
-                <div className="text-xs text-gray-600">{Math.round(outputPercentage)}%</div>
-              </div>
-            </div>
-            <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-              <div className="flex items-center gap-3">
-                <div className="w-4 h-4 bg-gray-400 rounded"></div>
-                <span className="text-sm font-medium text-gray-700">Total Tokens</span>
-              </div>
-              <div className="text-right">
-                <div className="text-lg font-bold text-gray-900">{session.stats.totalTokens.toLocaleString()}</div>
-                <div className="text-xs text-gray-600">100%</div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Session Details */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Session Details</h3>
-        <div className="space-y-3">
-          <div className="flex justify-between items-center py-2 border-b border-gray-100">
-            <span className="text-sm text-gray-600">Session ID</span>
-            <code className="text-xs bg-gray-100 px-2 py-1 rounded">{session.id}</code>
-          </div>
-          <div className="flex justify-between items-center py-2 border-b border-gray-100">
-            <span className="text-sm text-gray-600">Session Type</span>
-            <span className="text-sm font-medium">{getSessionTypeLabel(session.type)}</span>
-          </div>
-          {session.metadata.version && (
-            <div className="flex justify-between items-center py-2 border-b border-gray-100">
-              <span className="text-sm text-gray-600">Version</span>
-              <span className="text-sm font-medium">{session.metadata.version}</span>
-            </div>
-          )}
-          {session.metadata.userType && (
-            <div className="flex justify-between items-center py-2 border-b border-gray-100">
-              <span className="text-sm text-gray-600">User Type</span>
-              <span className="text-sm font-medium">{session.metadata.userType}</span>
-            </div>
-          )}
-          {session.metadata.duration && (
-            <div className="flex justify-between items-center py-2 border-b border-gray-100">
-              <span className="text-sm text-gray-600">Duration</span>
-              <span className="text-sm font-medium">{session.metadata.duration}</span>
-            </div>
-          )}
-          {session.metadata.model && (
-            <div className="flex justify-between items-center py-2 border-b border-gray-100">
-              <span className="text-sm text-gray-600">Model</span>
-              <span className="text-sm font-medium">{session.metadata.model}</span>
-            </div>
-          )}
-          {session.metadata.cwd && (
-            <div className="flex justify-between items-start py-2 border-b border-gray-100">
-              <span className="text-sm text-gray-600">Working Directory</span>
-              <code className="text-xs bg-gray-100 px-2 py-1 rounded max-w-md truncate ml-4">
-                {session.metadata.cwd}
-              </code>
-            </div>
-          )}
-          {session.metadata.conversation_id && session.metadata.conversation_id !== session.id && (
-            <div className="flex justify-between items-center py-2 border-b border-gray-100">
-              <span className="text-sm text-gray-600">Conversation ID</span>
-              <code className="text-xs bg-gray-100 px-2 py-1 rounded">{session.metadata.conversation_id}</code>
-            </div>
-          )}
-          {session.metadata.valid_history_range && (
-            <div className="flex justify-between items-center py-2 border-b border-gray-100">
-              <span className="text-sm text-gray-600">Valid History Range</span>
-              <span className="text-sm font-medium">
-                [{session.metadata.valid_history_range[0]}, {session.metadata.valid_history_range[1]}]
-              </span>
-            </div>
-          )}
-          {session.metadata.totalMessages && (
-            <div className="flex justify-between items-center py-2">
-              <span className="text-sm text-gray-600">Total Raw Messages</span>
-              <span className="text-sm font-medium">{session.metadata.totalMessages}</span>
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Q Chat Specific: Transcript Preview */}
-      {session.metadata.transcript && Array.isArray(session.metadata.transcript) && (
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Session Transcript Preview</h3>
-          <div className="text-sm text-gray-600 mb-3">
-            {session.metadata.transcript.length} transcript entries
-          </div>
-          <div className="bg-gray-50 p-4 rounded-lg max-h-40 overflow-y-auto">
-            {session.metadata.transcript.slice(0, 5).map((entry, index) => (
-              <div key={index} className="text-sm text-gray-700 mb-2 last:mb-0">
-                {entry.length > 100 ? `${entry.substring(0, 100)}...` : entry}
-              </div>
-            ))}
-            {session.metadata.transcript.length > 5 && (
-              <div className="text-xs text-gray-500 mt-2">
-                ... and {session.metadata.transcript.length - 5} more entries
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
 
 // Helper function to get session type label
 function getSessionTypeLabel(type) {
@@ -2335,19 +1944,19 @@ function RawDataView({ session }) {
   };
   
   return (
-    <div className="bg-white rounded-lg shadow-sm border border-gray-200">
-      <div className="p-4 border-b border-gray-200 flex items-center justify-between">
+    <div className="bg-white dark:bg-slate-800 rounded-lg shadow-sm border border-gray-200 dark:border-slate-700">
+      <div className="p-4 border-b border-gray-200 dark:border-slate-700 flex items-center justify-between">
         <div>
-          <h3 className="text-lg font-semibold text-gray-900">Raw Session Data</h3>
-          <p className="text-sm text-gray-600">Complete raw data representation of the session</p>
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Raw Session Data</h3>
+          <p className="text-sm text-gray-600 dark:text-gray-300">Complete raw data representation of the session</p>
         </div>
         <div className="flex items-center space-x-2">
           <button
             onClick={handleCopy}
             className={`flex items-center space-x-2 px-3 py-2 rounded-lg text-sm font-medium transition-all ${
               copySuccess
-                ? 'bg-green-100 text-green-700 border border-green-200'
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200 border border-gray-200'
+                ? 'bg-secondary/20 text-secondary-dark dark:bg-secondary-light/30 dark:text-secondary-light border border-secondary/30 dark:border-secondary-light/30'
+                : 'bg-gray-100 dark:bg-slate-600 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-slate-500 border border-gray-200 dark:border-slate-600'
             }`}
           >
             {copySuccess ? (
@@ -2364,7 +1973,7 @@ function RawDataView({ session }) {
           </button>
           <button
             onClick={handleDownload}
-            className="flex items-center space-x-2 px-3 py-2 rounded-lg text-sm font-medium transition-all bg-blue-100 text-blue-700 hover:bg-blue-200 border border-blue-200"
+            className="flex items-center space-x-2 px-3 py-2 rounded-lg text-sm font-medium transition-all bg-primary/10 dark:bg-primary-light/20 text-primary-dark dark:text-primary-light hover:bg-primary/20 dark:hover:bg-primary-light/30 border border-primary/30 dark:border-primary-light/30"
           >
             <DownloadIcon />
             <span>Download</span>
@@ -2372,7 +1981,7 @@ function RawDataView({ session }) {
         </div>
       </div>
       <div className="p-4">
-        <pre className="bg-gray-50 p-4 rounded-lg overflow-auto text-xs max-h-96">
+        <pre className="bg-gray-50 dark:bg-slate-700 p-4 rounded-lg overflow-auto text-xs max-h-96">
           <code>{rawText}</code>
         </pre>
       </div>

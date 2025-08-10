@@ -148,11 +148,11 @@ export default function Discover() {
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50">
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 dark:from-slate-900 dark:to-slate-800">
         <Header />
 
         {/* Search Section */}
-        <div className="bg-white/80 backdrop-blur-sm border-b border-gray-200/50 shadow-sm">
+        <div className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm border-b border-gray-200/50 dark:border-slate-700/50 shadow-sm">
           <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             <form onSubmit={handleSearchSubmit} className="relative max-w-2xl mx-auto">
               <input
@@ -160,10 +160,10 @@ export default function Discover() {
                 placeholder="Search sessions by title, summary, or tags..."
                 value={searchInput}
                 onChange={handleSearch}
-                className="w-full px-6 py-4 text-lg border border-gray-300 rounded-2xl shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white/90 backdrop-blur-sm transition-all duration-200"
+                className="w-full px-6 py-4 text-lg border border-gray-300 dark:border-gray-600 rounded-2xl shadow-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent bg-white/90 dark:bg-slate-700/90 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 backdrop-blur-sm transition-all duration-200"
               />
               <svg
-                className="absolute right-4 top-4.5 h-6 w-6 text-gray-400"
+                className="absolute right-4 top-4.5 h-6 w-6 text-gray-400 dark:text-gray-500"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -189,49 +189,49 @@ export default function Discover() {
               {sessionsLoading ? (
                 <div className="space-y-6">
                   {[1, 2, 3].map((i) => (
-                    <div key={i} className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm animate-pulse">
+                    <div key={i} className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl p-6 shadow-sm animate-pulse">
                       <div className="flex items-start justify-between mb-3">
-                        <div className="h-6 bg-gray-200 rounded-lg w-3/4"></div>
-                        <div className="h-6 bg-gray-200 rounded-full w-20"></div>
+                        <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded-lg w-3/4"></div>
+                        <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded-full w-20"></div>
                       </div>
-                      <div className="h-4 bg-gray-200 rounded w-full mb-2"></div>
-                      <div className="h-4 bg-gray-200 rounded w-2/3 mb-4"></div>
+                      <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-full mb-2"></div>
+                      <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-2/3 mb-4"></div>
                       <div className="flex gap-2 mb-4">
-                        <div className="h-6 bg-gray-200 rounded-full w-16"></div>
-                        <div className="h-6 bg-gray-200 rounded-full w-20"></div>
+                        <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded-full w-16"></div>
+                        <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded-full w-20"></div>
                       </div>
                       <div className="flex items-center justify-between">
                         <div className="flex items-center space-x-2">
-                          <div className="h-6 w-6 bg-gray-200 rounded-full"></div>
-                          <div className="h-4 bg-gray-200 rounded w-20"></div>
+                          <div className="h-6 w-6 bg-gray-200 dark:bg-gray-700 rounded-full"></div>
+                          <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-20"></div>
                         </div>
                         <div className="flex items-center space-x-4">
-                          <div className="h-4 bg-gray-200 rounded w-16"></div>
-                          <div className="h-6 bg-gray-200 rounded-full w-24"></div>
+                          <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-16"></div>
+                          <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded-full w-24"></div>
                         </div>
                       </div>
                     </div>
                   ))}
                 </div>
               ) : error ? (
-                <div className="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
-                  <p className="text-red-600">{error}</p>
+                <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800/50 rounded-lg p-6 text-center">
+                  <p className="text-red-600 dark:text-red-400">{error}</p>
                   <button 
                     onClick={() => window.location.reload()} 
-                    className="mt-2 text-red-600 hover:text-red-800 underline"
+                    className="mt-2 text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300 underline"
                   >
                     Try again
                   </button>
                 </div>
               ) : sessions.length === 0 ? (
-                <div className="bg-gray-50 border border-gray-200 rounded-lg p-6 text-center">
-                  <p className="text-gray-600">
+                <div className="bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-lg p-6 text-center">
+                  <p className="text-gray-600 dark:text-gray-300">
                     {searchQuery ? `No sessions found for "${searchQuery}".` : 'No sessions found.'}
                   </p>
                   {searchQuery && (
                     <button 
                       onClick={() => {setSearchInput(''); setSearchQuery('');}} 
-                      className="mt-2 text-blue-600 hover:text-blue-800 underline"
+                      className="mt-2 text-primary hover:text-primary-hover underline"
                     >
                       Clear search
                     </button>
@@ -252,18 +252,18 @@ export default function Discover() {
 
         {/* Auth Modal */}
         {showAuthModal && (
-          <div className="fixed inset-0 bg-opacity-10 backdrop-blur-sm flex items-center justify-center z-50">
-            <div className="bg-white rounded-lg p-10 max-w-lg w-full mx-4 shadow-2xl relative">
+          <div className="fixed inset-0 bg-black/10 dark:bg-black/20 backdrop-blur-sm flex items-center justify-center z-50">
+            <div className="bg-white dark:bg-slate-800 rounded-lg p-10 max-w-lg w-full mx-4 shadow-2xl relative">
               <button
                 onClick={() => setShowAuthModal(false)}
-                className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors"
+                className="absolute top-4 right-4 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
               >
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                 </svg>
               </button>
               <div className="text-center">
-                <h2 className="text-2xl font-bold text-gray-900 mb-8">
+                <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-8">
                   Join SessionBase
                 </h2>
                 <div className="space-y-4">
@@ -276,7 +276,7 @@ export default function Discover() {
                       loginWithGitHub();
                       setShowAuthModal(false);
                     }}
-                    className="flex items-center justify-center w-full px-6 py-4 border border-gray-300 rounded-md text-base font-medium text-gray-700 bg-white hover:bg-gray-50 transition-colors cursor-pointer"
+                    className="flex items-center justify-center w-full px-6 py-4 border border-gray-300 dark:border-gray-600 rounded-md text-base font-medium text-gray-700 dark:text-gray-200 bg-white dark:bg-slate-700 hover:bg-gray-50 dark:hover:bg-slate-600 transition-colors cursor-pointer"
                   >
                     <svg
                       className="w-5 h-5 mr-3"
@@ -300,7 +300,7 @@ export default function Discover() {
                       loginWithGoogle();
                       setShowAuthModal(false);
                     }}
-                    className="flex items-center justify-center w-full px-6 py-4 border border-gray-300 rounded-md text-base font-medium text-gray-700 bg-white hover:bg-gray-50 transition-colors cursor-pointer"
+                    className="flex items-center justify-center w-full px-6 py-4 border border-gray-300 dark:border-gray-600 rounded-md text-base font-medium text-gray-700 dark:text-gray-200 bg-white dark:bg-slate-700 hover:bg-gray-50 dark:hover:bg-slate-600 transition-colors cursor-pointer"
                   >
                     <svg
                       className="w-5 h-5 mr-3"
@@ -326,11 +326,11 @@ export default function Discover() {
                     Sign in with Google
                   </button>
                 </div>
-                <p className="text-xs text-gray-500 mt-6">
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-6">
                   By continuing, you agree to our{' '}
-                  <a href="/terms" className="text-blue-600 hover:text-blue-800 underline">Terms of Service</a>
+                  <a href="/terms" className="text-primary hover:text-primary-hover underline">Terms of Service</a>
                   {' '}and{' '}
-                  <a href="/privacy" className="text-blue-600 hover:text-blue-800 underline">Privacy Policy</a>.
+                  <a href="/privacy" className="text-primary hover:text-primary-hover underline">Privacy Policy</a>.
                 </p>
               </div>
             </div>
