@@ -15,19 +15,19 @@
 @variant dark (.dark &);
 
 :root {
-  --background: #ffffff;
-  --foreground: #0f172a; /* slate-900 */
-  --primary: #93bfec; /* main theme color */
-  --primary-hover: #7aa8dc; /* darker version for hover */
-  --primary-light: #a8ccf0; /* lighter version */
-  --primary-dark: #6191c7; /* darker version */
+  --background: #0b1220; /* Dark by default */
+  --foreground: #e5e7eb; /* slate-200 */
+  --primary: #5E9EFF; /* main theme color */
+  --primary-hover: #4A8AE6; /* darker version for hover */
+  --primary-light: #7FB2FF; /* lighter version */
+  --primary-dark: #3D76CC; /* darker version */
   --secondary: #7ecf9b; /* secondary theme color - complementary green */
   --secondary-hover: #6bb584; /* darker version for hover */
   --secondary-light: #9bdaaf; /* lighter version */
   --secondary-dark: #5ba16f; /* darker version */
   --brand-accent: #0b1220; /* deep slate for hero */
-  --border-color: #e2e8f0; /* slate-200 */
-  --surface: #f8fafc; /* slate-50 */
+  --border-color: #334155; /* slate-700 */
+  --surface: #1e293b; /* slate-800 */
 }
 
 @theme inline {
@@ -37,21 +37,28 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
+@media (prefers-color-scheme: light) {
   :root {
-    --background: #0b1220;
-    --foreground: #e5e7eb; /* slate-200 */
-    --border-color: #334155; /* slate-700 */
-    --surface: #1e293b; /* slate-800 */
+    --background: #ffffff;
+    --foreground: #0f172a; /* slate-900 */
+    --border-color: #e2e8f0; /* slate-200 */
+    --surface: #f8fafc; /* slate-50 */
   }
 }
 
-/* Explicit class-based dark mode overrides to align with toggle */
+/* Explicit class-based overrides to align with toggle */
 .dark {
   --background: #0b1220;
   --foreground: #e5e7eb;
   --border-color: #334155; /* slate-700 */
   --surface: #1e293b; /* slate-800 */
+}
+
+.light {
+  --background: #ffffff;
+  --foreground: #0f172a; /* slate-900 */
+  --border-color: #e2e8f0; /* slate-200 */
+  --surface: #f8fafc; /* slate-50 */
 }
 
 body {
@@ -83,5 +90,132 @@ body {
   }
   100% {
     width: 0;
+  }
+}
+
+/* Footer Animations */
+.footer-animated .grid-animation {
+  background-image: 
+    linear-gradient(rgba(94, 158, 255, 0.5) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(94, 158, 255, 0.5) 1px, transparent 1px);
+  background-size: 50px 50px;
+  animation: grid-move 20s linear infinite;
+  width: 100%;
+  height: 100%;
+}
+
+@keyframes grid-move {
+  0% { transform: translate(0, 0); }
+  100% { transform: translate(50px, 50px); }
+}
+
+.footer-animated .particle {
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  background: linear-gradient(45deg, #5E9EFF, #3B82F6);
+  border-radius: 50%;
+  box-shadow: 0 0 6px #5E9EFF;
+  animation: float linear infinite;
+}
+
+@keyframes float {
+  0% {
+    transform: translateY(0) scale(0);
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  90% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-300px) scale(1);
+    opacity: 0;
+  }
+}
+
+.footer-animated .wave {
+  position: absolute;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(
+    45deg,
+    transparent,
+    rgba(94, 158, 255, 0.1),
+    transparent
+  );
+  animation: wave-rotate 30s linear infinite;
+}
+
+.footer-animated .wave-1 {
+  animation-duration: 25s;
+  animation-direction: normal;
+}
+
+.footer-animated .wave-2 {
+  animation-duration: 35s;
+  animation-direction: reverse;
+  background: linear-gradient(
+    -45deg,
+    transparent,
+    rgba(59, 130, 246, 0.08),
+    transparent
+  );
+}
+
+.footer-animated .wave-3 {
+  animation-duration: 40s;
+  animation-direction: normal;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(94, 158, 255, 0.05),
+    transparent
+  );
+}
+
+@keyframes wave-rotate {
+  0% { transform: rotate(0deg) scale(1); }
+  50% { transform: rotate(180deg) scale(1.1); }
+  100% { transform: rotate(360deg) scale(1); }
+}
+
+.footer-animated .scanline {
+  width: 100%;
+  height: 2px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(94, 158, 255, 0.6),
+    transparent
+  );
+  animation: scanline-move 3s linear infinite;
+}
+
+@keyframes scanline-move {
+  0% {
+    transform: translateY(-50px);
+    opacity: 0;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(300px);
+    opacity: 0;
+  }
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .footer-animated .grid-animation {
+    background-size: 30px 30px;
+  }
+  
+  @keyframes grid-move {
+    0% { transform: translate(0, 0); }
+    100% { transform: translate(30px, 30px); }
   }
 }

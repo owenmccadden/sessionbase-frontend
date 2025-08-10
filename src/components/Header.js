@@ -13,13 +13,12 @@ export default function Header() {
         <div className="flex justify-between items-center h-16">
           {/* Logo/Brand */}
           <div className="flex items-center">
-            <Link href="/" className="flex items-center space-x-2 text-2xl font-bold text-slate-900 dark:text-white">
+            <Link href="/" className="flex items-center">
               <img
                 src="/sessionbase-logo.png"
-                alt="SessionBase Logo"
-                className="w-10 h-10"
+                alt="SessionBase"
+                className="h-10 w-auto"
               />
-              <span>SessionBase</span>
             </Link>
           </div>
 

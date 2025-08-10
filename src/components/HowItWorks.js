@@ -4,7 +4,7 @@ export default function HowItWorks() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-16">
           <h2 className="text-4xl font-bold text-slate-900 mb-4 dark:text-white">
-            Share context. Pick up anywhere.
+            Share instantly. Continue seamlessly.
           </h2>
           <p className="text-lg text-slate-600 max-w-3xl mx-auto leading-relaxed dark:text-slate-300">
             Capture your AI coding session once and move seamlessly between tools, devices, and teammates without losing context.
@@ -23,7 +23,7 @@ export default function HowItWorks() {
                 <div className="flex-1">
                   <h3 className="text-lg font-semibold text-slate-900 mb-1 dark:text-white">Push in one command</h3>
                   <p className="text-slate-600 text-base leading-relaxed dark:text-slate-300">
-                    Send the full conversation, file context, and tool actions from your coding agent with a single command.
+                    Save the full conversation, context, and tool use from your coding agent with a single command.
                   </p>
                 </div>
               </div>
@@ -51,9 +51,9 @@ export default function HowItWorks() {
                   3
                 </div>
                 <div className="flex-1">
-                  <h3 className="text-lg font-semibold text-slate-900 mb-1 dark:text-white">Pull and continue anywhere</h3>
+                  <h3 className="text-lg font-semibold text-slate-900 mb-1 dark:text-white">Pull and resume</h3>
                   <p className="text-slate-600 text-base leading-relaxed dark:text-slate-300">
-                    Resume the session on a different machine, server, or editor and keep working without re‑prompting.
+                    You or a teammate can resume the session and keep working later.
                   </p>
                 </div>
               </div>

@@ -1,12 +1,20 @@
 import { useEffect, useState } from 'react';
 
 export default function ThemeToggle() {
-  const [isDark, setIsDark] = useState(false);
+  const [isDark, setIsDark] = useState(true); // Default to dark mode
 
   useEffect(() => {
     const stored = typeof window !== 'undefined' ? localStorage.getItem('sb-theme') : null;
-    const systemPrefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-    const shouldBeDark = stored ? stored === 'dark' : systemPrefersDark;
+    
+    let shouldBeDark;
+    if (stored) {
+      // Use stored preference if available
+      shouldBeDark = stored === 'dark';
+    } else {
+      // Default to dark mode when no preference is stored
+      shouldBeDark = true;
+    }
+    
     setIsDark(shouldBeDark);
     document.documentElement.classList.toggle('dark', shouldBeDark);
   }, []);
