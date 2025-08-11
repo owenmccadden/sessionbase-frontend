@@ -118,7 +118,8 @@ function SessionHeader({ session, user, onSessionUpdate, sessionId, isMobile }) 
   const [editedData, setEditedData] = useState({
     title: session.metadata?.title || session.title || '',
     summary: session.metadata?.summary || '',
-    tags: session.metadata?.tags || []
+    tags: session.metadata?.tags || [],
+    isPrivate: session.metadata?.isPrivate === true
   });
   const [newTag, setNewTag] = useState('');
   const [isSaving, setIsSaving] = useState(false);
@@ -146,7 +147,8 @@ function SessionHeader({ session, user, onSessionUpdate, sessionId, isMobile }) 
         body: JSON.stringify({
           title: editedData.title,
           summary: editedData.summary,
-          tags: editedData.tags
+          tags: editedData.tags,
+          isPrivate: editedData.isPrivate
         }),
       });
 
@@ -159,7 +161,8 @@ function SessionHeader({ session, user, onSessionUpdate, sessionId, isMobile }) 
               ...session.metadata,
               title: editedData.title,
               summary: editedData.summary,
-              tags: editedData.tags
+              tags: editedData.tags,
+              isPrivate: editedData.isPrivate
             }
           });
         }
@@ -181,7 +184,8 @@ function SessionHeader({ session, user, onSessionUpdate, sessionId, isMobile }) 
     setEditedData({
       title: session.metadata?.title || session.title || '',
       summary: session.metadata?.summary || '',
-      tags: session.metadata?.tags || []
+      tags: session.metadata?.tags || [],
+      isPrivate: session.metadata?.isPrivate === true
     });
     setIsEditing(false);
   };
@@ -238,41 +242,13 @@ function SessionHeader({ session, user, onSessionUpdate, sessionId, isMobile }) 
     }
   };
 
-  const handleVisibilityToggle = async (isPrivate) => {
+  const handleVisibilityToggle = (isPrivate) => {
     if (!isOwner) return;
     
-    try {
-      const endpointUrl = process.env.NEXT_PUBLIC_ENDPOINT_URL || process.env.ENDPOINT_URL;
-      const response = await authenticatedFetch(`${endpointUrl}/sessions/${sessionId}/metadata`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          title: session.metadata?.title || session.title || '',
-          summary: session.metadata?.summary || '',
-          tags: session.metadata?.tags || [],
-          isPrivate: isPrivate
-        }),
-      });
-
-      if (response.ok) {
-        if (onSessionUpdate) {
-          onSessionUpdate({
-            ...session,
-            metadata: {
-              ...session.metadata,
-              isPrivate: isPrivate
-            }
-          });
-        }
-      } else {
-        const errorText = await response.text();
-        console.error('Failed to update visibility:', errorText);
-      }
-    } catch (error) {
-      console.error('Error updating visibility:', error);
-    }
+    setEditedData({
+      ...editedData,
+      isPrivate: isPrivate
+    });
   };
 
   const getSessionIcon = (type) => {
@@ -349,22 +325,24 @@ function SessionHeader({ session, user, onSessionUpdate, sessionId, isMobile }) 
           {(isEditing || (session.metadata?.tags && session.metadata.tags.length > 0)) && (
             <div className="mb-3">
               <div className="flex flex-wrap gap-2 mb-2">
-                {(isEditing ? editedData.tags : session.metadata.tags).map((tag) => (
-                  <span
-                    key={tag}
-                    className="inline-flex items-center bg-primary/10 text-primary-dark dark:bg-primary-light/20 dark:text-primary-light text-xs px-2 py-1 rounded hover:bg-primary/20 dark:hover:bg-primary-light/30 transition-colors"
-                  >
-                    {tag}
-                    {isEditing && (
-                      <button
-                        onClick={() => handleRemoveTag(tag)}
-                        className="ml-1 text-primary-dark dark:text-primary-light hover:text-primary dark:hover:text-primary-hover"
-                      >
-                        ×
-                      </button>
-                    )}
-                  </span>
-                ))}
+                {(isEditing ? editedData.tags : session.metadata.tags).map((tag) => 
+                  isEditing ? (
+                    <span
+                      key={tag}
+                      onClick={() => handleRemoveTag(tag)}
+                      className="inline-flex items-center bg-primary/10 text-primary-dark dark:bg-primary-light/20 dark:text-primary-light text-sm sm:text-xs px-2 py-1 sm:px-1 sm:py-0.5 rounded hover:bg-primary/20 dark:hover:bg-primary-light/30 transition-colors cursor-pointer"
+                    >
+                      {tag}<span className="ml-1">×</span>
+                    </span>
+                  ) : (
+                    <span
+                      key={tag}
+                      className="inline-flex items-center bg-primary/10 text-primary-dark dark:bg-primary-light/20 dark:text-primary-light text-xs px-1 py-0.5 rounded hover:bg-primary/20 dark:hover:bg-primary-light/30 transition-colors"
+                    >
+                      {tag}
+                    </span>
+                  )
+                )}
               </div>
               {isEditing && (
                 <div className="flex items-center space-x-2">
@@ -384,6 +362,24 @@ function SessionHeader({ session, user, onSessionUpdate, sessionId, isMobile }) 
                   </button>
                 </div>
               )}
+            </div>
+          )}
+          
+          {/* Visibility Toggle - Only in Edit Mode */}
+          {isEditing && (
+            <div className="mb-3">
+              <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">
+                Visibility
+              </label>
+              <VisibilityBadge 
+                isPrivate={editedData.isPrivate} 
+                onToggle={(isPrivate) => {
+                  if (isOwner) {
+                    handleVisibilityToggle(isPrivate);
+                  }
+                }}
+                isOwner={isOwner}
+              />
             </div>
           )}
           
@@ -417,129 +413,106 @@ function SessionHeader({ session, user, onSessionUpdate, sessionId, isMobile }) 
             </span>
           </div>
           
-          {/* Action Buttons */}
+          {/* Gear Icon or Save/Cancel Buttons */}
           <div className="flex items-center gap-2">
-            {isOwner && (
+            {isEditing ? (
               <>
-                {isEditing ? (
-                  <>
-                    <button
-                      onClick={handleSave}
-                      disabled={isSaving}
-                      className="flex items-center space-x-1 px-2 py-1 bg-secondary hover:bg-secondary-hover disabled:bg-secondary/50 text-white text-xs font-medium rounded transition-colors"
-                    >
-                      {isSaving ? (
-                        <span className="animate-spin">⭮</span>
-                      ) : (
-                        <SaveIcon />
-                      )}
-                      <span>{isSaving ? 'Saving...' : 'Save'}</span>
-                    </button>
-                    <button
-                      onClick={handleCancel}
-                      disabled={isSaving}
-                      className="flex items-center space-x-1 px-2 py-1 bg-gray-600 dark:bg-slate-600 hover:bg-gray-700 dark:hover:bg-slate-500 disabled:bg-gray-400 dark:disabled:bg-slate-500 text-white text-xs font-medium rounded transition-colors"
-                    >
-                      <CancelIcon />
-                      <span>Cancel</span>
-                    </button>
-                  </>
-                ) : (
-                  <button
-                    onClick={() => setIsEditing(true)}
-                    className="flex items-center space-x-1 px-2 py-1 bg-primary hover:bg-primary-hover text-white text-xs font-medium rounded transition-colors"
-                  >
-                    <EditIcon />
-                    <span>Edit</span>
-                  </button>
-                )}
+                <button
+                  onClick={handleSave}
+                  disabled={isSaving}
+                  className="flex items-center space-x-1 px-2 py-1 bg-secondary hover:bg-secondary-hover disabled:bg-secondary/50 text-white text-xs font-medium rounded transition-colors"
+                >
+                  {isSaving ? (
+                    <span className="animate-spin">⭮</span>
+                  ) : (
+                    <SaveIcon />
+                  )}
+                  <span>{isSaving ? 'Saving...' : 'Save'}</span>
+                </button>
+                <button
+                  onClick={handleCancel}
+                  disabled={isSaving}
+                  className="flex items-center space-x-1 px-2 py-1 bg-gray-600 dark:bg-slate-600 hover:bg-gray-700 dark:hover:bg-slate-500 disabled:bg-gray-400 dark:disabled:bg-slate-500 text-white text-xs font-medium rounded transition-colors"
+                >
+                  <CancelIcon />
+                  <span>Cancel</span>
+                </button>
               </>
+            ) : (
+              isOwner && (
+                <button
+                  onClick={() => setIsEditing(true)}
+                  className="p-2 bg-gray-100 hover:bg-gray-200 dark:bg-slate-600 dark:hover:bg-slate-500 text-gray-600 dark:text-gray-300 rounded-full transition-colors cursor-pointer flex items-center justify-center"
+                  title="Edit session"
+                >
+                  <GearIcon />
+                </button>
+              )
             )}
-            
-            <VisibilityBadge 
-              isPrivate={session.metadata?.isPrivate === true} 
-              onToggle={(isPrivate) => {
-                if (isOwner) {
-                  handleVisibilityToggle(isPrivate);
-                }
-              }}
-              isOwner={isOwner}
-            />
           </div>
         </div>
       ) : (
-        /* Desktop: Visibility Badge and Edit Button - Bottom Right */
-        <div className="absolute bottom-4 right-4 flex items-center space-x-2">
-          {/* Edit/Save/Cancel buttons */}
-          {isOwner && (
-            <>
-              {isEditing ? (
-                <>
-                  <button
-                    onClick={handleSave}
-                    disabled={isSaving}
-                    className="flex items-center space-x-1 px-2 py-1 bg-secondary hover:bg-secondary-hover disabled:bg-secondary/50 text-white text-xs font-medium rounded transition-colors"
-                  >
-                    {isSaving ? (
-                      <span className="animate-spin">⭮</span>
-                    ) : (
-                      <SaveIcon />
-                    )}
-                    <span>{isSaving ? 'Saving...' : 'Save'}</span>
-                  </button>
-                  <button
-                    onClick={handleCancel}
-                    disabled={isSaving}
-                    className="flex items-center space-x-1 px-2 py-1 bg-gray-600 dark:bg-slate-600 hover:bg-gray-700 dark:hover:bg-slate-500 disabled:bg-gray-400 dark:disabled:bg-slate-500 text-white text-xs font-medium rounded transition-colors"
-                  >
-                    <CancelIcon />
-                    <span>Cancel</span>
-                  </button>
-                  {showDeleteConfirm ? (
-                    <button
-                      onClick={handleDelete}
-                      disabled={isDeleting}
-                      className="flex items-center space-x-1 px-2 py-1 bg-red-600 hover:bg-red-700 disabled:bg-red-400 text-white text-xs font-medium rounded transition-colors"
-                    >
-                      {isDeleting ? (
-                        <span className="animate-spin">⭮</span>
-                      ) : (
-                        <DeleteIcon />
-                      )}
-                      <span>{isDeleting ? 'Deleting...' : 'Confirm Delete'}</span>
-                    </button>
-                  ) : (
-                    <button
-                      onClick={() => setShowDeleteConfirm(true)}
-                      className="flex items-center space-x-1 px-2 py-1 bg-red-600 hover:bg-red-700 text-white text-xs font-medium rounded transition-colors"
-                    >
-                      <DeleteIcon />
-                      <span>Delete</span>
-                    </button>
-                  )}
-                </>
-              ) : (
-                <button
-                  onClick={() => setIsEditing(true)}
-                  className="flex items-center space-x-1 px-2 py-1 bg-primary hover:bg-primary-hover text-white text-xs font-medium rounded transition-colors"
-                >
-                  <EditIcon />
-                  <span>Edit</span>
-                </button>
-              )}
-            </>
+        /* Desktop: Gear Icon - Bottom Left, Save/Cancel buttons when editing */
+        <>
+          {/* Gear Icon for Session Owner - Bottom Right */}
+          {isOwner && !isEditing && (
+            <button
+              onClick={() => setIsEditing(true)}
+              className="absolute bottom-4 right-4 p-2 bg-gray-100 hover:bg-gray-200 dark:bg-slate-600 dark:hover:bg-slate-500 text-gray-600 dark:text-gray-300 rounded-full transition-colors cursor-pointer shadow-sm hover:shadow-md"
+              title="Edit session"
+            >
+              <GearIcon />
+            </button>
           )}
           
-          <VisibilityBadge 
-            isPrivate={session.metadata?.isPrivate === true} 
-            onToggle={(isPrivate) => {
-              if (isOwner) {
-                handleVisibilityToggle(isPrivate);
-              }
-            }}
-            isOwner={isOwner}
-          />
-        </div>
+          {/* Save/Cancel/Delete Buttons - Bottom Right when editing */}
+          {isEditing && (
+            <div className="absolute bottom-4 right-4 flex items-center space-x-2">
+              <button
+                onClick={handleSave}
+                disabled={isSaving}
+                className="flex items-center space-x-1 px-2 py-1 bg-secondary hover:bg-secondary-hover disabled:bg-secondary/50 text-white text-xs font-medium rounded transition-colors"
+              >
+                {isSaving ? (
+                  <span className="animate-spin">⭮</span>
+                ) : (
+                  <SaveIcon />
+                )}
+                <span>{isSaving ? 'Saving...' : 'Save'}</span>
+              </button>
+              <button
+                onClick={handleCancel}
+                disabled={isSaving}
+                className="flex items-center space-x-1 px-2 py-1 bg-gray-600 dark:bg-slate-600 hover:bg-gray-700 dark:hover:bg-slate-500 disabled:bg-gray-400 dark:disabled:bg-slate-500 text-white text-xs font-medium rounded transition-colors"
+              >
+                <CancelIcon />
+                <span>Cancel</span>
+              </button>
+              {showDeleteConfirm ? (
+                <button
+                  onClick={handleDelete}
+                  disabled={isDeleting}
+                  className="flex items-center space-x-1 px-2 py-1 bg-red-600 hover:bg-red-700 disabled:bg-red-400 text-white text-xs font-medium rounded transition-colors"
+                >
+                  {isDeleting ? (
+                    <span className="animate-spin">⭮</span>
+                  ) : (
+                    <DeleteIcon />
+                  )}
+                  <span>{isDeleting ? 'Deleting...' : 'Confirm Delete'}</span>
+                </button>
+              ) : (
+                <button
+                  onClick={() => setShowDeleteConfirm(true)}
+                  className="flex items-center space-x-1 px-2 py-1 bg-red-600 hover:bg-red-700 text-white text-xs font-medium rounded transition-colors"
+                >
+                  <DeleteIcon />
+                  <span>Delete</span>
+                </button>
+              )}
+            </div>
+          )}
+        </>
       )}
     </div>
   );
@@ -2134,6 +2107,15 @@ function CancelIcon() {
   );
 }
 
+function GearIcon() {
+  return (
+    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+    </svg>
+  );
+}
+
 function DeleteIcon() {
   return (
     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -2191,10 +2173,18 @@ function VisibilityBadge({ isPrivate, onToggle, isOwner }) {
             </svg>
           )
         ) : (
-          // Globe icon for public
-          <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.94-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/>
-          </svg>
+          // Globe icon for public (changes to lock on hover)
+          isHovered && isOwner ? (
+            // Lock icon on hover
+            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zM12 3c1.66 0 3 1.34 3 3v2H9V6c0-1.66 1.34-3 3-3zm6 17H6V10h12v10z"/>
+            </svg>
+          ) : (
+            // Globe icon default
+            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.94-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/>
+            </svg>
+          )
         )}
       </span>
       {isPrivate ? 'Private' : 'Public'}
