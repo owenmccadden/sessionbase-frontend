@@ -986,19 +986,26 @@ function CodeBlock({ content, language, filePath, allCodeBlocksCollapsed, forceC
   };
 
   return (
-    <div className="rounded-lg overflow-hidden bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 shadow-sm">
+    <div 
+      className={`rounded-lg overflow-hidden bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 shadow-sm ${isCollapsed ? 'cursor-pointer hover:shadow-md transition-shadow' : ''}`}
+      onClick={isCollapsed ? (e) => {
+        // Don't expand if clicking on the chevron button
+        if (e.target.closest('button')) return;
+        setIsCollapsed(false);
+      } : undefined}
+    >
       {/* Header with file path and controls */}
       <div className="px-4 py-2 border-b border-gray-200 dark:border-slate-600 flex items-center justify-between bg-gray-50 dark:bg-slate-700 text-gray-700 dark:text-gray-300">
         <div className="flex items-center space-x-2">
           <button
             onClick={() => setIsCollapsed(!isCollapsed)}
-            className="text-sm hover:opacity-70 text-gray-500 dark:text-gray-400"
+            className="text-sm hover:opacity-70 text-gray-500 dark:text-gray-400 cursor-pointer"
           >
             {isCollapsed ? <ChevronRightIcon /> : <ChevronDownIcon />}
           </button>
           <span className="text-sm font-mono">📄</span>
           <span className="text-sm font-medium">{filePath || 'Code Block'}</span>
-          {language && (
+          {language && language !== 'text' && (
             <span className="text-xs px-2 py-1 rounded bg-gray-200 dark:bg-slate-500 text-gray-600 dark:text-gray-300">
               {language}
             </span>
@@ -1089,13 +1096,20 @@ function MarkdownBlock({ content, allMarkdownBlocksCollapsed, forceMarkdownColla
   };
 
   return (
-    <div className="rounded-lg overflow-hidden bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 shadow-sm">
+    <div 
+      className={`rounded-lg overflow-hidden bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 shadow-sm ${isCollapsed ? 'cursor-pointer hover:shadow-md transition-shadow' : ''}`}
+      onClick={isCollapsed ? (e) => {
+        // Don't expand if clicking on the chevron button
+        if (e.target.closest('button')) return;
+        setIsCollapsed(false);
+      } : undefined}
+    >
       {/* Header with controls */}
       <div className="px-4 py-2 border-b border-gray-200 dark:border-slate-600 flex items-center justify-between bg-gray-50 dark:bg-slate-700 text-gray-700 dark:text-gray-300">
         <div className="flex items-center space-x-2">
           <button
             onClick={() => setIsCollapsed(!isCollapsed)}
-            className="text-sm hover:opacity-70 text-gray-500 dark:text-gray-400"
+            className="text-sm hover:opacity-70 text-gray-500 dark:text-gray-400 cursor-pointer"
           >
             {isCollapsed ? <ChevronRightIcon /> : <ChevronDownIcon />}
           </button>
@@ -1454,7 +1468,7 @@ function UnifiedMessageBubble({ message, sessionType, allCodeBlocksCollapsed, fo
         }`}>
           <button
             onClick={() => setShowRawData(!showRawData)}
-            className="text-gray-500 dark:text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:text-gray-300 underline"
+            className="text-gray-500 dark:text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:text-gray-300 underline cursor-pointer"
           >
             {showRawData ? 'Hide' : 'Show'} Raw Data
           </button>
@@ -1507,7 +1521,7 @@ function RawMessageDataDisplay({ message }) {
           {hasOriginalData && (
             <button
               onClick={() => setShowNormalized(!showNormalized)}
-              className="text-xs text-primary hover:text-primary-hover underline"
+              className="text-xs text-primary hover:text-primary-hover underline cursor-pointer"
             >
               Show {showNormalized ? 'Original' : 'Normalized'}
             </button>
