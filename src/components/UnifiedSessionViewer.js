@@ -385,11 +385,11 @@ function SessionHeader({ session, user, onSessionUpdate, sessionId, isMobile }) 
           )}
           
           <div className="inline-flex items-center bg-gray-100 dark:bg-slate-600 dark:bg-slate-700 rounded">
-            <code className="font-mono text-sm text-gray-900 dark:text-white px-3 py-2">sessionbase pull {session.id}</code>
+            <code className="font-mono text-sm text-gray-900 dark:text-white px-3 py-2">sessionbase pull {sessionId}</code>
             <button
               onClick={async () => {
                 try {
-                  await navigator.clipboard.writeText(`sessionbase pull ${session.id}`);
+                  await navigator.clipboard.writeText(`sessionbase pull ${sessionId}`);
                   setPullCommandCopySuccess(true);
                   setTimeout(() => setPullCommandCopySuccess(false), 2000);
                 } catch (err) {
