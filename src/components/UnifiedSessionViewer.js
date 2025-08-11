@@ -115,6 +115,7 @@ function ViewToggleButton({ active, onClick, label }) {
 
 function SessionHeader({ session, user, onSessionUpdate, sessionId, isMobile }) {
   const [isEditing, setIsEditing] = useState(false);
+  const [pullCommandCopySuccess, setPullCommandCopySuccess] = useState(false);
   const [editedData, setEditedData] = useState({
     title: session.metadata?.title || session.title || '',
     summary: session.metadata?.summary || '',
@@ -383,12 +384,36 @@ function SessionHeader({ session, user, onSessionUpdate, sessionId, isMobile }) 
             </div>
           )}
           
-          {session.metadata.cwd && (
-            <div className="text-sm text-gray-600 dark:text-gray-300 dark:text-gray-300">
-              <div className="font-medium mb-1">Working Directory:</div>
-              <code className="inline-block bg-gray-100 dark:bg-slate-600 dark:bg-slate-700 px-2 py-1 rounded text-gray-900 dark:text-white dark:text-white text-xs sm:text-sm break-all">{session.metadata.cwd}</code>
-            </div>
-          )}
+          <div className="inline-flex items-center bg-gray-100 dark:bg-slate-600 dark:bg-slate-700 rounded">
+            <code className="font-mono text-sm text-gray-900 dark:text-white px-3 py-2">sessionbase pull {session.id}</code>
+            <button
+              onClick={async () => {
+                try {
+                  await navigator.clipboard.writeText(`sessionbase pull ${session.id}`);
+                  setPullCommandCopySuccess(true);
+                  setTimeout(() => setPullCommandCopySuccess(false), 2000);
+                } catch (err) {
+                  console.error('Failed to copy:', err);
+                }
+              }}
+              className={`p-1.5 transition-all cursor-pointer mr-1 ${
+                pullCommandCopySuccess
+                  ? 'text-secondary-dark dark:text-secondary-light'
+                  : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'
+              }`}
+              title="Copy command"
+            >
+              {pullCommandCopySuccess ? (
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
+                </svg>
+              ) : (
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                </svg>
+              )}
+            </button>
+          </div>
         </div>
         
         {/* Platform Badge - Desktop Only */}
@@ -1326,7 +1351,9 @@ function UnifiedMessageBubble({ message, sessionType, allCodeBlocksCollapsed, fo
         </div>
 
         {/* Message Content */}
-        <div className={`relative rounded-lg p-4 ${
+        <div className={`relative rounded-lg ${
+          !isSystem && !shouldRenderCode && !shouldRenderMarkdown ? 'p-4 pr-12' : 'p-4'
+        } ${
           isUser 
             ? 'bg-primary text-white' 
             : isSystem
@@ -1341,17 +1368,17 @@ function UnifiedMessageBubble({ message, sessionType, allCodeBlocksCollapsed, fo
                 copySuccess
                   ? 'bg-secondary/20 text-secondary-dark dark:bg-secondary-light/30 dark:text-secondary-light'
                   : isUser
-                  ? 'hover:bg-primary-light/20 text-primary-light hover:text-white'
-                  : 'hover:bg-gray-100 dark:hover:bg-slate-600 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300'
+                  ? 'hover:bg-white/20 text-white/80 hover:text-white bg-black/10 hover:bg-black/20'
+                  : 'hover:bg-gray-100 dark:hover:bg-slate-600 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
               }`}
               title="Copy message"
             >
               {copySuccess ? (
-                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
                 </svg>
               ) : (
-                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
                 </svg>
               )}
