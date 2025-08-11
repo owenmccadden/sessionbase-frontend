@@ -42,16 +42,7 @@ export default function MobileBanner() {
           SessionBase is optimized for desktop browsers to provide the best experience for viewing and managing AI chat sessions. You can also use our CLI tool to push sessions directly from your terminal.
         </p>
         
-        <div className="space-y-4">
-          <div className="bg-slate-800/50 rounded-lg p-4 text-left">
-            <h3 className="text-white font-medium mb-2">Please visit us on:</h3>
-            <ul className="text-slate-300 text-sm space-y-1">
-              <li>• Desktop computer</li>
-              <li>• Laptop</li>
-              <li>• Tablet in landscape mode</li>
-            </ul>
-          </div>
-          
+        <div className="space-y-4">        
           <div className="bg-blue-900/20 border border-blue-500/30 rounded-lg p-4">
             <p className="text-blue-200 text-sm">
               📱 <strong>Mobile coming later!</strong> We're focusing on desktop first, but will add mobile support if there's enough interest from the community.

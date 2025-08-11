@@ -51,7 +51,7 @@ export default function UnifiedSessionViewer({ session, onSessionUpdate, session
 
 
   return (
-    <div className={isMobile ? "px-4 py-4" : "max-w-6xl mx-auto p-6"}>
+    <div className={isMobile ? "px-4 py-4 overflow-hidden" : "max-w-6xl mx-auto p-6"}>
       {/* Session Header */}
       <SessionHeader 
         session={session} 
@@ -389,8 +389,8 @@ function SessionHeader({ session, user, onSessionUpdate, sessionId, isMobile }) 
           
           {session.metadata.cwd && (
             <div className="text-sm text-gray-600 dark:text-gray-300 dark:text-gray-300">
-              <span className="font-medium">Working Directory:</span>
-              <code className="ml-1 bg-gray-100 dark:bg-slate-600 dark:bg-slate-700 px-2 py-1 rounded text-gray-900 dark:text-white dark:text-white">{session.metadata.cwd}</code>
+              <div className="font-medium mb-1">Working Directory:</div>
+              <code className="inline-block bg-gray-100 dark:bg-slate-600 dark:bg-slate-700 px-2 py-1 rounded text-gray-900 dark:text-white dark:text-white text-xs sm:text-sm break-all">{session.metadata.cwd}</code>
             </div>
           )}
         </div>
@@ -1040,7 +1040,7 @@ function CodeBlock({ content, language, filePath, allCodeBlocksCollapsed, forceC
       
       {/* Code content - CSS display toggle for maximum speed */}
       <div 
-        className="overflow-x-auto bg-slate-50 dark:bg-slate-800"
+        className="overflow-x-auto sm:overflow-x-auto overflow-x-hidden bg-slate-50 dark:bg-slate-800"
         style={{ display: isCollapsed ? 'none' : 'block' }}
       >
         <SyntaxHighlighter
@@ -1195,7 +1195,7 @@ function MarkdownBlock({ content, allMarkdownBlocksCollapsed, forceMarkdownColla
                   );
                 }
                 return (
-                  <pre className="p-3 rounded-lg overflow-x-auto mb-3 bg-gray-100 dark:bg-slate-600 text-gray-900 dark:text-white">
+                  <pre className="p-3 rounded-lg overflow-x-auto sm:overflow-x-auto overflow-x-hidden whitespace-pre-wrap break-words mb-3 bg-gray-100 dark:bg-slate-600 text-gray-900 dark:text-white">
                     <code className="text-sm font-mono" {...props}>
                       {children}
                     </code>
@@ -1292,7 +1292,7 @@ function UnifiedMessageBubble({ message, sessionType, allCodeBlocksCollapsed, fo
 
   return (
     <div className={`flex ${isUser ? 'justify-end' : 'justify-start'} mb-4`}>
-      <div className={`max-w-4xl ${isUser ? 'ml-12' : 'mr-12'}`}>
+      <div className={`max-w-4xl min-w-0 break-words overflow-wrap-anywhere ${isUser ? 'ml-12' : 'mr-12'}`}>
         {/* Message Header */}
         <div className={`flex items-center mb-2 ${isUser ? 'justify-end' : 'justify-start'}`}>
           <div className="group flex items-center space-x-2 text-sm text-gray-500 dark:text-gray-400 dark:text-gray-500">
@@ -1335,14 +1335,6 @@ function UnifiedMessageBubble({ message, sessionType, allCodeBlocksCollapsed, fo
                message.type}
               {message.role && message.role !== message.type && ` (${message.role})`}
             </span>
-            {message.metadata?.model && (
-              <>
-                <span>•</span>
-                <span className="text-xs bg-gray-100 dark:bg-slate-600 px-2 py-1 rounded">
-                  {message.metadata.model}
-                </span>
-              </>
-            )}
           </div>
         </div>
 
@@ -1779,14 +1771,6 @@ function UserPromptsView({ session }) {
                         </Link>
                       ) : sessionAuthor.username}
                     </span>
-                    {message.metadata?.model && (
-                      <>
-                        <span className="text-xs text-gray-500 dark:text-gray-400 dark:text-gray-500">•</span>
-                        <span className="text-xs bg-purple-100 text-purple-700 px-2 py-1 rounded">
-                          {message.metadata.model}
-                        </span>
-                      </>
-                    )}
                   </div>
                   <button
                     onClick={() => copyToClipboard(message.content, message.id)}
