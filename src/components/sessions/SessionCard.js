@@ -1,6 +1,5 @@
 import Link from 'next/link';
 import { useAuth } from '../../contexts/AuthContext';
-import { useRouter } from 'next/router';
 
 function formatTimeAgo(dateString) {
   const date = new Date(dateString);
@@ -16,7 +15,6 @@ function formatTimeAgo(dateString) {
 
 export default function SessionCard({ session, onAuthRequired }) {
   const { isAuthenticated } = useAuth();
-  const router = useRouter();
 
   // Provide default values for missing properties
   const safeSession = {
@@ -38,23 +36,11 @@ export default function SessionCard({ session, onAuthRequired }) {
     isPrivate: session?.isPrivate || false
   };
 
-  const handleCardClick = (e) => {
-    // Allow all users (authenticated and unauthenticated) to view sessions
-    if (!safeSession.id) {
-      console.error('Session ID is missing:', session);
-      return;
-    }
-    
-    console.log('Navigating to session:', safeSession.id);
-    router.push(`/sessions/${safeSession.id}`);
-  };
-
-
   return (
-    <div 
-      className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl p-6 shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-200 cursor-pointer"
-      onClick={handleCardClick}
-    >
+    <Link href={`/sessions/${safeSession.id}`} className="block">
+      <div 
+        className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl p-6 shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-200 cursor-pointer"
+      >
       {/* Content section */}
       <div className="flex-1 min-w-0">
         <div className="flex items-start justify-between mb-2">
@@ -126,6 +112,7 @@ export default function SessionCard({ session, onAuthRequired }) {
           </div>
         </div>
       </div>
-    </div>
+      </div>
+    </Link>
   );
 }
