@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/router';
 import Head from 'next/head';
 import Link from 'next/link';
@@ -12,7 +12,12 @@ export default function MySessions() {
   const router = useRouter();
   const [sessions, setSessions] = useState([]);
   const [sessionsLoading, setSessionsLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [nextToken, setNextToken] = useState(null);
+  const [hasMore, setHasMore] = useState(true);
   const [error, setError] = useState(null);
+  const observerRef = useRef(null);
+  const loadMoreRef = useRef(null);
 
   // Redirect to landing page if not authenticated
   useEffect(() => {
@@ -31,11 +36,14 @@ export default function MySessions() {
         setError(null);
         
         const response = await getUserSessions({
-          page: 1,
+          nextToken: null,
           limit: 50
         });
         
-        setSessions(response.sessions || []);
+        const newSessions = response.sessions || [];
+        setSessions(newSessions);
+        setNextToken(response.nextToken || null);
+        setHasMore(response.hasMore === true);
       } catch (err) {
         console.error('Error fetching user sessions:', err);
         setError('Failed to load your sessions');
@@ -47,6 +55,62 @@ export default function MySessions() {
 
     fetchSessions();
   }, [isAuthenticated, loading]);
+
+  // Load more sessions function
+  const loadMoreSessions = async () => {
+    if (loadingMore || !hasMore || !nextToken) return;
+
+    try {
+      setLoadingMore(true);
+      
+      const response = await getUserSessions({
+        nextToken,
+        limit: 20
+      });
+      
+      const newSessions = response.sessions || [];
+      
+      if (newSessions.length > 0) {
+        setSessions(prevSessions => [...prevSessions, ...newSessions]);
+        setNextToken(response.nextToken || null);
+        setHasMore(response.hasMore === true);
+      } else {
+        setHasMore(false);
+      }
+    } catch (err) {
+      console.error('Error loading more sessions:', err);
+      setHasMore(false);
+    } finally {
+      setLoadingMore(false);
+    }
+  };
+
+  // Intersection Observer for infinite scroll
+  useEffect(() => {
+    if (!isAuthenticated) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const target = entries[0];
+        if (target.isIntersecting && hasMore && !loadingMore && !sessionsLoading && nextToken) {
+          loadMoreSessions();
+        }
+      },
+      { threshold: 0.1 }
+    );
+
+    observerRef.current = observer;
+
+    if (loadMoreRef.current) {
+      observer.observe(loadMoreRef.current);
+    }
+
+    return () => {
+      if (observerRef.current) {
+        observerRef.current.disconnect();
+      }
+    };
+  }, [hasMore, loadingMore, sessionsLoading, nextToken, isAuthenticated]);
 
   // Show loading state while checking auth
   if (loading) {
@@ -160,13 +224,51 @@ export default function MySessions() {
                   </div>
                 </div>
               ) : (
-                sessions.map((session) => (
-                  <SessionCard
-                    key={session.sessionId || session.id}
-                    session={session}
-                    showActions={true} // Show edit/delete actions for user's own sessions
-                  />
-                ))
+                <>
+                  {sessions.map((session) => (
+                    <SessionCard
+                      key={session.sessionId || session.id}
+                      session={session}
+                      showActions={true} // Show edit/delete actions for user's own sessions
+                    />
+                  ))}
+                  
+                  {/* Loading More Indicator */}
+                  {loadingMore && (
+                    <div className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-lg p-6 shadow-sm">
+                      <div className="flex items-center justify-center space-x-3">
+                        <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
+                        <span className="text-gray-600 dark:text-gray-300">Loading more sessions...</span>
+                      </div>
+                    </div>
+                  )}
+                  
+                  {/* Load More Button */}
+                  {hasMore && !loadingMore && nextToken && (
+                    <div className="text-center py-4">
+                      <button
+                        onClick={loadMoreSessions}
+                        className="px-6 py-3 bg-primary text-white rounded-lg hover:bg-primary-hover transition-colors font-medium"
+                      >
+                        Load More Sessions
+                      </button>
+                    </div>
+                  )}
+                  
+                  {/* Infinite Scroll Trigger */}
+                  {hasMore && !loadingMore && nextToken && (
+                    <div ref={loadMoreRef} className="h-4"></div>
+                  )}
+                  
+                  {/* End of Results Message */}
+                  {!hasMore && sessions.length > 0 && (
+                    <div className="text-center py-8">
+                      <p className="text-gray-500 dark:text-gray-400">
+                        You've reached the end of your sessions
+                      </p>
+                    </div>
+                  )}
+                </>
               )}
             </div>
           </main>

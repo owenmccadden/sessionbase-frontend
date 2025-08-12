@@ -90,13 +90,9 @@ export default function SessionCard({ session, onAuthRequired }) {
               }}
               referrerPolicy="no-referrer"
             />
-            <Link 
-              href={`/users/${safeSession.author.userId || 'unknown'}`}
-              className="font-medium text-primary hover:text-primary-hover transition-colors"
-              onClick={(e) => e.stopPropagation()}
-            >
+            <span className="font-medium text-primary">
               {safeSession.author.username}
-            </Link>
+            </span>
           </div>
           
           <div className="flex items-center space-x-4">

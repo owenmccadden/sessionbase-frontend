@@ -32,18 +32,21 @@ export async function discoverSessions(params = {}) {
   const { 
     sortBy = 'popular',
     search = '',
-    page = 1,
+    nextToken = null,
     limit = 20
   } = params;
   
   const queryParams = new URLSearchParams({
     sortBy,
-    page: page.toString(),
     limit: limit.toString()
   });
   
   if (search) {
     queryParams.append('search', search);
+  }
+  
+  if (nextToken) {
+    queryParams.append('lastEvaluatedKey', nextToken);
   }
   
   const url = `${API_BASE_URL}/discover?${queryParams}`;
@@ -65,14 +68,17 @@ export async function discoverSessions(params = {}) {
  */
 export async function getUserSessions(params = {}) {
   const { 
-    page = 1,
+    nextToken = null,
     limit = 20
   } = params;
   
   const queryParams = new URLSearchParams({
-    page: page.toString(),
     limit: limit.toString()
   });
+  
+  if (nextToken) {
+    queryParams.append('lastEvaluatedKey', nextToken);
+  }
   
   const url = `${API_BASE_URL}/sessions?${queryParams}`;
   

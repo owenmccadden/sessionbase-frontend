@@ -17,10 +17,15 @@ export default function Discover() {
   const [showCliModal, setShowCliModal] = useState(false);
   const [sessions, setSessions] = useState([]);
   const [sessionsLoading, setSessionsLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [nextToken, setNextToken] = useState(null);
+  const [hasMore, setHasMore] = useState(true);
   const [error, setError] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchInput, setSearchInput] = useState(''); // Local input state for immediate UI updates
   const processedTokenRef = useRef(false);
+  const observerRef = useRef(null);
+  const loadMoreRef = useRef(null);
 
   // Handle OAuth token from URL parameter
   useEffect(() => {
@@ -62,7 +67,7 @@ export default function Discover() {
     }
   }, [router.query.token, login, router]);
 
-  // Fetch sessions from API
+  // Fetch sessions from API - resets to page 1 when search/sort changes
   useEffect(() => {
     // Don't fetch if we're still loading auth state
     if (loading) return;
@@ -71,21 +76,28 @@ export default function Discover() {
       try {
         setSessionsLoading(true);
         setError(null);
+        setNextToken(null);
+        setHasMore(true);
         
         // Always fetch public sessions for discover page
         const response = await discoverSessions({
           sortBy,
           search: searchQuery,
-          page: 1,
+          nextToken: null,
           limit: 20
         });
         
-        setSessions(response.sessions || []);
+        
+        const newSessions = response.sessions || [];
+        setSessions(newSessions);
+        setNextToken(response.nextToken || null);
+        setHasMore(response.hasMore === true);
       } catch (err) {
         console.error('Error fetching sessions:', err);
         setError('Failed to load sessions');
         // Fallback to empty array if API fails
         setSessions([]);
+        setHasMore(false);
       } finally {
         setSessionsLoading(false);
       }
@@ -93,6 +105,63 @@ export default function Discover() {
 
     fetchSessions();
   }, [sortBy, searchQuery, loading]);
+
+  // Load more sessions function
+  const loadMoreSessions = async () => {
+    if (loadingMore || !hasMore) return;
+
+    try {
+      setLoadingMore(true);
+      
+      const response = await discoverSessions({
+        sortBy,
+        search: searchQuery,
+        nextToken,
+        limit: 20
+      });
+      
+      
+      const newSessions = response.sessions || [];
+      
+      if (newSessions.length > 0) {
+        setSessions(prevSessions => [...prevSessions, ...newSessions]);
+        setNextToken(response.nextToken || null);
+        setHasMore(response.hasMore === true);
+      } else {
+        setHasMore(false);
+      }
+    } catch (err) {
+      console.error('Error loading more sessions:', err);
+      setHasMore(false);
+    } finally {
+      setLoadingMore(false);
+    }
+  };
+
+  // Intersection Observer for infinite scroll
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const target = entries[0];
+        if (target.isIntersecting && hasMore && !loadingMore && !sessionsLoading) {
+          loadMoreSessions();
+        }
+      },
+      { threshold: 0.1 }
+    );
+
+    observerRef.current = observer;
+
+    if (loadMoreRef.current) {
+      observer.observe(loadMoreRef.current);
+    }
+
+    return () => {
+      if (observerRef.current) {
+        observerRef.current.disconnect();
+      }
+    };
+  }, [hasMore, loadingMore, sessionsLoading, nextToken, sortBy, searchQuery]);
 
   // Debounce search input - wait 500ms after user stops typing
   useEffect(() => {
@@ -238,13 +307,51 @@ export default function Discover() {
                   )}
                 </div>
               ) : (
-                sessions.map((session) => (
-                  <SessionCard
-                    key={session.sessionId || session.id}
-                    session={session}
-                    onAuthRequired={handleAuthRequired}
-                  />
-                ))
+                <>
+                  {sessions.map((session) => (
+                    <SessionCard
+                      key={session.sessionId || session.id}
+                      session={session}
+                      onAuthRequired={handleAuthRequired}
+                    />
+                  ))}
+                  
+                  {/* Loading More Indicator */}
+                  {loadingMore && (
+                    <div className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl p-6 shadow-sm">
+                      <div className="flex items-center justify-center space-x-3">
+                        <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
+                        <span className="text-gray-600 dark:text-gray-300">Loading more sessions...</span>
+                      </div>
+                    </div>
+                  )}
+                  
+                  {/* Load More Button */}
+                  {hasMore && !loadingMore && (
+                    <div className="text-center py-4">
+                      <button
+                        onClick={loadMoreSessions}
+                        className="px-6 py-3 bg-primary text-white rounded-lg hover:bg-primary-hover transition-colors font-medium"
+                      >
+                        Load More Sessions
+                      </button>
+                    </div>
+                  )}
+                  
+                  {/* Infinite Scroll Trigger */}
+                  {hasMore && !loadingMore && (
+                    <div ref={loadMoreRef} className="h-4"></div>
+                  )}
+                  
+                  {/* End of Results Message */}
+                  {!hasMore && sessions.length > 0 && (
+                    <div className="text-center py-8">
+                      <p className="text-gray-500 dark:text-gray-400">
+                        You've reached the end of the results
+                      </p>
+                    </div>
+                  )}
+                </>
               )}
             </div>
           </main>
