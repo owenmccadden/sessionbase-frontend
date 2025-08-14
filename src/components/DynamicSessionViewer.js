@@ -120,29 +120,16 @@ def analyze_csv(filepath: str) -> Dict[str, Any]:
 
 export default function DynamicSessionViewer() {
   const [currentSession, setCurrentSession] = useState(0);
-  const [visibleMessages, setVisibleMessages] = useState(1);
 
   useEffect(() => {
     const sessionInterval = setInterval(() => {
       setCurrentSession((prev) => (prev + 1) % sessionData.length);
-      setVisibleMessages(1);
     }, 8000);
 
     return () => clearInterval(sessionInterval);
   }, []);
 
-  useEffect(() => {
-    const messageInterval = setInterval(() => {
-      setVisibleMessages((prev) => {
-        const maxMessages = sessionData[currentSession].length;
-        return prev < maxMessages ? prev + 1 : prev;
-      });
-    }, 2000);
-
-    return () => clearInterval(messageInterval);
-  }, [currentSession]);
-
-  const currentMessages = sessionData[currentSession].slice(0, visibleMessages);
+  const currentMessages = sessionData[currentSession];
 
   return (
     <div className="p-6 space-y-4 h-80 overflow-y-auto bg-slate-50 dark:bg-slate-900">
