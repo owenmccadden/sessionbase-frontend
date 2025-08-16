@@ -27,9 +27,38 @@ export default function Discover() {
   const observerRef = useRef(null);
   const loadMoreRef = useRef(null);
 
-  // Handle OAuth token from URL parameter
+  // Handle OAuth token from URL parameter and OAuth errors
   useEffect(() => {
-    const { token } = router.query;
+    const { token, error: oauthError } = router.query;
+    
+    // Handle OAuth errors first
+    if (oauthError && typeof oauthError === 'string') {
+      let errorMessage = 'Authentication failed. Please try again.';
+      
+      switch (oauthError) {
+        case 'invalid_state':
+          errorMessage = 'Your login session expired. This can happen if you wait too long between starting and completing the login process. Please try signing in again.';
+          break;
+        case 'missing_code':
+          errorMessage = 'Authentication was cancelled or incomplete. Please try signing in again.';
+          break;
+        case 'token_exchange_failed':
+          errorMessage = 'Failed to complete authentication. Please try signing in again.';
+          break;
+        case 'auth_failed':
+          errorMessage = 'Authentication failed. Please try signing in again.';
+          break;
+        default:
+          errorMessage = 'Authentication failed. Please try signing in again.';
+      }
+      
+      // Set error state to show the error message
+      setError(errorMessage);
+      
+      // Clean up URL by removing error parameter
+      router.replace('/discover', undefined, { shallow: true });
+      return;
+    }
     
     if (token && typeof token === 'string' && !processedTokenRef.current) {
       processedTokenRef.current = true;
@@ -61,11 +90,13 @@ export default function Discover() {
         console.error('Failed to decode JWT token:', error);
         // Clear invalid token from localStorage
         localStorage.removeItem('auth_token');
+        // Set user-friendly error message
+        setError('Invalid authentication token received. Please try signing in again.');
         // Clean up URL by removing token parameter
         router.replace('/discover', undefined, { shallow: true });
       }
     }
-  }, [router.query.token, login, router]);
+  }, [router.query.token, router.query.error, login, router]);
 
   // Fetch sessions from API - resets to page 1 when search/sort changes
   useEffect(() => {
@@ -284,13 +315,32 @@ export default function Discover() {
                 </div>
               ) : error ? (
                 <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800/50 rounded-lg p-6 text-center">
-                  <p className="text-red-600 dark:text-red-400">{error}</p>
-                  <button 
-                    onClick={() => window.location.reload()} 
-                    className="mt-2 text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300 underline"
-                  >
-                    Try again
-                  </button>
+                  <p className="text-red-600 dark:text-red-400 mb-4">{error}</p>
+                  <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                    {error.includes('login') || error.includes('sign') || error.includes('auth') ? (
+                      <>
+                        <button 
+                          onClick={() => setShowAuthModal(true)}
+                          className="px-4 py-2 bg-red-600 dark:bg-red-700 text-white rounded-lg hover:bg-red-700 dark:hover:bg-red-600 transition-colors font-medium"
+                        >
+                          Try logging in again
+                        </button>
+                        <button 
+                          onClick={() => {setError(null); window.location.reload();}} 
+                          className="px-4 py-2 text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300 border border-red-300 dark:border-red-600 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/30 transition-colors"
+                        >
+                          Reload page
+                        </button>
+                      </>
+                    ) : (
+                      <button 
+                        onClick={() => {setError(null); window.location.reload();}} 
+                        className="px-4 py-2 text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300 border border-red-300 dark:border-red-600 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/30 transition-colors"
+                      >
+                        Try again
+                      </button>
+                    )}
+                  </div>
                 </div>
               ) : sessions.length === 0 ? (
                 <div className="bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-lg p-6 text-center">
