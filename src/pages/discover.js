@@ -27,9 +27,9 @@ export default function Discover() {
   const observerRef = useRef(null);
   const loadMoreRef = useRef(null);
 
-  // Handle OAuth token from URL parameter and OAuth errors
+  // Handle OAuth auth_code from URL parameter and OAuth errors
   useEffect(() => {
-    const { token, error: oauthError } = router.query;
+    const { auth_code, error: oauthError } = router.query;
     
     // Handle OAuth errors first
     if (oauthError && typeof oauthError === 'string') {
@@ -60,43 +60,67 @@ export default function Discover() {
       return;
     }
     
-    if (token && typeof token === 'string' && !processedTokenRef.current) {
+    // Handle secure auth_code flow
+    if (auth_code && typeof auth_code === 'string' && !processedTokenRef.current) {
       processedTokenRef.current = true;
       
-      // Store the token in localStorage
-      localStorage.setItem('auth_token', token);
-      
-      // Update auth context
-      try {
-        // Use the centralized getUserInfo function to get user data from token
-        const userInfo = getUserInfo();
-        if (userInfo) {
-          login(userInfo);
-        }
+      // Exchange auth_code for JWT
+      const exchangeAuthCode = async () => {
+        try {
+          console.log('Exchanging auth code for JWT...');
+          
+          // Make API call to exchange auth_code for JWT
+          const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://api.sessionbase.ai'}/auth/exchange`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ auth_code }),
+          });
 
-        // Check if this is a CLI auth flow by checking sessionStorage
-        const isCliMode = typeof window !== 'undefined' &&
-          sessionStorage.getItem('oauth_cli_mode') === 'true';
-        
-        if (isCliMode) {
-          // Clear the stored CLI mode flag and set flag to show CLI modal
-          sessionStorage.removeItem('oauth_cli_mode');
-          sessionStorage.setItem('show_cli_modal', 'true');
+          if (!response.ok) {
+            throw new Error(`Auth exchange failed: ${response.status}`);
+          }
+
+          const data = await response.json();
+          const jwtToken = data.token;
+
+          if (!jwtToken) {
+            throw new Error('No token received from auth exchange');
+          }
+
+          // Store the token in localStorage
+          localStorage.setItem('auth_token', jwtToken);
+          
+          // Update auth context
+          const userInfo = getUserInfo();
+          if (userInfo) {
+            login(userInfo);
+          }
+
+          // Check if this is a CLI auth flow by checking sessionStorage
+          const isCliMode = typeof window !== 'undefined' &&
+            sessionStorage.getItem('oauth_cli_mode') === 'true';
+          
+          if (isCliMode) {
+            // Clear the stored CLI mode flag and set flag to show CLI modal
+            sessionStorage.removeItem('oauth_cli_mode');
+            sessionStorage.setItem('show_cli_modal', 'true');
+          }
+          
+          console.log('Auth code exchange successful');
+        } catch (error) {
+          console.error('Failed to exchange auth code:', error);
+          setError('Authentication failed. Please try signing in again.');
+        } finally {
+          // Clean up URL by removing auth_code parameter
+          router.replace('/discover', undefined, { shallow: true });
         }
-        
-        // Clean up URL by removing token parameter
-        router.replace('/discover', undefined, { shallow: true });
-      } catch (error) {
-        console.error('Failed to decode JWT token:', error);
-        // Clear invalid token from localStorage
-        localStorage.removeItem('auth_token');
-        // Set user-friendly error message
-        setError('Invalid authentication token received. Please try signing in again.');
-        // Clean up URL by removing token parameter
-        router.replace('/discover', undefined, { shallow: true });
-      }
+      };
+
+      exchangeAuthCode();
     }
-  }, [router.query.token, router.query.error, login, router]);
+  }, [router.query.auth_code, router.query.error, login, router]);
 
   // Fetch sessions from API - resets to page 1 when search/sort changes
   useEffect(() => {
