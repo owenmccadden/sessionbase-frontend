@@ -205,3 +205,37 @@ export async function getSharedSession(shareToken) {
   
   return response.json();
 }
+
+/**
+ * Get API key information for the current user
+ */
+export async function getApiKeyInfo() {
+  const url = `${API_BASE_URL}/auth/api-key/info`;
+  
+  const response = await authenticatedFetch(url);
+  
+  if (!response.ok) {
+    const error = await response.text();
+    throw new Error(error);
+  }
+  
+  return response.json();
+}
+
+/**
+ * Rotate (generate new) API key for the current user
+ */
+export async function rotateApiKey() {
+  const url = `${API_BASE_URL}/auth/api-key/rotate`;
+  
+  const response = await authenticatedFetch(url, {
+    method: 'POST'
+  });
+  
+  if (!response.ok) {
+    const error = await response.text();
+    throw new Error(error);
+  }
+  
+  return response.json();
+}
