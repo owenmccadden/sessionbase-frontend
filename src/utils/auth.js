@@ -26,14 +26,27 @@ export function isAuthenticated() {
   
   try {
     // Basic JWT validation - check if token is expired
-    const payload = JSON.parse(base64UrlDecode(token.split('.')[1]));
-    const currentTime = Math.floor(Date.now() / 1000);
+    const parts = token.split('.');
     
-    return payload.exp > currentTime;
+    if (parts.length !== 3) {
+      console.error('Invalid JWT format - expected 3 parts, got', parts.length);
+      return false;
+    }
+    
+    const payload = JSON.parse(base64UrlDecode(parts[1]));
+    
+    // Check if token has expiration field
+    if (!payload.exp && !payload.iat) {
+      return true; // If no expiration, consider it valid
+    }
+    
+    const currentTime = Math.floor(Date.now() / 1000);
+    const isValid = payload.exp ? payload.exp > currentTime : true;
+    
+    return isValid;
   } catch (error) {
-    console.error('Invalid token format:', error);
-    // Clear invalid token
-    localStorage.removeItem('auth_token');
+    console.error('Error validating token:', error);
+    // Don't automatically clear token - let explicit logout handle this
     return false;
   }
 }
@@ -58,7 +71,7 @@ export function getUserInfo() {
   try {
     const payload = JSON.parse(base64UrlDecode(token.split('.')[1]));
     return {
-      id: payload.sub,
+      id: payload.userId, // Use userId since the token doesn't have 'sub'
       userId: payload.userId,
       username: payload.username,
       avatarUrl: payload.avatarUrl,
@@ -66,8 +79,7 @@ export function getUserInfo() {
     };
   } catch (error) {
     console.error('Error parsing token:', error);
-    // Clear invalid token
-    localStorage.removeItem('auth_token');
+    // Don't automatically clear token - let explicit logout handle this
     return null;
   }
 }

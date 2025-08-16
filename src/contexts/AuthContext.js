@@ -16,16 +16,17 @@ export function AuthProvider({ children }) {
     try {
       if (isAuthenticated()) {
         const userInfo = getUserInfo();
-        setUser(userInfo);
+        if (userInfo) {
+          setUser(userInfo);
+        } else {
+          setUser(null);
+        }
       } else {
         setUser(null);
-        // Clean up invalid token
-        removeAuthToken();
       }
     } catch (error) {
       console.error('Auth check failed:', error);
       setUser(null);
-      removeAuthToken();
     } finally {
       setLoading(false);
     }
