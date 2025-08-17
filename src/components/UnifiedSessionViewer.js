@@ -6,6 +6,9 @@ import { vscDarkPlus, vs } from 'react-syntax-highlighter/dist/cjs/styles/prism'
 import { SESSION_TYPES } from '../utils/sessionParser';
 import { useAuth } from '../contexts/AuthContext';
 import { authenticatedFetch } from '../utils/auth';
+import { detectCommand } from '../utils/commandDetector';
+import { CommandDisplay } from './CommandDisplay';
+import { groupCommandMessages, isGroupedCommand, getCombinedCommand } from '../utils/messageGrouper';
 
 export default function UnifiedSessionViewer({ session, onSessionUpdate, sessionId }) {
   const [activeView, setActiveView] = useState('conversation');
@@ -635,7 +638,7 @@ function ConversationView({ session, isMobile }) {
       )}
       
       {/* Messages */}
-      {session.messages.map((message) => {
+      {groupCommandMessages(session.messages, session.type).map((message) => {
         // Hide entire message if it contains tool calls or tool results and tool use blocks are hidden
         const hasToolCalls = message.toolCalls && message.toolCalls.length > 0;
         const hasToolResults = message.toolResults && message.toolResults.length > 0;
@@ -645,7 +648,7 @@ function ConversationView({ session, isMobile }) {
         
         return (
           <UnifiedMessageBubble 
-            key={message.id} 
+            key={message.groupedMessageIds ? message.groupedMessageIds.join('-') : message.id} 
             message={message} 
             sessionType={session.type}
             allCodeBlocksCollapsed={allCodeBlocksCollapsed}
@@ -1269,6 +1272,13 @@ function UnifiedMessageBubble({ message, sessionType, allCodeBlocksCollapsed, fo
   const contentType = getContentType(message.content, message);
   const shouldRenderMarkdown = contentType === 'markdown';
   const shouldRenderCode = contentType === 'code';
+  
+  // Check for commands - prioritize grouped commands first
+  const isGroupedCommandMessage = isGroupedCommand(message);
+  const detectedCommand = isGroupedCommandMessage 
+    ? getCombinedCommand(message) 
+    : detectCommand(message.content, session.type);
+  const isCommand = detectedCommand !== null;
 
   return (
     <div className={`flex ${isUser ? 'justify-end' : 'justify-start'} mb-4`}>
@@ -1320,16 +1330,18 @@ function UnifiedMessageBubble({ message, sessionType, allCodeBlocksCollapsed, fo
 
         {/* Message Content */}
         <div className={`relative rounded-lg ${
-          !isSystem && !shouldRenderCode && !shouldRenderMarkdown ? 'p-4 pr-12' : 'p-4'
+          !isSystem && !shouldRenderCode && !shouldRenderMarkdown && !isCommand ? 'p-4 pr-12' : 'p-4'
         } ${
-          isUser 
+          isCommand 
+            ? 'p-0 bg-transparent'
+            : isUser 
             ? 'bg-primary text-white' 
             : isSystem
             ? 'bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-700 shadow-sm text-gray-900 dark:text-gray-100'
             : 'bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 shadow-sm text-gray-900 dark:text-gray-100'
         }`}>
-          {/* Copy Button - Hide for tool blocks, code blocks, and markdown blocks */}
-          {!isSystem && !shouldRenderCode && !shouldRenderMarkdown && (
+          {/* Copy Button - Hide for tool blocks, code blocks, markdown blocks, and commands */}
+          {!isSystem && !shouldRenderCode && !shouldRenderMarkdown && !isCommand && (
             <button
               onClick={() => copyToClipboard(message.content)}
               className={`absolute top-1 right-1 p-1.5 rounded-md transition-all ${
@@ -1355,7 +1367,12 @@ function UnifiedMessageBubble({ message, sessionType, allCodeBlocksCollapsed, fo
 
           {/* Main Content */}
           <div className="mb-3">
-            {shouldRenderCode ? (
+            {isCommand ? (
+              <CommandDisplay 
+                command={detectedCommand} 
+                sessionType={session.type} 
+              />
+            ) : shouldRenderCode ? (
               // NOTE: User code blocks don't get language-specific syntax highlighting because
               // user messages lack metadata.toolUseResult.file.filePath that AI tool results have.
               // They use the unified CodeBlock component but render as plain text.
