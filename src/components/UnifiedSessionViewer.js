@@ -1404,6 +1404,7 @@ function UnifiedMessageBubble({ message, sessionType, allCodeBlocksCollapsed, fo
                   key={tool.id || index} 
                   toolUse={tool} 
                   isUser={isUser}
+                  sessionType={sessionType}
                 />
               ))}
             </div>
@@ -1433,8 +1434,8 @@ function UnifiedMessageBubble({ message, sessionType, allCodeBlocksCollapsed, fo
             </div>
           )}
           
-          {/* Environment Context */}
-          {message.metadata?.env_context?.env_state && (
+          {/* Environment Context - Hidden for Q Chat sessions */}
+          {message.metadata?.env_context?.env_state && sessionType !== SESSION_TYPES.Q_CHAT && (
             <div className={`mt-3 p-3 rounded ${
               isUser ? 'bg-primary/5 dark:bg-primary-light/100 text-blue-100' : 'bg-gray-50 dark:bg-slate-700 text-gray-700 dark:text-gray-300'
             }`}>
@@ -1542,7 +1543,7 @@ function RawMessageDataDisplay({ message }) {
   );
 }
 
-function UnifiedToolUseDisplay({ toolUse, isUser }) {
+function UnifiedToolUseDisplay({ toolUse, isUser, sessionType }) {
   const [showInput, setShowInput] = useState(false);
 
   return (
@@ -1573,7 +1574,7 @@ function UnifiedToolUseDisplay({ toolUse, isUser }) {
       </div>
       
       <div className="space-y-2">
-        {toolUse.id && (
+        {toolUse.id && sessionType !== SESSION_TYPES.Q_CHAT && (
           <div className={`text-xs ${
             isUser ? 'text-blue-200' : 'text-yellow-600'
           }`}>
