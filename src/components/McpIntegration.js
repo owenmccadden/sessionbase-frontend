@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Share, Sparkles } from 'lucide-react';
+import { Share, Bot } from 'lucide-react';
 
 export default function McpIntegration() {
   const [activeIndex, setActiveIndex] = useState(0);
@@ -281,7 +281,7 @@ export default function McpIntegration() {
 
               <div className="flex items-start gap-4">
                 <div className="flex-shrink-0 w-8 h-8 rounded-lg bg-green-100 dark:bg-green-900/30 flex items-center justify-center mt-0.5">
-                  <Sparkles className="w-4 h-4 text-green-600 dark:text-green-400" />
+                  <Bot className="w-4 h-4 text-green-600 dark:text-green-400" />
                 </div>
                 <div>
                   <h4 className="font-semibold text-slate-900 dark:text-white mb-2">Auto-generated metadata</h4>
@@ -292,7 +292,7 @@ export default function McpIntegration() {
               </div>
             </div>
 
-            <div className="text-center pt-2">
+            <div className="text-center pt-2 space-y-3">
               <a 
                 href="https://docs.sessionbase.ai/mcp-server/installation" 
                 target="_blank"
@@ -304,6 +304,20 @@ export default function McpIntegration() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                 </svg>
               </a>
+              
+              <div>
+                <a 
+                  href="https://docs.sessionbase.ai/cli/usage" 
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 px-4 py-2 border border-slate-300 dark:border-slate-600 hover:border-slate-400 dark:hover:border-slate-500 text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100 font-medium rounded-lg transition-all duration-200 hover:bg-slate-50 dark:hover:bg-slate-800"
+                >
+                  Prefer to use the CLI
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                  </svg>
+                </a>
+              </div>
             </div>
           </div>
         </div>
