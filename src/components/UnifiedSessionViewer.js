@@ -115,7 +115,6 @@ function ViewToggleButton({ active, onClick, label }) {
 
 function SessionHeader({ session, user, onSessionUpdate, sessionId, isMobile }) {
   const [isEditing, setIsEditing] = useState(false);
-  const [pullCommandCopySuccess, setPullCommandCopySuccess] = useState(false);
   const [editedData, setEditedData] = useState({
     title: session.metadata?.title || session.title || '',
     summary: session.metadata?.summary || '',
@@ -383,37 +382,6 @@ function SessionHeader({ session, user, onSessionUpdate, sessionId, isMobile }) 
               />
             </div>
           )}
-          
-          <div className="inline-flex items-center bg-gray-100 dark:bg-slate-600 dark:bg-slate-700 rounded">
-            <code className="font-mono text-sm text-gray-900 dark:text-white px-3 py-2">sessionbase pull {sessionId}</code>
-            <button
-              onClick={async () => {
-                try {
-                  await navigator.clipboard.writeText(`sessionbase pull ${sessionId}`);
-                  setPullCommandCopySuccess(true);
-                  setTimeout(() => setPullCommandCopySuccess(false), 2000);
-                } catch (err) {
-                  console.error('Failed to copy:', err);
-                }
-              }}
-              className={`p-1.5 transition-all cursor-pointer mr-1 ${
-                pullCommandCopySuccess
-                  ? 'text-secondary-dark dark:text-secondary-light'
-                  : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'
-              }`}
-              title="Copy command"
-            >
-              {pullCommandCopySuccess ? (
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
-                </svg>
-              ) : (
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                </svg>
-              )}
-            </button>
-          </div>
         </div>
         
         {/* Platform Badge - Desktop Only */}
