@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/router';
 import Head from 'next/head';
-import Link from 'next/link';
 import { useAuth } from '../contexts/AuthContext';
 import Header from '../components/Header';
 import SessionCard from '../components/sessions/SessionCard';
@@ -154,30 +153,6 @@ export default function MySessions() {
               </p>
             </div>
 
-            {/* Action Bar */}
-            <div className="flex items-center justify-between mb-6 p-4 bg-primary/5 border border-primary/20 rounded-lg dark:bg-primary-light/10 dark:border-primary-light/20">
-              <div>
-                <h3 className="text-sm font-medium text-primary-dark dark:text-primary-light">Want to upload a new session?</h3>
-                <p className="text-sm text-primary-dark dark:text-primary-light mt-1">
-                  Use our CLI tool to automatically upload your AI chat sessions from your terminal.
-                </p>
-              </div>
-              <div className="flex space-x-3">
-                <Link
-                  href="/settings"
-                  className="inline-flex items-center px-3 py-2 border border-primary/30 text-sm font-medium rounded-md text-primary-dark dark:text-primary-light bg-white dark:bg-slate-700 hover:bg-primary/10 dark:hover:bg-primary-light/20 transition-colors"
-                >
-                  Setup CLI
-                </Link>
-                <Link
-                  href="/upload"
-                  className="inline-flex items-center px-3 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-primary hover:bg-primary-hover transition-colors"
-                >
-                  Upload Session
-                </Link>
-              </div>
-            </div>
-
             {/* Session Cards */}
             <div className="space-y-4">
               {sessionsLoading ? (
@@ -203,24 +178,27 @@ export default function MySessions() {
                 </div>
               ) : sessions.length === 0 ? (
                 <div className="bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-lg p-12 text-center">
-                  <div className="text-6xl mb-4">📝</div>
                   <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">No sessions yet</h3>
                   <p className="text-gray-600 dark:text-gray-300 mb-6 max-w-md mx-auto">
-                    You haven't uploaded any sessions yet. Start by uploading your first AI conversation.
+                    You haven't captured any sessions yet. Set up our tools to automatically capture your AI coding sessions.
                   </p>
-                  <div className="space-y-3">
-                    <Link
-                      href="/upload"
-                      className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-primary hover:bg-primary-hover transition-colors"
+                  <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                    <a
+                      href="https://docs.sessionbase.ai/mcp-server/installation"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="bg-primary text-white px-6 py-3 rounded-lg font-semibold hover:bg-primary-hover transition-colors text-center"
                     >
-                      Upload Your First Session
-                    </Link>
-                    <div className="text-sm text-gray-500 dark:text-gray-400">
-                      or{' '}
-                      <Link href="/settings" className="text-primary hover:text-primary-hover underline">
-                        set up the CLI tool
-                      </Link>
-                    </div>
+                      Get Started — MCP Server
+                    </a>
+                    <a
+                      href="https://docs.sessionbase.ai/cli/installation"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="border border-gray-300 text-gray-800 px-6 py-3 rounded-lg font-semibold hover:bg-gray-50 transition-colors text-center dark:border-white/30 dark:text-white dark:hover:bg-white/10"
+                    >
+                      CLI Installation
+                    </a>
                   </div>
                 </div>
               ) : (
