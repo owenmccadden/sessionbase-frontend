@@ -6,6 +6,7 @@ const AuthContext = createContext();
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [authenticating, setAuthenticating] = useState(false);
 
   useEffect(() => {
     // Check authentication status on mount
@@ -34,22 +35,30 @@ export function AuthProvider({ children }) {
 
   const login = useCallback((userInfo) => {
     setUser(userInfo);
+    setAuthenticating(false);
   }, []);
 
   const logout = useCallback(() => {
     setUser(null);
     removeAuthToken();
+    setAuthenticating(false);
     // Force immediate state update
     setLoading(false);
+  }, []);
+
+  const setAuthenticatingState = useCallback((state) => {
+    setAuthenticating(state);
   }, []);
 
   const value = {
     user,
     loading,
+    authenticating,
     isAuthenticated: !!user,
     login,
     logout,
-    checkAuthStatus
+    checkAuthStatus,
+    setAuthenticatingState
   };
 
   return (

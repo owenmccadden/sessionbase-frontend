@@ -1,38 +1,15 @@
-import { useState, useEffect } from 'react';
-import { getAuthToken } from '../../utils/auth';
+import { useEffect } from 'react';
 
 export default function CliAuthModal({ isOpen, onClose, user }) {
-  const [copied, setCopied] = useState(false);
-  const [token, setToken] = useState('');
-  const [showToken, setShowToken] = useState(false);
-
+  // Device flow is now the only option, so we always show the device flow UI
   useEffect(() => {
     if (isOpen) {
-      const authToken = getAuthToken();
-      setToken(authToken || '');
-    }
-  }, [isOpen]);
-
-  const handleCopyToken = async () => {
-    if (token) {
-      try {
-        await navigator.clipboard.writeText(token);
-        setCopied(true);
-        setTimeout(() => setCopied(false), 2000);
-      } catch (err) {
-        console.error('Failed to copy token:', err);
-        // Fallback for older browsers
-        const textArea = document.createElement('textarea');
-        textArea.value = token;
-        document.body.appendChild(textArea);
-        textArea.select();
-        document.execCommand('copy');
-        document.body.removeChild(textArea);
-        setCopied(true);
-        setTimeout(() => setCopied(false), 2000);
+      // Clean up the auth type flag
+      if (typeof window !== 'undefined') {
+        sessionStorage.removeItem('cli_auth_type');
       }
     }
-  };
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
@@ -43,7 +20,7 @@ export default function CliAuthModal({ isOpen, onClose, user }) {
           {/* Header */}
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
-              CLI Authentication Success!
+              ✅ You're logged in!
             </h2>
             <button
               onClick={onClose}
@@ -73,73 +50,8 @@ export default function CliAuthModal({ isOpen, onClose, user }) {
               </svg>
             </div>
             <p className="text-gray-600 dark:text-gray-300">
-              Welcome {user?.username}! Your CLI authentication is complete.
+              Welcome {user?.username}! You can now return to your terminal.
             </p>
-          </div>
-
-          {/* Auth Token Section */}
-          <div className="bg-primary/5 dark:bg-primary-light/10 rounded-lg p-6 mb-6 border border-primary/20 dark:border-primary-light/20">
-            <h3 className="text-xl font-semibold text-primary-dark dark:text-primary-light mb-4 text-center">
-              Your Authentication Token
-            </h3>
-            
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-primary-dark dark:text-primary-light mb-3 text-center">
-                  Copy this token for CLI usage:
-                </label>
-                <div className="space-y-3">
-                  <div className="relative">
-                    <input
-                      type={showToken ? "text" : "password"}
-                      value={token}
-                      readOnly
-                      className="w-full px-4 py-3 pr-12 border border-primary/30 dark:border-primary-light/30 rounded-lg bg-white dark:bg-slate-700 text-sm font-mono text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary dark:focus:ring-primary-light text-center"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowToken(!showToken)}
-                      className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
-                    >
-                      {showToken ? (
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21" />
-                        </svg>
-                      ) : (
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                        </svg>
-                      )}
-                    </button>
-                  </div>
-                  <button
-                    onClick={handleCopyToken}
-                    className={`w-full px-6 py-4 text-lg font-semibold rounded-lg transition-all duration-200 transform hover:scale-105 ${
-                      copied
-                        ? 'bg-secondary text-white shadow-lg dark:bg-secondary-light'
-                        : 'bg-primary text-white hover:bg-primary-hover shadow-lg hover:shadow-xl focus:outline-none focus:ring-4 focus:ring-primary/30 dark:focus:ring-primary-light/30'
-                    }`}
-                  >
-                    {copied ? (
-                      <span className="flex items-center justify-center">
-                        <svg className="w-6 h-6 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                        </svg>
-                        Token Copied Successfully!
-                      </span>
-                    ) : (
-                      <span className="flex items-center justify-center">
-                        <svg className="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                        </svg>
-                        Copy Authentication Token
-                      </span>
-                    )}
-                  </button>
-                </div>
-              </div>
-            </div>
           </div>
 
 

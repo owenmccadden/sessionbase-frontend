@@ -10,7 +10,7 @@ import { loginWithGitHub, loginWithGoogle, getUserInfo } from '../utils/auth';
 import CliAuthModal from '../components/auth/CliAuthModal';
 
 export default function Discover() {
-  const { isAuthenticated, loading, user, login } = useAuth();
+  const { isAuthenticated, loading, user, login, setAuthenticatingState } = useAuth();
   const router = useRouter();
   const [sortBy, setSortBy] = useState('popular'); // popular, newest, views
   const [showAuthModal, setShowAuthModal] = useState(false);
@@ -69,6 +69,9 @@ export default function Discover() {
         try {
           console.log('Exchanging auth code for JWT...');
           
+          // Set authenticating state to prevent login button flash
+          setAuthenticatingState(true);
+          
           // Make API call to exchange auth_code for JWT
           const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://api.sessionbase.ai'}/auth/exchange`, {
             method: 'POST',
@@ -102,16 +105,46 @@ export default function Discover() {
           const isCliMode = typeof window !== 'undefined' &&
             sessionStorage.getItem('oauth_cli_mode') === 'true';
           
-          if (isCliMode) {
-            // Clear the stored CLI mode flag and set flag to show CLI modal
-            sessionStorage.removeItem('oauth_cli_mode');
-            sessionStorage.setItem('show_cli_modal', 'true');
+          // Check if this is a device flow by checking for device_code in sessionStorage
+          const deviceCode = typeof window !== 'undefined' &&
+            sessionStorage.getItem('oauth_device_code');
+          
+          if (isCliMode && deviceCode) {
+            // Device flow: complete the device authorization
+            try {
+              const deviceCompleteResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://api.sessionbase.ai'}/auth/device/complete`, {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ 
+                  device_code: deviceCode, 
+                  jwt: jwtToken 
+                }),
+              });
+
+              if (deviceCompleteResponse.ok) {
+                // Clear stored values and show success modal
+                sessionStorage.removeItem('oauth_cli_mode');
+                sessionStorage.removeItem('oauth_device_code');
+                sessionStorage.setItem('show_cli_modal', 'true');
+                sessionStorage.setItem('cli_auth_type', 'device_complete');
+                
+                // Force CLI modal to show immediately
+                setShowCliModal(true);
+              } else {
+                console.error('Device complete failed:', deviceCompleteResponse.status);
+              }
+            } catch (error) {
+              console.error('Device complete error:', error);
+            }
           }
           
           console.log('Auth code exchange successful');
         } catch (error) {
           console.error('Failed to exchange auth code:', error);
           setError('Authentication failed. Please try signing in again.');
+          setAuthenticatingState(false);
         } finally {
           // Clean up URL by removing auth_code parameter
           router.replace('/discover', undefined, { shallow: true });

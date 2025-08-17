@@ -20,34 +20,82 @@ export default function Login() {
     }
   }, []);
 
-  // Redirect authenticated users to settings
+  // Handle authenticated users - complete device flow if needed, otherwise redirect to settings
   useEffect(() => {
-    if (!loading && isAuthenticated) {
-      router.push('/settings');
+    if (!loading && isAuthenticated && user && router.isReady) {
+      const deviceCode = router.query.device_code;
+      
+      if (deviceCode && router.query.cli === 'true') {
+        // User is already authenticated and we have a device code - complete the device flow
+        const completeDeviceFlow = async () => {
+          try {
+            const token = localStorage.getItem('auth_token');
+            if (!token) {
+              router.replace('/settings');
+              return;
+            }
+
+            const response = await fetch(`${API_BASE_URL}/auth/device/complete`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({ 
+                device_code: deviceCode, 
+                jwt: token 
+              }),
+            });
+
+            if (response.ok) {
+              // Show success modal
+              sessionStorage.setItem('show_cli_modal', 'true');
+              sessionStorage.setItem('cli_auth_type', 'device_complete');
+              router.replace('/discover');
+            } else {
+              console.error('Device complete failed:', response.status);
+              router.replace('/settings');
+            }
+          } catch (error) {
+            console.error('Device complete error:', error);
+            router.replace('/settings');
+          }
+        };
+
+        completeDeviceFlow();
+      } else {
+        // No device code, redirect to settings as normal
+        router.replace('/settings');
+      }
     }
-  }, [isAuthenticated, loading, router]);
+  }, [isAuthenticated, loading, router, user]);
 
   const handleGitHubLogin = () => {
-    // Store CLI parameter in sessionStorage to survive OAuth redirect
+    // Store CLI parameter and device code in sessionStorage to survive OAuth redirect
     if (router.query.cli === 'true' && typeof window !== 'undefined') {
       sessionStorage.setItem('oauth_cli_mode', 'true');
+    }
+    if (router.query.device_code && typeof window !== 'undefined') {
+      sessionStorage.setItem('oauth_device_code', router.query.device_code);
     }
     const cliParam = router.query.cli === 'true' ? '?cli=true' : '';
     window.location.href = `${API_BASE_URL}/auth/github${cliParam}`;
   };
 
   const handleGoogleLogin = () => {
-    // Store CLI parameter in sessionStorage to survive OAuth redirect
+    // Store CLI parameter and device code in sessionStorage to survive OAuth redirect
     if (router.query.cli === 'true' && typeof window !== 'undefined') {
       sessionStorage.setItem('oauth_cli_mode', 'true');
+    }
+    if (router.query.device_code && typeof window !== 'undefined') {
+      sessionStorage.setItem('oauth_device_code', router.query.device_code);
     }
     const cliParam = router.query.cli === 'true' ? '?cli=true' : '';
     window.location.href = `${API_BASE_URL}/auth/google${cliParam}`;
   };
 
 
-  // Show loading state while checking auth
-  if (loading) {
+  // Show loading state while checking auth or router
+  if (loading || !router.isReady) {
     return null; // Or a loading spinner if desired
   }
 

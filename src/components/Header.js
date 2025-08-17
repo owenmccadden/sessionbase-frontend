@@ -7,7 +7,7 @@ import UserProfile from './auth/UserProfile';
 import ThemeToggle from './ThemeToggle';
 
 export default function Header({ showMobileBanner = false }) {
-  const { isAuthenticated, loading } = useAuth();
+  const { isAuthenticated, loading, authenticating } = useAuth();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [bannerVisible, setBannerVisible] = useState(false);
@@ -166,7 +166,7 @@ export default function Header({ showMobileBanner = false }) {
           {/* Authentication */}
           <div className="flex items-center space-x-4">
             <ThemeToggle />
-            {loading ? (
+            {loading || authenticating ? (
               <div className="w-8 h-8 bg-slate-200 rounded-full animate-pulse dark:bg-slate-700"></div>
             ) : isAuthenticated ? (
               <UserProfile />
