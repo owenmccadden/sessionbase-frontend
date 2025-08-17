@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { useAuth } from '../../contexts/AuthContext';
+import { SESSION_TYPES, detectSessionFormat } from '../../utils/sessionParser';
 
 function formatTimeAgo(dateString) {
   const date = new Date(dateString);
@@ -13,8 +13,69 @@ function formatTimeAgo(dateString) {
   return date.toLocaleDateString();
 }
 
-export default function SessionCard({ session, onAuthRequired }) {
-  const { isAuthenticated } = useAuth();
+function getPlatformLogo(sessionType) {
+  switch (sessionType) {
+    case SESSION_TYPES.Q_CHAT:
+      return <img src="/q-logo.png" alt="Amazon Q" className="w-6 h-6" />;
+    case SESSION_TYPES.CLAUDE_CODE:
+      return <img src="/claude-logo.png" alt="Claude" className="w-6 h-6" />;
+    case SESSION_TYPES.CURSOR:
+      return <span className="text-lg">⚡</span>;
+    case SESSION_TYPES.GEMINI_CLI:
+      return <img src="/gemini-cli-logo.png" alt="Gemini CLI" className="w-6 h-6" />;
+    default:
+      return <span className="text-xs text-gray-400">?</span>;
+  }
+}
+
+export default function SessionCard({ session, showActions, onAuthRequired }) {
+
+  // Determine session type from session data
+  const getSessionType = () => {
+    // Check if session already has a parsed type
+    if (session?.type) {
+      return session.type;
+    }
+    
+    // Check for sessionType directly on the session object (API response)
+    if (session?.sessionType) {
+      const sessionType = session.sessionType;
+      if (sessionType === 'q-chat') return SESSION_TYPES.Q_CHAT;
+      if (sessionType === 'claude' || sessionType === 'claude-code') return SESSION_TYPES.CLAUDE_CODE;
+      if (sessionType === 'gemini_cli') return SESSION_TYPES.GEMINI_CLI;
+      if (sessionType === 'cursor') return SESSION_TYPES.CURSOR;
+    }
+    
+    // Check metadata for sessionType
+    if (session?.metadata?.sessionType) {
+      const metaType = session.metadata.sessionType;
+      if (metaType === 'q-chat') return SESSION_TYPES.Q_CHAT;
+      if (metaType === 'claude' || metaType === 'claude-code') return SESSION_TYPES.CLAUDE_CODE;
+      if (metaType === 'gemini_cli') return SESSION_TYPES.GEMINI_CLI;
+      if (metaType === 'cursor') return SESSION_TYPES.CURSOR;
+    }
+    
+    // Try to detect based on raw data if available
+    if (session?.rawData) {
+      return detectSessionFormat(session.rawData);
+    }
+    
+    // Fallback: try to infer from model name or other properties
+    const modelName = session?.modelName || session?.aiModel || '';
+    if (modelName.toLowerCase().includes('claude')) {
+      return SESSION_TYPES.CLAUDE_CODE;
+    }
+    if (modelName.toLowerCase().includes('gemini')) {
+      return SESSION_TYPES.GEMINI_CLI;
+    }
+    if (modelName.toLowerCase().includes('q-')) {
+      return SESSION_TYPES.Q_CHAT;
+    }
+    
+    return SESSION_TYPES.UNKNOWN;
+  };
+
+  const sessionType = getSessionType();
 
   // Provide default values for missing properties
   const safeSession = {
@@ -33,7 +94,8 @@ export default function SessionCard({ session, onAuthRequired }) {
     aiModel: session?.modelName || session?.aiModel || 'Unknown',
     createdAt: session?.createdAt || new Date().toISOString(),
     updatedAt: session?.updatedAt || session?.createdAt || new Date().toISOString(),
-    isPrivate: session?.isPrivate || false
+    isPrivate: session?.isPrivate || false,
+    sessionType: sessionType
   };
 
   return (
@@ -52,9 +114,9 @@ export default function SessionCard({ session, onAuthRequired }) {
             {safeSession.title}
           </h3>
           <div className="flex items-center text-xs text-gray-500 dark:text-gray-400 ml-4 flex-shrink-0">
-            <span className="bg-primary/10 text-primary dark:text-primary-light px-3 py-1 rounded-full font-medium">
-              {safeSession.aiModel}
-            </span>
+            <div className="flex items-center justify-center w-8 h-8 bg-gray-50 dark:bg-slate-700 rounded-full border border-gray-200 dark:border-slate-600">
+              {getPlatformLogo(safeSession.sessionType)}
+            </div>
           </div>
         </div>
         
