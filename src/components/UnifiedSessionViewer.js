@@ -1356,7 +1356,7 @@ function UnifiedMessageBubble({ message, sessionType, allCodeBlocksCollapsed, fo
           isCommand 
             ? 'p-0 bg-transparent'
             : isUser 
-            ? 'bg-primary text-white' 
+            ? 'bg-primary-dark dark:bg-primary-dark text-white' 
             : isSystem
             ? 'bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-700 shadow-sm text-gray-900 dark:text-gray-100'
             : 'bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 shadow-sm text-gray-900 dark:text-gray-100'
