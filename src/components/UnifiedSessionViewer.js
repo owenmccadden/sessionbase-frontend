@@ -668,10 +668,13 @@ function ConversationView({ session, isMobile }) {
 
 // Helper function to determine content type based on file extension and patterns
 function getContentType(content, message) {
-  if (!content || typeof content !== 'string') return 'text';
+  // Extract actual content from Q Chat formats first
+  const actualContent = extractQChatContent(content);
+  
+  if (!actualContent || typeof actualContent !== 'string') return 'text';
   
   // Clean content for pattern detection first
-  const cleanContent = cleanContentForMarkdown(content);
+  const cleanContent = cleanContentForMarkdown(actualContent);
   
   // If content contains natural language explanations, prioritize text/markdown over code
   // Look for conversational phrases that indicate this is explanatory content
@@ -870,6 +873,24 @@ function getLanguageFromPath(filePath) {
   };
   
   return languageMap[extension] || extension || '';
+}
+
+// Helper function to extract actual content from Q Chat message formats
+function extractQChatContent(content) {
+  if (!content) return '';
+  
+  // Handle CancelledToolUses format
+  if (typeof content === 'object' && content.CancelledToolUses && content.CancelledToolUses.prompt) {
+    return content.CancelledToolUses.prompt;
+  }
+  
+  // Return content as-is if it's already a string
+  if (typeof content === 'string') {
+    return content;
+  }
+  
+  // For other object formats, return empty string to avoid displaying [object Object]
+  return '';
 }
 
 // Helper function to clean content for markdown rendering
@@ -1277,7 +1298,7 @@ function UnifiedMessageBubble({ message, sessionType, allCodeBlocksCollapsed, fo
   const isGroupedCommandMessage = isGroupedCommand(message);
   const detectedCommand = isGroupedCommandMessage 
     ? getCombinedCommand(message) 
-    : detectCommand(message.content, session.type);
+    : detectCommand(extractQChatContent(message.content), session.type);
   const isCommand = detectedCommand !== null;
 
   return (
@@ -1343,7 +1364,7 @@ function UnifiedMessageBubble({ message, sessionType, allCodeBlocksCollapsed, fo
           {/* Copy Button - Hide for tool blocks, code blocks, markdown blocks, and commands */}
           {!isSystem && !shouldRenderCode && !shouldRenderMarkdown && !isCommand && (
             <button
-              onClick={() => copyToClipboard(message.content)}
+              onClick={() => copyToClipboard(extractQChatContent(message.content))}
               className={`absolute top-1 right-1 p-1.5 rounded-md transition-all ${
                 copySuccess
                   ? 'bg-secondary/20 text-secondary-dark dark:bg-secondary-light/30 dark:text-secondary-light'
@@ -1377,7 +1398,7 @@ function UnifiedMessageBubble({ message, sessionType, allCodeBlocksCollapsed, fo
               // user messages lack metadata.toolUseResult.file.filePath that AI tool results have.
               // They use the unified CodeBlock component but render as plain text.
               <CodeBlock 
-                content={cleanContentForMarkdown(message.content)}
+                content={cleanContentForMarkdown(extractQChatContent(message.content))}
                 language={getLanguageFromPath(message?.metadata?.toolUseResult?.file?.filePath) || 'text'}
                 filePath={message?.metadata?.toolUseResult?.file?.filePath}
                 allCodeBlocksCollapsed={allCodeBlocksCollapsed}
@@ -1385,13 +1406,13 @@ function UnifiedMessageBubble({ message, sessionType, allCodeBlocksCollapsed, fo
               />
             ) : shouldRenderMarkdown ? (
               <MarkdownBlock 
-                content={message.content}
+                content={extractQChatContent(message.content)}
                 allMarkdownBlocksCollapsed={allMarkdownBlocksCollapsed}
                 forceMarkdownCollapseToggle={forceMarkdownCollapseToggle}
               />
             ) : (
               <div className="whitespace-pre-wrap">
-                {message.content}
+                {extractQChatContent(message.content)}
               </div>
             )}
           </div>
@@ -1773,7 +1794,7 @@ function UserPromptsView({ session }) {
                     </span>
                   </div>
                   <button
-                    onClick={() => copyToClipboard(message.content, message.id)}
+                    onClick={() => copyToClipboard(extractQChatContent(message.content), message.id)}
                     className="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:text-gray-300 transition-colors p-1 rounded hover:bg-gray-100 dark:bg-slate-600"
                     title="Copy prompt"
                   >
@@ -1789,7 +1810,7 @@ function UserPromptsView({ session }) {
                   </button>
                 </div>
                 <div className="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap">
-                  {message.content}
+                  {extractQChatContent(message.content)}
                 </div>
                 {message.toolCalls && message.toolCalls.length > 0 && (
                   <div className="text-xs text-orange-600 mt-2">

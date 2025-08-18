@@ -274,6 +274,14 @@ function parseQChatSession(data) {
           status: result.status,
           is_error: result.status === 'Error'
         }));
+      } else if (exchange.user.content?.CancelledToolUses) {
+        userMessage.content = exchange.user.content.CancelledToolUses.prompt;
+        userMessage.toolResults = exchange.user.content.CancelledToolUses.tool_use_results?.map(result => ({
+          tool_use_id: result.tool_use_id,
+          content: result.content,
+          status: result.status,
+          is_error: result.status === 'Error'
+        })) || [];
       } else {
         userMessage.content = '';
       }
