@@ -117,9 +117,9 @@ export default function Landing() {
                 </div>
                 <p className="text-xs text-gray-500 mt-6">
                   By continuing, you agree to our{' '}
-                  <a href="/terms" className="text-blue-600 hover:text-blue-800 underline">Terms of Service</a>
+                  <a href="/terms-of-service" className="text-blue-600 hover:text-blue-800 underline">Terms of Service</a>
                   {' '}and{' '}
-                  <a href="/privacy" className="text-blue-600 hover:text-blue-800 underline">Privacy Policy</a>.
+                  <a href="/privacy-policy" className="text-blue-600 hover:text-blue-800 underline">Privacy Policy</a>.
                 </p>
               </div>
             </div>

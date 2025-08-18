@@ -542,9 +542,9 @@ export default function Discover() {
                 </div>
                 <p className="text-xs text-gray-500 dark:text-gray-400 mt-6">
                   By continuing, you agree to our{' '}
-                  <a href="/terms" className="text-primary hover:text-primary-hover underline">Terms of Service</a>
+                  <a href="/terms-of-service" className="text-primary hover:text-primary-hover underline">Terms of Service</a>
                   {' '}and{' '}
-                  <a href="/privacy" className="text-primary hover:text-primary-hover underline">Privacy Policy</a>.
+                  <a href="/privacy-policy" className="text-primary hover:text-primary-hover underline">Privacy Policy</a>.
                 </p>
               </div>
             </div>

@@ -94,7 +94,7 @@ export default function Terms() {
                 </p>
                 <p className="text-gray-700 dark:text-gray-300">
                   Your privacy is important to us. Please review our{' '}
-                  <a href="/privacy" className="text-primary hover:text-primary-hover underline">
+                  <a href="/privacy-policy" className="text-primary hover:text-primary-hover underline">
                     Privacy Policy
                   </a>{' '}
                   to understand how we collect, use, and protect your information.

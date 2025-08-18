@@ -174,14 +174,14 @@ export default function Login() {
               <p className="text-xs text-gray-500 dark:text-gray-400">
                 By signing in, you agree to our{' '}
                 <a 
-                  href="/terms" 
+                  href="/terms-of-service" 
                   className="text-primary hover:text-primary-hover underline"
                 >
                   terms of service
                 </a>{' '}
                 and{' '}
                 <a 
-                  href="/privacy" 
+                  href="/privacy-policy" 
                   className="text-primary hover:text-primary-hover underline"
                 >
                   privacy policy
