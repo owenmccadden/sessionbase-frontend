@@ -1,5 +1,117 @@
 import Head from 'next/head';
 import Header from '../components/Header';
+import ReactMarkdown from 'react-markdown';
+
+const privacyContent = `# SessionBase Privacy Policy
+
+**Last Updated: August 18, 2025**  
+**Effective Date: August 18, 2025**
+
+## 1. Introduction
+
+This Privacy Policy ("Policy") describes how SessionBase, Inc. ("SessionBase", "we", "us") collects, uses, and shares personal information of users of our website https://sessionbase.ai and related products and services (together, the "Services").
+
+By using the Services, you agree to the practices described in this Policy. If you do not agree, please do not use the Services.
+
+## 2. Personal Information We Collect
+
+We collect the following categories of personal information:
+
+### Authentication Information
+
+When you sign in with Google or GitHub via OAuth, we collect:
+
+- Username
+- Email address
+- Profile photo URL
+- Full name
+- User ID
+
+### Session Data
+
+When you push sessions from supported platforms (Claude Code, Gemini CLI, Amazon Q Chat) using the SessionBase Command Line Interface ("CLI") or Model Context Protocol ("MCP") server, we collect:
+
+- Session logs, which include messages from you and your AI agent, tool calls, and tool responses.
+- Metadata, such as titles, tags, summaries, and visibility flags.
+
+SessionBase is designed to help developers learn from each other by sharing AI coding sessions. By default, sessions are public and discoverable, so others can benefit from your work. You can change visibility to private at any time.
+
+**Visibility settings:**
+
+- **Public (default):** Public sessions are accessible via a shareable URL and may also be discoverable by other SessionBase users through features such as the /discover page and search. Public sessions are considered public content, and may be accessed, indexed, reused, or shared by SessionBase or third parties.
+- **Private:** Private sessions are only visible to you and are not shared, indexed, or reused by SessionBase.
+
+Users may delete session data at any time via the CLI or the User Interface ("UI").
+
+**User Responsibility:** Users are solely responsible for ensuring that uploaded sessions do not contain confidential, personal, or otherwise sensitive information. SessionBase is not responsible for accidental disclosure of such information if it is included in a public session.
+
+### Waitlist Information
+
+If you sign up for the SessionBase teams waitlist, we collect the email address you provide.
+
+### Automatically Collected Information
+
+We may collect limited technical data when you interact with our Services, including your Internet Protocol (IP) address, browser type, operating system, and access times. We may also use cookies or similar technologies to improve your experience.
+
+## 3. How We Use Your Personal Information
+
+We use personal information to:
+
+- Authenticate and authorize access to the Services.
+- Store, manage, and share AI coding sessions.
+- Provide customer support.
+- Communicate with you about product updates, features, or waitlist status.
+- Ensure platform security and prevent misuse.
+- Comply with legal obligations.
+
+### Marketing Communications
+
+We may send you product updates, feature announcements, and promotional offers. Where required by law (including in the EU/UK), we send marketing only with your consent. You can withdraw consent or opt out at any time by using the unsubscribe link in our emails or emailing [support@sessionbase.ai](mailto:support@sessionbase.ai). We do not share your personal information with third parties for their own marketing. Even if you opt out of marketing, we may still send transactional or service emails, such as account, security, or legal notices.
+
+## 4. How We Share Your Personal Information
+
+We do not sell your personal information. We may share information only in these circumstances:
+
+- **Service Providers:** With trusted third-party providers that support hosting, storage, analytics, and infrastructure.
+- **Legal Requirements:** When necessary to comply with laws, regulations, or lawful requests.
+- **Business Transfers:** In connection with a merger, acquisition, or sale of assets, personal information and public content may be transferred to a successor or acquirer, and will be subject to their privacy practices.
+- **Public Content:** Public sessions you upload are publicly accessible and may be viewed, indexed, or reused by others. By uploading or leaving a session as public, you understand and agree that SessionBase and third parties may access, analyze, or share that content for research, analytics, or other lawful purposes. Private sessions are excluded from this use.
+- **With Your Consent:** If you explicitly choose to share.
+
+## 5. Data Retention and Deletion
+
+Personal information is retained while your account is active.
+
+You can delete session data at any time via the CLI or UI.
+
+You may request full account and data deletion by contacting [support@sessionbase.ai](mailto:support@sessionbase.ai).
+
+## 6. Security of Your Information
+
+We use reasonable security measures to protect personal data. However, no method of electronic storage or transmission is completely secure.
+
+## 7. International Users
+
+The Services are operated in the United States. If you access them from outside the U.S., you consent to the transfer and processing of your information in the U.S.
+
+## 8. Children
+
+The Services are not intended for children under 13, and we do not knowingly collect information from them. If you believe we have collected data from a child under 13, please contact us so we can delete it.
+
+## 9. Do Not Track
+
+We do not currently respond to Do Not Track (DNT) browser signals.
+
+## 10. Updates to This Policy
+
+We may update this Privacy Policy at any time. If we make material changes, we will notify you via email or through the Services. Your continued use of the Services after such updates constitutes acceptance of the revised Privacy Policy.
+
+## 11. Contact Us
+
+If you have questions or requests about this Privacy Policy, please contact us at:
+
+**SessionBase, Inc.**  
+Email: [support@sessionbase.ai](mailto:support@sessionbase.ai)`;
 
 export default function Privacy() {
   return (
@@ -19,334 +131,58 @@ export default function Privacy() {
 
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <div className="bg-white dark:bg-slate-800 rounded-lg shadow-sm border border-gray-200 dark:border-slate-700 p-8">
-            <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-8">
-              Privacy Policy
-            </h1>
-
-            <div className="prose prose-lg max-w-none">
-              <p className="text-lg text-gray-600 dark:text-gray-300 mb-8">
-                Last updated: August 18, 2025
-              </p>
-
-              <section className="mb-8">
-                <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-4">
-                  Introduction
-                </h2>
-                <p className="text-gray-700 dark:text-gray-300 mb-4">
-                  This Privacy Policy ("Policy") describes how SessionBase, Inc.
-                  ("SessionBase", "we", "us") collects, uses, and shares
-                  personal information of users of our website{' '}
-                  <a
-                    href="https://sessionbase.ai"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-primary hover:text-primary-hover underline"
-                  >
-                    https://sessionbase.ai
-                  </a>{' '}
-                  and related products and services (together, the "Services").
-                </p>
-                <p className="text-gray-700 dark:text-gray-300">
-                  By using the Services, you agree to the practices described in
-                  this Policy. If you do not agree, please do not use the
-                  Services.
-                </p>
-              </section>
-
-              <section className="mb-8">
-                <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-4">
-                  Personal Information We Collect
-                </h2>
-                <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
-                  Authentication Information
-                </h3>
-                <p className="text-gray-700 dark:text-gray-300 mb-2">
-                  When you sign in with Google or GitHub via OAuth, we collect:
-                </p>
-                <ul className="list-disc pl-6 text-gray-700 dark:text-gray-300 mb-6">
-                  <li>Username</li>
-                  <li>Email address</li>
-                  <li>Profile photo URL</li>
-                  <li>Full name</li>
-                  <li>User ID</li>
-                </ul>
-
-                <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
-                  Session Data
-                </h3>
-                <p className="text-gray-700 dark:text-gray-300 mb-2">
-                  When you push sessions from supported platforms (Claude Code,
-                  Gemini CLI, Amazon Q Chat) using the SessionBase Command Line
-                  Interface ("CLI") or Model Context Protocol ("MCP") server, we
-                  collect:
-                </p>
-                <ul className="list-disc pl-6 text-gray-700 dark:text-gray-300 mb-4">
-                  <li>
-                    Session logs including messages from you and the AI agent,
-                    tool calls, and tool responses.
-                  </li>
-                  <li>
-                    Metadata, such as titles, tags, summaries, and visibility
-                    flags generated by the AI agent via the MCP server, or
-                    provided by you directly via the CLI.
-                  </li>
-                </ul>
-                <p className="text-gray-700 dark:text-gray-300 mb-4">
-                  SessionBase is designed to help developers learn from each
-                  other by sharing AI coding sessions. By default, sessions are public and discoverable to encourage collaboration and help developers learn from each other. You can change visibility to private at any time if you prefer.
-                </p>
-                <p className="text-gray-700 dark:text-gray-300 mb-2">
-                  Visibility settings:
-                </p>
-                <ul className="list-disc pl-6 text-gray-700 dark:text-gray-300 mb-4">
-                  <li>
-                    <span className="font-semibold">Public (default):</span>{' '}
-                    Public sessions are accessible via a shareable URL and may
-                    also be discoverable by other SessionBase users through
-                    features such as the{' '}
+            <div className="prose prose-lg max-w-none dark:prose-invert prose-headings:text-gray-900 dark:prose-headings:text-white prose-p:text-gray-700 dark:prose-p:text-gray-300 prose-li:text-gray-700 dark:prose-li:text-gray-300 prose-a:text-blue-600 dark:prose-a:text-blue-400 prose-a:no-underline hover:prose-a:underline prose-strong:text-gray-900 dark:prose-strong:text-white">
+              <ReactMarkdown
+                components={{
+                  h1: ({ children }) => (
+                    <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-8">
+                      {children}
+                    </h1>
+                  ),
+                  h2: ({ children }) => (
+                    <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-4 mt-8">
+                      {children}
+                    </h2>
+                  ),
+                  h3: ({ children }) => (
+                    <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2 mt-6">
+                      {children}
+                    </h3>
+                  ),
+                  p: ({ children }) => (
+                    <p className="text-gray-700 dark:text-gray-300 mb-4">
+                      {children}
+                    </p>
+                  ),
+                  a: ({ href, children }) => (
                     <a
-                      href="/discover"
-                      className="text-primary hover:text-primary-hover underline"
+                      href={href}
+                      className="text-blue-600 dark:text-blue-400 hover:underline"
+                      target={href?.startsWith('http') ? '_blank' : undefined}
+                      rel={href?.startsWith('http') ? 'noopener noreferrer' : undefined}
                     >
-                      /discover
-                    </a>{' '}
-                    page and search. Public sessions may also be indexed by
-                    search engines and highlighted in SessionBase community
-                    features (such as recommendations, discovery feeds, or
-                    analytics).
-                  </li>
-                  <li>
-                    <span className="font-semibold">Private:</span> Private
-                    sessions are only visible to you and are not shared,
-                    indexed, or reused by SessionBase.
-                  </li>
-                </ul>
-                <p className="text-gray-700 dark:text-gray-300 mb-4">
-                  Users may delete session data at any time via the CLI or the
-                  User Interface ("UI").
-                </p>
-                <p className="text-gray-700 dark:text-gray-300 mb-6">
-                  <span className="font-semibold">User Responsibility:</span>{' '}
-                  Users are solely responsible for ensuring that uploaded
-                  sessions do not contain confidential, personal, or otherwise
-                  sensitive information. SessionBase is not responsible for
-                  accidental disclosure of such information if it is included in
-                  a public session.
-                </p>
-
-                <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
-                  Waitlist Information
-                </h3>
-                <p className="text-gray-700 dark:text-gray-300 mb-6">
-                  If you sign up for the SessionBase teams waitlist, we collect
-                  the email address you provide.
-                </p>
-
-                <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
-                  Automatically Collected Information
-                </h3>
-                <p className="text-gray-700 dark:text-gray-300">
-                  We may collect limited technical data when you interact with
-                  our Services, including your Internet Protocol (IP) address,
-                  browser type, operating system, and access times. We may also
-                  use cookies or similar technologies to improve your
-                  experience.
-                </p>
-              </section>
-
-              <section className="mb-8">
-                <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-4">
-                  How We Use Your Personal Information
-                </h2>
-                <p className="text-gray-700 dark:text-gray-300 mb-2">
-                  We use personal information to:
-                </p>
-                <ul className="list-disc pl-6 text-gray-700 dark:text-gray-300">
-                  <li>Authenticate and authorize access to the Services.</li>
-                  <li>Store, manage, and share AI coding sessions.</li>
-                  <li>Provide customer support.</li>
-                  <li>
-                    Communicate with you about product updates, features, or
-                    waitlist status.
-                  </li>
-                  <li>Ensure platform security and prevent misuse.</li>
-                  <li>Comply with legal obligations.</li>
-                </ul>
-                <h3 className="text-xl font-semibold text-gray-900 dark:text-white mt-6 mb-2">
-                  Marketing Communications
-                </h3>
-                <p className="text-gray-700 dark:text-gray-300">
-                  We may send you product updates, feature announcements, and
-                  promotional offers. Where required by law, we send marketing
-                  only with your consent. You can withdraw consent or opt out at
-                  any time by using the unsubscribe link in our emails or
-                  emailing{' '}
-                  <a
-                    href="mailto:support@sessionbase.ai"
-                    className="text-primary hover:text-primary-hover underline"
-                  >
-                    support@sessionbase.ai
-                  </a>
-                  . We do not share your personal information with third parties
-                  for their own marketing. Even if you opt out of marketing, we
-                  may still send transactional or service emails, such as
-                  account, security, or legal notices.
-                </p>
-              </section>
-
-              <section className="mb-8">
-                <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-4">
-                  How We Share Your Personal Information
-                </h2>
-                <p className="text-gray-700 dark:text-gray-300 mb-2">
-                  We do not use your session data to train AI models, and we do not
-                  sell your personal information. We may share user information
-                  only in these circumstances:
-                </p>
-                <ul className="list-disc pl-6 text-gray-700 dark:text-gray-300 mb-4">
-                  <li>
-                    <span className="font-semibold">Service Providers:</span>{' '}
-                    With trusted third-party providers that support hosting,
-                    storage, analytics, and infrastructure.
-                  </li>
-                  <li>
-                    <span className="font-semibold">Legal Requirements:</span>{' '}
-                    When necessary to comply with laws, regulations, or legal
-                    requests.
-                  </li>
-                  <li>
-                    <span className="font-semibold">Business Transfers:</span>{' '}
-                    In connection with a merger, acquisition, or sale of assets,
-                    personal information and public content may be transferred
-                    to a successor or acquirer, and will be subject to their
-                    privacy practices.
-                  </li>
-                  <li>
-                    <span className="font-semibold">Public Content:</span> Public
-                    sessions you upload are designed to be shared with the
-                    community. They may appear in discovery features, search
-                    results, or be indexed by search engines. SessionBase may
-                    also reference public sessions in community features (such
-                    as highlights, recommendations, or analytics). Private
-                    sessions are excluded from this use.
-                  </li>
-                  <li>
-                    <span className="font-semibold">With Your Consent:</span> If
-                    you explicitly choose to share.
-                  </li>
-                </ul>
-              </section>
-
-              <section className="mb-8">
-                <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-4">
-                  Data Retention and Deletion
-                </h2>
-                <p className="text-gray-700 dark:text-gray-300 mb-2">
-                  We retain personal information for as long as your account is active. If you delete your account or request deletion, we will remove your personal information from our active systems within a reasonable period of time, unless we are required by law to retain it longer (for example, for legal, accounting, or security purposes). Deleted data may remain in encrypted backups for a limited period before being permanently removed.
-                </p>
-              </section>
-
-              <section className="mb-8">
-                <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-4">
-                  Security of Your Information
-                </h2>
-                <p className="text-gray-700 dark:text-gray-300">
-                  We use reasonable security measures to protect personal data, including TLS encryption in transit, access controls, and industry‑standard authentication. However, no method of electronic storage or transmission is completely secure.
-                </p>
-              </section>
-
-              <section className="mb-8">
-                <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-4">
-                  International Users
-                </h2>
-                <p className="text-gray-700 dark:text-gray-300 mb-4">
-                  SessionBase is provided in the United States. As such, it is governed by the
-                  laws of the United States. If you use our Site or our Services, your personal
-                  information will be subject to United States law.
-                </p>
-                <p className="text-gray-700 dark:text-gray-300">
-                  For users in the European Union and United Kingdom: your personal information
-                  will be transferred to and processed in the United States, where data
-                  protection laws may not provide the same level of protection as in your home
-                  country. We are working toward alignment with GDPR and UK GDPR requirements
-                  as we expand. You may contact us at{" "}
-                  <a
-                    href="mailto:support@sessionbase.ai"
-                    className="text-blue-600 dark:text-blue-400 underline"
-                  >
-                    support@sessionbase.ai
-                  </a>{" "}
-                  to request access, correction, or deletion of your data.
-                </p>
-              </section>
-
-              <section className="mb-8">
-                <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-4">
-                  Children
-                </h2>
-                <p className="text-gray-700 dark:text-gray-300">
-                  The Services are not intended for children under 13, and we do
-                  not knowingly collect information from them. If you believe we
-                  have collected data from a child under 13, please contact us
-                  so we can delete it.
-                </p>
-              </section>
-
-              <section className="mb-8">
-                <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-4">
-                  Do Not Track
-                </h2>
-                <p className="text-gray-700 dark:text-gray-300">
-                  We do not currently respond to Do Not Track (DNT) browser
-                  signals.
-                </p>
-              </section>
-
-              <section className="mb-8">
-                <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-4">
-                  Updates to This Policy
-                </h2>
-                <p className="text-gray-700 dark:text-gray-300">
-                  We may update this Privacy Policy at any time. If we make
-                  material changes, we will notify you via email or through the
-                  Services. Your continued use of the Services after such
-                  updates constitutes acceptance of the revised Privacy Policy.
-                </p>
-              </section>
-
-              <section className="mb-8">
-                <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-4">
-                  Beta Users
-                </h2>
-                <p className="text-gray-700 dark:text-gray-300">
-                  SessionBase is currently in Beta. Features, defaults, and data handling
-                  practices may change as we improve the Services. We will notify Beta users
-                  of any material changes to this Privacy Policy.
-                </p>
-              </section>
-
-              <section>
-                <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-4">
-                  Contact Us
-                </h2>
-                <p className="text-gray-700 dark:text-gray-300 mb-4">
-                  If you have questions or requests about this Privacy Policy,
-                  please contact us at:
-                </p>
-                <div className="bg-gray-50 dark:bg-slate-700 p-4 rounded-lg">
-                  <p className="text-gray-700 dark:text-gray-300">
-                    SessionBase
-                    <br />
-                    Email:{' '}
-                    <a
-                      href="mailto:support@sessionbase.ai"
-                      className="text-primary hover:text-primary-hover underline"
-                    >
-                      support@sessionbase.ai
+                      {children}
                     </a>
-                  </p>
-                </div>
-              </section>
+                  ),
+                  ul: ({ children }) => (
+                    <ul className="list-disc pl-6 text-gray-700 dark:text-gray-300 mb-4">
+                      {children}
+                    </ul>
+                  ),
+                  li: ({ children }) => (
+                    <li className="mb-1">
+                      {children}
+                    </li>
+                  ),
+                  strong: ({ children }) => (
+                    <strong className="font-semibold text-gray-900 dark:text-white">
+                      {children}
+                    </strong>
+                  ),
+                }}
+              >
+                {privacyContent}
+              </ReactMarkdown>
             </div>
           </div>
         </div>
