@@ -4,12 +4,11 @@ import ReactMarkdown from 'react-markdown';
 
 const privacyContent = `# SessionBase Privacy Policy
 
-**Last Updated: August 18, 2025**  
-**Effective Date: August 18, 2025**
+**Last Updated: August 24, 2025**  
 
 ## 1. Introduction
 
-This Privacy Policy ("Policy") describes how SessionBase, Inc. ("SessionBase", "we", "us") collects, uses, and shares personal information of users of our website https://sessionbase.ai and related products and services (together, the "Services").
+This Privacy Policy ("Policy") describes how SessionBase, Inc. ("SessionBase", "we", "us") collects, uses, and shares personal information of users of our website [https://sessionbase.ai](https://sessionbase.ai) and related products and services (together, the "Services").
 
 By using the Services, you agree to the practices described in this Policy. If you do not agree, please do not use the Services.
 
@@ -34,7 +33,7 @@ When you push sessions from supported platforms (Claude Code, Gemini CLI, Amazon
 - Session logs, which include messages from you and your AI agent, tool calls, and tool responses.
 - Metadata, such as titles, tags, summaries, and visibility flags.
 
-SessionBase is designed to help developers learn from each other by sharing AI coding sessions. By default, sessions are public and discoverable, so others can benefit from your work. You can change visibility to private at any time.
+SessionBase is designed to help developers learn from each other by sharing AI coding sessions. **By default, sessions are public and discoverable, so others can benefit from your work. You can change visibility to private at any time.**
 
 **Visibility settings:**
 
@@ -110,7 +109,7 @@ We may update this Privacy Policy at any time. If we make material changes, we w
 
 If you have questions or requests about this Privacy Policy, please contact us at:
 
-**SessionBase, Inc.**  
+**SessionBase**  
 Email: [support@sessionbase.ai](mailto:support@sessionbase.ai)`;
 
 export default function Privacy() {
