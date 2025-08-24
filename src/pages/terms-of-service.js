@@ -3,7 +3,7 @@ import Header from '../components/Header';
 import ReactMarkdown from 'react-markdown';
 
 const termsContent = `# SessionBase Terms of Service
-**Last Updated: August 18, 2025**
+**Last Updated: August 24, 2025**
 
 ## 1. Introduction
 Welcome to SessionBase! These Terms of Service (the "Terms") govern your use of 
@@ -101,7 +101,7 @@ Services for critical or production use.
 
 ## 7. Privacy
 Your use of the Services is also governed by our 
-[Privacy Policy](https://sessionbase.ai/privacy), which describes how we collect, 
+[Privacy Policy](https://sessionbase.ai/privacy-policy), which describes how we collect, 
 use, and share your information.  
 
 ---
