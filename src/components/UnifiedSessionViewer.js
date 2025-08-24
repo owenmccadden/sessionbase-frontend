@@ -368,23 +368,23 @@ function SessionHeader({ session, user, onSessionUpdate, sessionId, isMobile }) 
             </div>
           )}
           
-          {/* Visibility Toggle - Only in Edit Mode */}
-          {isEditing && (
-            <div className="mb-3">
+          {/* Visibility - Always shown, but only editable when in edit mode */}
+          <div className="mb-3">
+            {isEditing && (
               <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">
                 Visibility
               </label>
-              <VisibilityBadge 
-                isPrivate={editedData.isPrivate} 
-                onToggle={(isPrivate) => {
-                  if (isOwner) {
-                    handleVisibilityToggle(isPrivate);
-                  }
-                }}
-                isOwner={isOwner}
-              />
-            </div>
-          )}
+            )}
+            <VisibilityBadge 
+              isPrivate={isEditing ? editedData.isPrivate : (session.metadata?.isPrivate === true)} 
+              onToggle={isEditing ? (isPrivate) => {
+                if (isOwner) {
+                  handleVisibilityToggle(isPrivate);
+                }
+              } : undefined}
+              isOwner={isOwner && isEditing}
+            />
+          </div>
         </div>
         
         {/* Platform Badge - Desktop Only */}
@@ -1795,7 +1795,7 @@ function UserPromptsView({ session }) {
                   </div>
                   <button
                     onClick={() => copyToClipboard(extractQChatContent(message.content), message.id)}
-                    className="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:text-gray-300 transition-colors p-1 rounded hover:bg-gray-100 dark:bg-slate-600"
+                    className="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-colors p-1 rounded hover:bg-gray-100 dark:hover:bg-slate-600"
                     title="Copy prompt"
                   >
                     {copiedId === message.id ? (
@@ -2143,7 +2143,7 @@ function CancelIcon() {
 
 function GearIcon() {
   return (
-    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <svg className="w-5 h-5 transition-transform duration-200 hover:rotate-45" fill="none" stroke="currentColor" viewBox="0 0 24 24">
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
     </svg>
@@ -2170,7 +2170,7 @@ function VisibilityBadge({ isPrivate, onToggle, isOwner }) {
   const [isHovered, setIsHovered] = useState(false);
 
   const handleClick = () => {
-    if (isOwner) {
+    if (isOwner && onToggle) {
       onToggle(!isPrivate);
     }
   };
@@ -2185,17 +2185,17 @@ function VisibilityBadge({ isPrivate, onToggle, isOwner }) {
         isPrivate
           ? 'bg-orange-100 text-orange-800 hover:bg-orange-200'
           : 'bg-green-100 text-green-800 hover:bg-green-200'
-      } ${!isOwner ? 'cursor-default' : 'cursor-pointer hover:shadow-md'}`}
+      } ${!(isOwner && onToggle) ? 'cursor-default' : 'cursor-pointer hover:shadow-md'}`}
       title={
-        isOwner 
+        isOwner && onToggle
           ? (isPrivate ? 'Click to make public' : 'Click to make private')
-          : 'Only the owner can change visibility'
+          : (isPrivate ? 'Private session' : 'Public session')
       }
     >
       <span className="mr-1 transition-all duration-200">
         {isPrivate ? (
           // Lock icon for private (changes to unlock on hover)
-          isHovered && isOwner ? (
+          isHovered && isOwner && onToggle ? (
             // Unlock icon on hover
             <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
               <path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6h1.9c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm0 12H6V10h12v10z"/>
@@ -2208,7 +2208,7 @@ function VisibilityBadge({ isPrivate, onToggle, isOwner }) {
           )
         ) : (
           // Globe icon for public (changes to lock on hover)
-          isHovered && isOwner ? (
+          isHovered && isOwner && onToggle ? (
             // Lock icon on hover
             <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
               <path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zM12 3c1.66 0 3 1.34 3 3v2H9V6c0-1.66 1.34-3 3-3zm6 17H6V10h12v10z"/>
