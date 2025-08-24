@@ -3,12 +3,21 @@ import { useRouter } from 'next/router';
 import { useAuth } from '../contexts/AuthContext';
 import { getApiKeyInfo, rotateApiKey } from '../utils/auth';
 import Header from '../components/Header';
+import { trackSettings } from '../utils/mixpanel';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_ENDPOINT_URL || 'https://api.sessionbase.ai';
 
 export default function Settings() {
   const { user, isAuthenticated, logout, loading } = useAuth();
   const router = useRouter();
+  
+  // Track page view on component mount (with slight delay to ensure Mixpanel is initialized)
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      trackSettings.pageView();
+    }, 100);
+    return () => clearTimeout(timer);
+  }, []);
   const [apiKeyInfo, setApiKeyInfo] = useState(null);
   const [apiKeyLoading, setApiKeyLoading] = useState(true);
   const [apiKeyError, setApiKeyError] = useState(null);

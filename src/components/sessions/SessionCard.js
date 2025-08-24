@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { SESSION_TYPES, detectSessionFormat } from '../../utils/sessionParser';
+import { trackDiscovery } from '../../utils/mixpanel';
 
 function formatTimeAgo(dateString) {
   const date = new Date(dateString);
@@ -98,8 +99,12 @@ export default function SessionCard({ session, showActions, onAuthRequired }) {
     sessionType: sessionType
   };
 
+  const handleSessionClick = () => {
+    trackDiscovery.sessionClick(safeSession.id, safeSession.sessionType);
+  };
+
   return (
-    <Link href={`/sessions/${safeSession.id}`} className="block">
+    <Link href={`/sessions/${safeSession.id}`} className="block" onClick={handleSessionClick}>
       <div 
         className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl p-6 shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-200 cursor-pointer"
       >

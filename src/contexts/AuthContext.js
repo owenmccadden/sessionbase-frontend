@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import { isAuthenticated, getUserInfo, removeAuthToken } from '../utils/auth';
+import { trackAuth, identify } from '../utils/mixpanel';
 
 const AuthContext = createContext();
 
@@ -36,9 +37,20 @@ export function AuthProvider({ children }) {
   const login = useCallback((userInfo) => {
     setUser(userInfo);
     setAuthenticating(false);
+    
+    // Track login event and identify user
+    trackAuth.login('sessionbase');
+    if (userInfo?.id) {
+      identify(userInfo.id, {
+        email: userInfo.email,
+        name: userInfo.name,
+        username: userInfo.username
+      });
+    }
   }, []);
 
   const logout = useCallback(() => {
+    trackAuth.logout();
     setUser(null);
     removeAuthToken();
     setAuthenticating(false);

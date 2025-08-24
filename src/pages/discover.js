@@ -8,10 +8,19 @@ import SessionCard from '../components/sessions/SessionCard';
 import { discoverSessions } from '../utils/api';
 import { loginWithGitHub, loginWithGoogle, getUserInfo } from '../utils/auth';
 import CliAuthModal from '../components/auth/CliAuthModal';
+import { trackDiscovery } from '../utils/mixpanel';
 
 export default function Discover() {
   const { isAuthenticated, loading, user, login, setAuthenticatingState } = useAuth();
   const router = useRouter();
+  
+  // Track page view on component mount (with slight delay to ensure Mixpanel is initialized)
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      trackDiscovery.pageView();
+    }, 100);
+    return () => clearTimeout(timer);
+  }, []);
   const [sortBy, setSortBy] = useState('popular'); // popular, newest, views
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [showCliModal, setShowCliModal] = useState(false);
@@ -292,6 +301,10 @@ export default function Discover() {
 
   const handleSearchSubmit = (e) => {
     e.preventDefault();
+    // Track search event
+    if (searchInput.trim()) {
+      trackDiscovery.filterUsed('search', searchInput.trim());
+    }
     // Immediately trigger search when form is submitted (e.g., Enter key pressed)
     setSearchQuery(searchInput);
   };

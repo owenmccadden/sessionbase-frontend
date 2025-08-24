@@ -7,6 +7,7 @@ import Header from '../../components/Header';
 import UnifiedSessionViewer from '../../components/UnifiedSessionViewer';
 import { parseSession, detectSessionFormat, SESSION_TYPES } from '../../utils/sessionParser';
 import { authenticatedFetch } from '../../utils/auth';
+import { trackSession } from '../../utils/mixpanel';
 
 export default function SessionPage() {
   const { isAuthenticated, loading: authLoading } = useAuth();
@@ -106,6 +107,11 @@ export default function SessionPage() {
         }
         
         setSession(normalizedSession);
+        
+        // Track session page view
+        if (normalizedSession) {
+          trackSession.pageView(id, normalizedSession.sessionType || 'unknown');
+        }
       } catch (err) {
         setError(err.message);
         console.error('Error fetching session:', err);
