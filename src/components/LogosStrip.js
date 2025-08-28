@@ -32,6 +32,17 @@ export default function LogosStrip() {
       gradient: "from-blue-500 to-green-600",
       url: "https://github.com/google-gemini/gemini-cli"
     },
+    { 
+      name: "OpenAI Codex", 
+      src: "/openai-logo-dark.png",
+      srcDark: "/openai-logo-light.png",
+      width: 220, 
+      height: 80,
+      description: "OpenAI",
+      status: "Available", 
+      gradient: "from-green-500 to-teal-600",
+      url: "https://openai.com/codex/"
+    },
   ];
 
 
@@ -51,14 +62,33 @@ export default function LogosStrip() {
               rel="noopener noreferrer"
               className="group flex flex-col items-center space-y-3 transition-all duration-300 hover:scale-105"
             >
-              <div className="relative bg-white rounded-xl p-6 shadow-lg border border-slate-100 group-hover:shadow-xl transition-all duration-300 dark:bg-slate-800 dark:border-slate-700">
-                <Image
-                  src={logo.src}
-                  alt={logo.name}
-                  width={logo.width}
-                  height={logo.height}
-                  className="object-contain transition-all duration-300"
-                />
+              <div className={`relative bg-white rounded-xl shadow-lg border border-slate-100 group-hover:shadow-xl transition-all duration-300 dark:bg-slate-800 dark:border-slate-700 ${logo.name === 'OpenAI Codex' ? 'p-3' : 'p-6'}`}>
+                {logo.srcDark ? (
+                  <>
+                    <Image
+                      src={logo.src}
+                      alt={logo.name}
+                      width={logo.width}
+                      height={logo.height}
+                      className="object-contain transition-all duration-300 dark:hidden"
+                    />
+                    <Image
+                      src={logo.srcDark}
+                      alt={logo.name}
+                      width={logo.width}
+                      height={logo.height}
+                      className="object-contain transition-all duration-300 hidden dark:block"
+                    />
+                  </>
+                ) : (
+                  <Image
+                    src={logo.src}
+                    alt={logo.name}
+                    width={logo.width}
+                    height={logo.height}
+                    className="object-contain transition-all duration-300"
+                  />
+                )}
               </div>
               <div className="text-center">
                 <p className="text-slate-700 font-medium text-sm dark:text-slate-200">{logo.name}</p>
