@@ -104,46 +104,47 @@ export default function SessionCard({ session, showActions, onAuthRequired }) {
   };
 
   return (
-    <Link href={`/sessions/${safeSession.id}`} className="block" onClick={handleSessionClick}>
-      <div 
-        className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl p-6 shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-200 cursor-pointer"
-      >
+    <div 
+      className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl p-6 shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-200"
+    >
       {/* Content section */}
       <div className="flex-1 min-w-0">
-        <div className="flex items-start justify-between mb-2">
-          <h3 className="text-xl font-bold text-gray-900 dark:text-white hover:text-primary dark:hover:text-primary-light transition-colors mb-1 overflow-hidden" style={{
+        <Link href={`/sessions/${safeSession.id}`} className="block" onClick={handleSessionClick}>
+          <div className="flex items-start justify-between mb-2">
+            <h3 className="text-xl font-bold text-gray-900 dark:text-white hover:text-primary dark:hover:text-primary-light transition-colors mb-1 overflow-hidden cursor-pointer" style={{
+              display: '-webkit-box',
+              WebkitLineClamp: 2,
+              WebkitBoxOrient: 'vertical'
+            }}>
+              {safeSession.title}
+            </h3>
+            <div className="flex items-center text-xs text-gray-500 dark:text-gray-400 ml-4 flex-shrink-0">
+              <div className="flex items-center justify-center w-8 h-8 bg-gray-50 dark:bg-slate-700 rounded-full border border-gray-200 dark:border-slate-600">
+                {getPlatformLogo(safeSession.sessionType)}
+              </div>
+            </div>
+          </div>
+          
+          <p className="text-gray-600 dark:text-gray-300 text-sm mb-4 leading-relaxed overflow-hidden cursor-pointer" style={{
             display: '-webkit-box',
             WebkitLineClamp: 2,
             WebkitBoxOrient: 'vertical'
           }}>
-            {safeSession.title}
-          </h3>
-          <div className="flex items-center text-xs text-gray-500 dark:text-gray-400 ml-4 flex-shrink-0">
-            <div className="flex items-center justify-center w-8 h-8 bg-gray-50 dark:bg-slate-700 rounded-full border border-gray-200 dark:border-slate-600">
-              {getPlatformLogo(safeSession.sessionType)}
-            </div>
+            {safeSession.description}
+          </p>
+          
+          {/* Tags */}
+          <div className="flex flex-wrap gap-2 mb-4">
+            {safeSession.tags.map((tag) => (
+              <span
+                key={tag}
+                className="inline-block bg-primary/10 text-primary dark:bg-primary-light/20 dark:text-primary-light text-xs px-3 py-1 rounded-full hover:bg-primary/20 dark:hover:bg-primary-light/30 transition-colors font-medium"
+              >
+                {tag}
+              </span>
+            ))}
           </div>
-        </div>
-        
-        <p className="text-gray-600 dark:text-gray-300 text-sm mb-4 leading-relaxed overflow-hidden" style={{
-          display: '-webkit-box',
-          WebkitLineClamp: 2,
-          WebkitBoxOrient: 'vertical'
-        }}>
-          {safeSession.description}
-        </p>
-        
-        {/* Tags */}
-        <div className="flex flex-wrap gap-2 mb-4">
-          {safeSession.tags.map((tag) => (
-            <span
-              key={tag}
-              className="inline-block bg-primary/10 text-primary dark:bg-primary-light/20 dark:text-primary-light text-xs px-3 py-1 rounded-full hover:bg-primary/20 dark:hover:bg-primary-light/30 transition-colors font-medium"
-            >
-              {tag}
-            </span>
-          ))}
-        </div>
+        </Link>
         
         {/* Author and timestamp */}
         <div className="flex items-center justify-between text-sm text-gray-500 dark:text-gray-400">
@@ -157,9 +158,13 @@ export default function SessionCard({ session, showActions, onAuthRequired }) {
               }}
               referrerPolicy="no-referrer"
             />
-            <span className="font-medium text-primary">
+            <Link 
+              href={`/users/${safeSession.author.userId || encodeURIComponent(safeSession.author.username)}`}
+              className="font-medium text-primary hover:text-primary-dark dark:hover:text-primary-light transition-colors"
+              onClick={(e) => e.stopPropagation()}
+            >
               {safeSession.author.username}
-            </span>
+            </Link>
           </div>
           
           <div className="flex items-center space-x-4">
@@ -175,7 +180,6 @@ export default function SessionCard({ session, showActions, onAuthRequired }) {
           </div>
         </div>
       </div>
-      </div>
-    </Link>
+    </div>
   );
 }
