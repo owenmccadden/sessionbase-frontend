@@ -297,7 +297,8 @@ export default function McpIntegration() {
                 href="https://docs.sessionbase.ai/mcp-server/installation" 
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 px-6 py-3 bg-primary hover:bg-primary-dark dark:bg-primary-light dark:hover:bg-primary text-white font-semibold rounded-lg transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5"
+                className="inline-flex items-center gap-2 px-6 py-3 hover:bg-primary dark:bg-primary-light dark:hover:bg-primary text-white font-semibold rounded-lg transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5"
+                style={{ backgroundColor: 'var(--primary-dark)' }}
               >
                 Get started in minutes
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

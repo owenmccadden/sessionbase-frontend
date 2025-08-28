@@ -32,7 +32,7 @@ export default function Hero({ onShowAuth }) {
                 href="https://docs.sessionbase.ai/mcp-server/installation"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="bg-primary text-white px-8 py-4 rounded-lg font-semibold hover:bg-primary-hover transition-colors shadow-lg text-center"
+                className="bg-primary-dark text-white px-8 py-4 rounded-lg font-semibold hover:bg-primary transition-colors shadow-lg text-center"
               >
                 Get Started — MCP Server
               </a>

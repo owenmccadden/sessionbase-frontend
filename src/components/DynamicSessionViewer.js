@@ -137,7 +137,7 @@ export default function DynamicSessionViewer() {
         <div key={index} className="space-y-3">
           {message.type === "user" ? (
             <div className="flex justify-end">
-              <div className="bg-primary text-white rounded-2xl px-4 py-3 max-w-xs text-sm">{message.content}</div>
+              <div className="bg-primary-dark text-white rounded-2xl px-4 py-3 max-w-xs text-sm">{message.content}</div>
             </div>
           ) : (
             <div className="flex space-x-3">
