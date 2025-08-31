@@ -546,6 +546,7 @@ function ConversationView({ session, isMobile }) {
   const [forceCollapseToggle, setForceCollapseToggle] = useState(0);
   const [forceMarkdownCollapseToggle, setForceMarkdownCollapseToggle] = useState(0);
   const [allToolUseBlocksHidden, setAllToolUseBlocksHidden] = useState(isMobile || false);
+  const [allReasoningBlocksHidden, setAllReasoningBlocksHidden] = useState(isMobile || false);
 
   // Update collapsed states when mobile state changes
   useEffect(() => {
@@ -553,6 +554,7 @@ function ConversationView({ session, isMobile }) {
       setAllCodeBlocksCollapsed(true);
       setAllMarkdownBlocksCollapsed(true);
       setAllToolUseBlocksHidden(true);
+      setAllReasoningBlocksHidden(true);
       setForceCollapseToggle(prev => prev + 1);
       setForceMarkdownCollapseToggle(prev => prev + 1);
     }
@@ -570,6 +572,10 @@ function ConversationView({ session, isMobile }) {
 
   const handleToggleAllToolUse = () => {
     setAllToolUseBlocksHidden(!allToolUseBlocksHidden);
+  };
+
+  const handleToggleAllReasoning = () => {
+    setAllReasoningBlocksHidden(!allReasoningBlocksHidden);
   };
 
   if (session.messages.length === 0) {
@@ -597,10 +603,15 @@ function ConversationView({ session, isMobile }) {
     message.toolCalls && message.toolCalls.length > 0
   );
 
+  // Check if there are any reasoning blocks in the session
+  const hasReasoningBlocks = session.messages.some(message => 
+    message.type === 'reasoning'
+  );
+
   return (
     <div className="space-y-4">
       {/* Sticky Controls - Hidden on Mobile */}
-      {!isMobile && (hasCodeBlocks || hasMarkdownBlocks || hasToolUseBlocks) && (
+      {!isMobile && (hasCodeBlocks || hasMarkdownBlocks || hasToolUseBlocks || hasReasoningBlocks) && (
         <div className="fixed top-20 right-4 z-30">
           <div className="flex flex-col space-y-1 bg-white dark:bg-slate-800 rounded-lg shadow-lg border border-gray-200 dark:border-slate-700 p-2 backdrop-blur-sm bg-white/95 dark:bg-slate-800/95">
             {/* Code Blocks Toggle */}
@@ -650,6 +661,22 @@ function ConversationView({ session, isMobile }) {
                 <span>🔧 Tools</span>
               </button>
             )}
+            
+            {/* Reasoning Blocks Toggle */}
+            {hasReasoningBlocks && (
+              <button
+                onClick={handleToggleAllReasoning}
+                title={`${allReasoningBlocksHidden ? 'Show' : 'Hide'} all reasoning blocks`}
+                className={`flex items-center space-x-2 px-3 py-2 rounded-md text-sm font-medium transition-all duration-200 hover:scale-105 ${
+                  allReasoningBlocksHidden 
+                    ? 'bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-300 hover:bg-purple-200 dark:hover:bg-purple-900/50' 
+                    : 'bg-gray-100 dark:bg-slate-600 dark:bg-slate-600 text-gray-700 dark:text-gray-300 dark:text-gray-200 hover:bg-gray-200 dark:bg-slate-500 dark:hover:bg-slate-500'
+                }`}
+              >
+                {allReasoningBlocksHidden ? <ChevronRightIcon /> : <ChevronDownIcon />}
+                <span>🧠 Reasoning</span>
+              </button>
+            )}
           </div>
         </div>
       )}
@@ -660,6 +687,11 @@ function ConversationView({ session, isMobile }) {
         const hasToolCalls = message.toolCalls && message.toolCalls.length > 0;
         const hasToolResults = message.toolResults && message.toolResults.length > 0;
         if ((hasToolCalls || hasToolResults) && allToolUseBlocksHidden) {
+          return null;
+        }
+        
+        // Hide reasoning messages if reasoning blocks are hidden
+        if (message.type === 'reasoning' && allReasoningBlocksHidden) {
           return null;
         }
         
@@ -685,6 +717,11 @@ function ConversationView({ session, isMobile }) {
 
 // Helper function to determine content type based on file extension and patterns
 function getContentType(content, message) {
+  // Reasoning messages should never be treated as code or markdown blocks
+  if (message && message.type === 'reasoning') {
+    return 'text';
+  }
+  
   // Extract actual content from Q Chat formats first
   const actualContent = extractQChatContent(content);
   
@@ -1299,6 +1336,7 @@ function UnifiedMessageBubble({ message, sessionType, allCodeBlocksCollapsed, fo
   const isAssistant = message.type === 'assistant';
   const isSystem = message.type === 'system' || message.type === 'tool';
   const isEnvironment = message.type === 'environment';
+  const isReasoning = message.type === 'reasoning';
   
   // Get session author info using same pattern as SessionCard
   const sessionAuthor = {
@@ -1322,6 +1360,11 @@ function UnifiedMessageBubble({ message, sessionType, allCodeBlocksCollapsed, fo
   // Special handling for environment context messages
   if (isEnvironment) {
     return <EnvironmentContextDisplay message={message} />;
+  }
+
+  // Special handling for reasoning messages
+  if (isReasoning) {
+    return <ReasoningMessageDisplay message={message} sessionType={sessionType} />;
   }
 
   return (
@@ -2138,6 +2181,100 @@ function CheckIcon() {
   );
 }
 
+
+function ReasoningMessageDisplay({ message, sessionType }) {
+  const [showRawData, setShowRawData] = useState(false);
+
+  return (
+    <div className="mb-4">
+      <div className="max-w-4xl mr-12">
+        {/* Message Header */}
+        <div className="flex items-center mb-2 justify-start">
+          <div className="group flex items-center space-x-2 text-sm text-gray-500 dark:text-gray-400">
+            <span className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-medium">
+              {sessionType === SESSION_TYPES.CODEX ? (
+                <>
+                  <img 
+                    src="/openai-logo-dark.png" 
+                    alt="OpenAI" 
+                    className="w-5 h-5 dark:hidden" 
+                  />
+                  <img 
+                    src="/openai-logo-light.png" 
+                    alt="OpenAI" 
+                    className="w-5 h-5 hidden dark:block" 
+                  />
+                </>
+              ) : (
+                <span className="text-purple-600 dark:text-purple-300">🧠</span>
+              )}
+            </span>
+            <span className="font-medium">
+              {sessionType === SESSION_TYPES.CODEX ? 'Codex' : 'Assistant'} <span className="text-xs text-gray-400">(reasoning)</span>
+            </span>
+          </div>
+        </div>
+
+        {/* Reasoning Content */}
+        <div className="bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-700 rounded-lg p-4">
+          <div className="prose prose-sm dark:prose-invert max-w-none">
+            <ReactMarkdown
+              components={{
+                code: ({ node, inline, className, children, ...props }) => {
+                  // Force short code snippets to be inline
+                  const codeText = String(children).trim();
+                  const isShortCode = codeText.length < 50 && !codeText.includes('\n');
+                  
+                  if (inline || isShortCode) {
+                    return <code className="bg-purple-100 dark:bg-purple-800 px-1 py-0.5 rounded text-sm font-mono" {...props}>{children}</code>;
+                  }
+                  return <code className="block bg-purple-100 dark:bg-purple-800 p-2 rounded text-sm font-mono overflow-x-auto" {...props}>{children}</code>;
+                },
+                pre: ({ children }) => {
+                  // Extract code content to check if it should be inline
+                  const codeContent = children?.props?.children;
+                  const codeText = String(codeContent).trim();
+                  const isShortCode = codeText.length < 50 && !codeText.includes('\n');
+                  
+                  if (isShortCode) {
+                    // Render as inline code instead of pre block
+                    return <code className="bg-purple-100 dark:bg-purple-800 px-1 py-0.5 rounded text-sm font-mono">{codeContent}</code>;
+                  }
+                  return <div className="my-2">{children}</div>;
+                },
+                p: ({ children }) => {
+                  // Add extra spacing for paragraphs to ensure separation
+                  return <p className="mb-4">{children}</p>;
+                }
+              }}
+            >
+              {message.content}
+            </ReactMarkdown>
+          </div>
+        </div>
+
+        {/* Show Raw Data Link */}
+        <div className="mt-2 flex justify-end">
+          <button
+            onClick={() => setShowRawData(!showRawData)}
+            className="text-xs text-gray-500 dark:text-gray-400 hover:text-purple-600 dark:hover:text-purple-300 underline transition-colors"
+          >
+            {showRawData ? 'Hide' : 'Show'} Raw Data
+          </button>
+        </div>
+
+        {/* Raw Data Display */}
+        {showRawData && (
+          <div className="mt-3 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-600 rounded-lg p-3">
+            <pre className="text-xs text-gray-700 dark:text-gray-300 overflow-x-auto whitespace-pre-wrap">
+              {JSON.stringify(message.originalRawData || message, null, 2)}
+            </pre>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
 
 function EnvironmentContextDisplay({ message }) {
   const parseEnvironmentContext = (content) => {

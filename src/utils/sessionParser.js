@@ -619,8 +619,19 @@ function parseCodexSession(data) {
   
   // Filter out state records and other non-conversational records
   const conversationalRecords = records.filter(record => {
-    // Only include message and reasoning records for conversation display
-    return record.type === 'message' || record.type === 'reasoning';
+    // Only include message records
+    if (record.type === 'message') {
+      return true;
+    }
+    
+    // For reasoning records, only include if they have summary or content
+    if (record.type === 'reasoning') {
+      const hasSummary = record.summary && Array.isArray(record.summary) && record.summary.length > 0;
+      const hasContent = record.content && record.content.trim().length > 0;
+      return hasSummary || hasContent;
+    }
+    
+    return false;
   });
   
   const normalizedMessages = conversationalRecords.map((record, index) => {
@@ -653,16 +664,24 @@ function parseCodexSession(data) {
         messageRole = 'system';
       }
     } else if (record.type === 'reasoning') {
-      messageType = 'assistant';
+      messageType = 'reasoning';
       messageRole = 'assistant';
       
       // Extract content from reasoning summary
       if (record.summary && Array.isArray(record.summary)) {
+        const summaryTexts = [];
         for (const summaryItem of record.summary) {
           if (summaryItem.type === 'summary_text' && summaryItem.text) {
-            content += summaryItem.text;
+            summaryTexts.push(summaryItem.text);
           }
         }
+        // Join multiple summary texts with triple newlines for better visual separation
+        content = summaryTexts.join('\n\n\n');
+      }
+      
+      // Also check for direct content
+      if (record.content && record.content.trim().length > 0) {
+        content += record.content;
       }
     }
     
