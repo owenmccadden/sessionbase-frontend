@@ -1442,8 +1442,8 @@ function UnifiedMessageBubble({ message, sessionType, allCodeBlocksCollapsed, fo
             ? 'bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-700 shadow-sm text-gray-900 dark:text-gray-100'
             : 'bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 shadow-sm text-gray-900 dark:text-gray-100'
         }`}>
-          {/* Copy Button - Hide for tool blocks, code blocks, markdown blocks, and commands */}
-          {!isSystem && !shouldRenderCode && !shouldRenderMarkdown && !isCommand && (
+          {/* Copy Button - Hide for tool blocks, code blocks, markdown blocks, commands, and tool calls */}
+          {!isSystem && !shouldRenderCode && !shouldRenderMarkdown && !isCommand && !(message.toolCalls && message.toolCalls.length > 0) && (
             <button
               onClick={() => copyToClipboard(extractQChatContent(message.content))}
               className={`absolute top-1 right-1 p-1.5 rounded-md transition-all ${
@@ -1676,13 +1676,6 @@ function UnifiedToolUseDisplay({ toolUse, isUser, sessionType }) {
       </div>
       
       <div className="space-y-2">
-        {toolUse.id && sessionType !== SESSION_TYPES.Q_CHAT && (
-          <div className={`text-xs ${
-            isUser ? 'text-blue-200' : 'text-yellow-600'
-          }`}>
-            ID: {toolUse.id}
-          </div>
-        )}
 
         {/* Show summary if available (Q Chat feature) */}
         {toolUse.metadata?.summary && (
@@ -1745,20 +1738,12 @@ function UnifiedToolResultDisplay({ results, showDetails, onToggleDetails, isUse
       isUser ? 'border-t border-blue-400' : 'border-t border-gray-200'
     }`}>
       <div className="flex items-center justify-between mb-3">
-        <div className="flex items-center space-x-2">
-          <span className={isUser ? 'text-blue-100' : 'text-yellow-600'}>✅</span>
-          <span className={`font-medium text-sm ${
-            isUser ? 'text-blue-100' : 'text-gray-700 dark:text-gray-300'
-          }`}>
-            Tool Execution Results
-          </span>
-        </div>
         <button
           onClick={onToggleDetails}
-          className={`text-xs underline ml-4 ${
+          className={`text-sm underline ${
             isUser 
               ? 'text-blue-200 hover:text-blue-100' 
-              : 'text-gray-500 dark:text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:text-gray-300'
+              : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
           }`}
         >
           {showDetails ? 'Hide' : 'Show'} Details
@@ -1770,12 +1755,55 @@ function UnifiedToolResultDisplay({ results, showDetails, onToggleDetails, isUse
           {results.map((result, index) => (
             <div key={index} className={`p-3 rounded ${
               isUser 
-                ? 'bg-primary/5 dark:bg-primary-light/100 text-blue-100' 
-                : 'bg-yellow-50 border border-yellow-200 text-yellow-800'
+                ? 'bg-primary/5 dark:bg-primary-light/10 text-blue-100' 
+                : 'bg-gray-50 dark:bg-slate-700 border border-gray-200 dark:border-slate-600'
             }`}>
-              <pre className="text-xs overflow-auto">
-                {JSON.stringify(result, null, 2)}
-              </pre>
+              {/* Try to format shell command output nicely */}
+              {(() => {
+                if (typeof result.content === 'string') {
+                  try {
+                    const parsed = JSON.parse(result.content);
+                    if (parsed.output) {
+                      return (
+                        <div className="space-y-2">
+                          <pre className={`text-sm font-mono whitespace-pre-wrap overflow-auto ${
+                            isUser ? 'text-blue-100' : 'text-gray-800 dark:text-gray-200'
+                          }`}>
+                            {parsed.output}
+                          </pre>
+                          {parsed.metadata && (
+                            <div className={`text-xs ${
+                              isUser ? 'text-blue-200' : 'text-gray-500 dark:text-gray-400'
+                            }`}>
+                              Exit code: {parsed.metadata.exit_code}, Duration: {parsed.metadata.duration_seconds}s
+                            </div>
+                          )}
+                        </div>
+                      );
+                    }
+                  } catch (e) {
+                    // If parsing fails, show raw content
+                  }
+                  
+                  // Show raw string content
+                  return (
+                    <pre className={`text-sm font-mono whitespace-pre-wrap overflow-auto ${
+                      isUser ? 'text-blue-100' : 'text-gray-800 dark:text-gray-200'
+                    }`}>
+                      {result.content}
+                    </pre>
+                  );
+                }
+                
+                // Fallback to JSON display
+                return (
+                  <pre className={`text-xs font-mono overflow-auto ${
+                    isUser ? 'text-blue-100' : 'text-gray-800 dark:text-gray-200'
+                  }`}>
+                    {JSON.stringify(result, null, 2)}
+                  </pre>
+                );
+              })()}
             </div>
           ))}
         </div>
@@ -1998,12 +2026,6 @@ function ToolCallDetailCard({ tool, allExpanded }) {
         </div>
       </div>
 
-      {/* Tool ID */}
-      {tool.id && (
-        <div className="text-xs text-gray-600 dark:text-gray-300 mb-2">
-          ID: <code className="bg-gray-100 dark:bg-slate-600 px-1 rounded">{tool.id}</code>
-        </div>
-      )}
 
       {/* Summary (Q Chat feature) */}
       {tool.metadata?.summary && (

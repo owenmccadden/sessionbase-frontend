@@ -571,6 +571,51 @@ function parseGeminiSession(data) {
 }
 
 /**
+ * Group Codex function calls with their corresponding outputs
+ */
+function groupCodexFunctionCalls(records) {
+  const groupedRecords = [];
+  const outputsMap = new Map(); // Map call_id to outputs
+  
+  // First pass: collect all function call outputs
+  records.forEach(record => {
+    if (record.type === 'function_call_output') {
+      if (!outputsMap.has(record.call_id)) {
+        outputsMap.set(record.call_id, []);
+      }
+      outputsMap.get(record.call_id).push(record);
+    }
+  });
+  
+  // Second pass: group function calls with their outputs, keep other records as-is
+  records.forEach(record => {
+    if (record.type === 'function_call') {
+      // Attach paired outputs to the function call
+      const pairedOutputs = outputsMap.get(record.call_id) || [];
+      groupedRecords.push({
+        ...record,
+        pairedOutputs
+      });
+      
+      // Mark outputs as grouped so we don't process them separately
+      pairedOutputs.forEach(output => {
+        output.isGrouped = true;
+      });
+    } else if (record.type === 'function_call_output') {
+      // Only include if not already grouped
+      if (!record.isGrouped) {
+        groupedRecords.push(record);
+      }
+    } else {
+      // Keep other record types as-is
+      groupedRecords.push(record);
+    }
+  });
+  
+  return groupedRecords;
+}
+
+/**
  * Parse Codex JSONL format
  */
 function parseCodexSession(data) {
@@ -619,8 +664,13 @@ function parseCodexSession(data) {
   
   // Filter out state records and other non-conversational records
   const conversationalRecords = records.filter(record => {
-    // Only include message records
+    // Include message records
     if (record.type === 'message') {
+      return true;
+    }
+    
+    // Include function_call and function_call_output records
+    if (record.type === 'function_call' || record.type === 'function_call_output') {
       return true;
     }
     
@@ -634,11 +684,16 @@ function parseCodexSession(data) {
     return false;
   });
   
-  const normalizedMessages = conversationalRecords.map((record, index) => {
+  // Group function calls with their outputs
+  const groupedRecords = groupCodexFunctionCalls(conversationalRecords);
+  
+  const normalizedMessages = groupedRecords.map((record, index) => {
     const messageId = record.id || `codex-${index}`;
     let content = '';
     let messageType = 'assistant';
     let messageRole = 'assistant';
+    let toolCalls = [];
+    let toolResults = [];
     
     if (record.type === 'message') {
       messageRole = record.role || 'user';
@@ -683,9 +738,54 @@ function parseCodexSession(data) {
       if (record.content && record.content.trim().length > 0) {
         content += record.content;
       }
+    } else if (record.type === 'function_call') {
+      // Function calls are assistant messages with toolCalls
+      messageType = 'assistant';
+      messageRole = 'assistant';
+      content = `Using tool: ${record.name}`;
+      
+      toolCalls = [{
+        id: record.call_id,
+        name: record.name,
+        input: parseJSONSafely(record.arguments),
+        timestamp: new Date(record.timestamp || Date.now()),
+        metadata: {
+          codexFunctionCallId: record.id
+        }
+      }];
+      
+      // If this record has paired outputs, add them as toolResults
+      if (record.pairedOutputs && record.pairedOutputs.length > 0) {
+        toolResults = record.pairedOutputs.map(output => {
+          const parsedOutput = parseJSONSafely(output.output);
+          return {
+            tool_use_id: output.call_id,
+            content: typeof parsedOutput === 'string' ? parsedOutput : JSON.stringify(parsedOutput, null, 2),
+            is_error: false,
+            metadata: {
+              codexOutputId: output.id
+            }
+          };
+        });
+      }
+    } else if (record.type === 'function_call_output' && !record.isGrouped) {
+      // Standalone function call output (shouldn't happen with proper grouping, but handle as fallback)
+      messageType = 'tool';
+      messageRole = 'tool';
+      content = `Tool result for call ${record.call_id}`;
+      
+      const parsedOutput = parseJSONSafely(record.output);
+      toolResults = [{
+        tool_use_id: record.call_id,
+        content: typeof parsedOutput === 'string' ? parsedOutput : JSON.stringify(parsedOutput, null, 2),
+        is_error: false,
+        metadata: {
+          codexOutputId: record.id
+        }
+      }];
     }
     
-    return {
+    const normalizedMessage = {
       id: messageId,
       type: messageType,
       role: messageRole,
@@ -701,6 +801,16 @@ function parseCodexSession(data) {
       },
       originalRawData: record
     };
+    
+    // Add toolCalls and toolResults if present
+    if (toolCalls.length > 0) {
+      normalizedMessage.toolCalls = toolCalls;
+    }
+    if (toolResults.length > 0) {
+      normalizedMessage.toolResults = toolResults;
+    }
+    
+    return normalizedMessage;
   });
   
   return {
@@ -865,6 +975,21 @@ function calculateStats(messages) {
   stats.totalTokens = stats.inputTokens + stats.outputTokens;
   
   return stats;
+}
+
+/**
+ * Safely parse JSON with fallback to original value
+ */
+function parseJSONSafely(value) {
+  if (!value) return value;
+  if (typeof value !== 'string') return value;
+  
+  try {
+    return JSON.parse(value);
+  } catch (error) {
+    // If parsing fails, return the original string
+    return value;
+  }
 }
 
 /**
