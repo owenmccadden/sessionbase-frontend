@@ -9,6 +9,7 @@ export const SESSION_TYPES = {
   CLAUDE_CODE: 'claude-code',
   CURSOR: 'cursor',
   GEMINI_CLI: 'gemini-cli',
+  CODEX: 'codex',
   UNKNOWN: 'unknown'
 };
 
@@ -60,6 +61,12 @@ export function detectSessionFormat(data) {
         // Gemini CLI JSONL detection
         if (firstLine.role && firstLine.parts) {
           return SESSION_TYPES.GEMINI_CLI;
+        }
+        
+        // Codex JSONL detection
+        if (firstLine.id && firstLine.timestamp && 
+            (firstLine.type === 'message' || firstLine.type === 'reasoning')) {
+          return SESSION_TYPES.CODEX;
         }
         
         return SESSION_TYPES.UNKNOWN;
@@ -125,6 +132,8 @@ export function parseSession(rawData, knownSessionType = null) {
       return parseCursorSession(rawData);
     case SESSION_TYPES.GEMINI_CLI:
       return parseGeminiSession(rawData);
+    case SESSION_TYPES.CODEX:
+      return parseCodexSession(rawData);
     default:
       return parseUnknownSession(rawData, sessionType);
   }
@@ -558,6 +567,136 @@ function parseGeminiSession(data) {
     messages: normalizedMessages,
     stats: calculateStats(normalizedMessages),
     rawData: data
+  };
+}
+
+/**
+ * Parse Codex JSONL format
+ */
+function parseCodexSession(data) {
+  let records = [];
+  
+  if (typeof data === 'string') {
+    // Parse JSONL
+    const lines = data.trim().split('\n').filter(line => line.trim());
+    records = lines.map(line => JSON.parse(line));
+  } else if (Array.isArray(data)) {
+    records = data;
+  } else if (data.messages && Array.isArray(data.messages)) {
+    // Handle wrapped format: {"messages": [...], "platform": "codex"}
+    records = data.messages;
+  }
+  
+  const sessionId = records[0]?.id || 'codex-session';
+  let cwd = '';
+  
+  // Extract CWD from the session data
+  for (const record of records) {
+    if (record.type === 'message' && record.content && Array.isArray(record.content)) {
+      for (const contentItem of record.content) {
+        if (contentItem.type === 'input_text' && contentItem.text && !cwd) {
+          // Try newer <cwd> tag format
+          if (contentItem.text.includes('<cwd>')) {
+            const cwdMatch = contentItem.text.match(/<cwd>(.+?)<\/cwd>/);
+            if (cwdMatch) {
+              cwd = cwdMatch[1];
+              break;
+            }
+          }
+          // Try older "Current working directory:" format
+          else if (contentItem.text.includes('Current working directory:')) {
+            const cwdMatch = contentItem.text.match(/Current working directory:\s*([^\n<]+)/);
+            if (cwdMatch) {
+              cwd = cwdMatch[1].trim();
+              break;
+            }
+          }
+        }
+      }
+      if (cwd) break;
+    }
+  }
+  
+  // Filter out state records and other non-conversational records
+  const conversationalRecords = records.filter(record => {
+    // Only include message and reasoning records for conversation display
+    return record.type === 'message' || record.type === 'reasoning';
+  });
+  
+  const normalizedMessages = conversationalRecords.map((record, index) => {
+    const messageId = record.id || `codex-${index}`;
+    let content = '';
+    let messageType = 'assistant';
+    let messageRole = 'assistant';
+    
+    if (record.type === 'message') {
+      messageRole = record.role || 'user';
+      messageType = record.role || 'user';
+      
+      // Extract content from the content array
+      if (record.content && Array.isArray(record.content)) {
+        for (const contentItem of record.content) {
+          if (contentItem.type === 'input_text' && contentItem.text) {
+            content += contentItem.text;
+          }
+        }
+      }
+      
+      // Check if this message contains only environment context
+      const isEnvironmentContext = content.includes('<environment_context>') && 
+                                   content.includes('</environment_context>') &&
+                                   content.trim().startsWith('<environment_context>') &&
+                                   content.trim().endsWith('</environment_context>');
+      
+      if (isEnvironmentContext) {
+        messageType = 'environment';
+        messageRole = 'system';
+      }
+    } else if (record.type === 'reasoning') {
+      messageType = 'assistant';
+      messageRole = 'assistant';
+      
+      // Extract content from reasoning summary
+      if (record.summary && Array.isArray(record.summary)) {
+        for (const summaryItem of record.summary) {
+          if (summaryItem.type === 'summary_text' && summaryItem.text) {
+            content += summaryItem.text;
+          }
+        }
+      }
+    }
+    
+    return {
+      id: messageId,
+      type: messageType,
+      role: messageRole,
+      content: content || JSON.stringify(record),
+      timestamp: new Date(record.timestamp),
+      metadata: {
+        codexId: record.id,
+        recordType: record.type,
+        instructions: record.instructions
+      },
+      context: {
+        cwd: cwd
+      },
+      originalRawData: record
+    };
+  });
+  
+  return {
+    id: sessionId,
+    type: SESSION_TYPES.CODEX,
+    title: 'Codex Session',
+    metadata: {
+      sessionId,
+      cwd,
+      totalRecords: records.length,
+      conversationalRecords: conversationalRecords.length
+    },
+    messages: normalizedMessages,
+    stats: calculateStats(normalizedMessages),
+    rawData: records
   };
 }
 

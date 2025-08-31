@@ -264,6 +264,21 @@ function SessionHeader({ session, user, onSessionUpdate, sessionId, isMobile }) 
         return '⚡';
       case SESSION_TYPES.GEMINI_CLI:
         return <img src="/gemini-cli-logo.png" alt="Gemini CLI" className="w-8 h-8" />;
+      case SESSION_TYPES.CODEX:
+        return (
+          <>
+            <img 
+              src="/openai-logo-dark.png" 
+              alt="OpenAI" 
+              className="w-10 h-10 dark:hidden" 
+            />
+            <img 
+              src="/openai-logo-light.png" 
+              alt="OpenAI" 
+              className="w-10 h-10 hidden dark:block" 
+            />
+          </>
+        );
       default:
         return '❓';
     }
@@ -279,6 +294,8 @@ function SessionHeader({ session, user, onSessionUpdate, sessionId, isMobile }) 
         return 'Cursor';
       case SESSION_TYPES.GEMINI_CLI:
         return 'Gemini CLI';
+      case SESSION_TYPES.CODEX:
+        return 'OpenAI Codex';
       default:
         return 'Unknown Format';
     }
@@ -1281,6 +1298,7 @@ function UnifiedMessageBubble({ message, sessionType, allCodeBlocksCollapsed, fo
   const isUser = message.type === 'user';
   const isAssistant = message.type === 'assistant';
   const isSystem = message.type === 'system' || message.type === 'tool';
+  const isEnvironment = message.type === 'environment';
   
   // Get session author info using same pattern as SessionCard
   const sessionAuthor = {
@@ -1300,6 +1318,11 @@ function UnifiedMessageBubble({ message, sessionType, allCodeBlocksCollapsed, fo
     ? getCombinedCommand(message) 
     : detectCommand(extractQChatContent(message.content), session.type);
   const isCommand = detectedCommand !== null;
+
+  // Special handling for environment context messages
+  if (isEnvironment) {
+    return <EnvironmentContextDisplay message={message} />;
+  }
 
   return (
     <div className={`flex ${isUser ? 'justify-end' : 'justify-start'} mb-4`}>
@@ -1327,6 +1350,20 @@ function UnifiedMessageBubble({ message, sessionType, allCodeBlocksCollapsed, fo
                   <img src="/q-logo.png" alt="Amazon Q" className="w-4 h-4" /> :
                   sessionType === SESSION_TYPES.GEMINI_CLI ? 
                     <img src="/gemini-cli-logo.png" alt="Gemini CLI" className="w-4 h-4" /> :
+                  sessionType === SESSION_TYPES.CODEX ? (
+                    <>
+                      <img 
+                        src="/openai-logo-dark.png" 
+                        alt="OpenAI" 
+                        className="w-6 h-6 dark:hidden" 
+                      />
+                      <img 
+                        src="/openai-logo-light.png" 
+                        alt="OpenAI" 
+                        className="w-6 h-6 hidden dark:block" 
+                      />
+                    </>
+                  ) :
                     <img src="/claude-logo.png" alt="Claude" className="w-4 h-4" />
               }
             </span>
@@ -1336,6 +1373,7 @@ function UnifiedMessageBubble({ message, sessionType, allCodeBlocksCollapsed, fo
               {message.type === 'assistant' && sessionType === SESSION_TYPES.CLAUDE_CODE ? 'Claude' : 
                message.type === 'assistant' && sessionType === SESSION_TYPES.Q_CHAT ? 'Amazon Q' :
                message.type === 'assistant' && sessionType === SESSION_TYPES.GEMINI_CLI ? 'Gemini' :
+               message.type === 'assistant' && sessionType === SESSION_TYPES.CODEX ? 'Codex' :
                message.type === 'user' ? (
                 sessionAuthor.userId ? (
                   <Link href={`/users/${sessionAuthor.userId}`} className="hover:underline">
@@ -2100,6 +2138,72 @@ function CheckIcon() {
   );
 }
 
+
+function EnvironmentContextDisplay({ message }) {
+  const parseEnvironmentContext = (content) => {
+    const contextInfo = {};
+    
+    // Extract working directory
+    const cwdMatch = content.match(/Current working directory:\s*([^\n]+)/);
+    if (cwdMatch) contextInfo.cwd = cwdMatch[1].trim();
+    
+    // Extract approval policy
+    const approvalMatch = content.match(/Approval policy:\s*([^\n]+)/);
+    if (approvalMatch) contextInfo.approvalPolicy = approvalMatch[1].trim();
+    
+    // Extract sandbox mode
+    const sandboxMatch = content.match(/Sandbox mode:\s*([^\n]+)/);
+    if (sandboxMatch) contextInfo.sandboxMode = sandboxMatch[1].trim();
+    
+    // Extract network access
+    const networkMatch = content.match(/Network access:\s*([^\n]+)/);
+    if (networkMatch) contextInfo.networkAccess = networkMatch[1].trim();
+    
+    return contextInfo;
+  };
+  
+  const envInfo = parseEnvironmentContext(message.content);
+  
+  return (
+    <div className="mb-4">
+      <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 rounded-lg p-4">
+        <div className="flex items-center mb-3">
+          <h4 className="font-medium text-blue-900 dark:text-blue-100">Environment Context</h4>
+        </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+          {envInfo.cwd && (
+            <div className="flex items-start">
+              <span className="font-medium text-blue-800 dark:text-blue-200 mr-2 min-w-0">Directory:</span>
+              <span className="text-blue-700 dark:text-blue-300 font-mono text-xs break-all">{envInfo.cwd}</span>
+            </div>
+          )}
+          
+          {envInfo.approvalPolicy && (
+            <div className="flex items-start">
+              <span className="font-medium text-blue-800 dark:text-blue-200 mr-2">Approval:</span>
+              <span className="text-blue-700 dark:text-blue-300">{envInfo.approvalPolicy}</span>
+            </div>
+          )}
+          
+          {envInfo.sandboxMode && (
+            <div className="flex items-start">
+              <span className="font-medium text-blue-800 dark:text-blue-200 mr-2">Sandbox:</span>
+              <span className="text-blue-700 dark:text-blue-300">{envInfo.sandboxMode}</span>
+            </div>
+          )}
+          
+          {envInfo.networkAccess && (
+            <div className="flex items-start">
+              <span className="font-medium text-blue-800 dark:text-blue-200 mr-2">Network:</span>
+              <span className="text-blue-700 dark:text-blue-300">{envInfo.networkAccess}</span>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
 
 function ChevronRightIcon() {
   return (

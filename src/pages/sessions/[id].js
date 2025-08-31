@@ -89,6 +89,7 @@ export default function SessionPage() {
           (sessionMetadata.sessionType === 'q-chat' ? SESSION_TYPES.Q_CHAT :
            sessionMetadata.sessionType === 'claude' ? SESSION_TYPES.CLAUDE_CODE :
            sessionMetadata.sessionType === 'gemini_cli' ? SESSION_TYPES.GEMINI_CLI :
+           sessionMetadata.sessionType === 'codex' ? SESSION_TYPES.CODEX :
            null) : null;
         
         const normalizedSession = parseSession(parsedSessionData, knownSessionType);
@@ -211,6 +212,8 @@ export default function SessionPage() {
         return 'Cursor Format';
       case SESSION_TYPES.GEMINI_CLI:
         return 'Gemini CLI Format';
+      case SESSION_TYPES.CODEX:
+        return 'Codex JSONL';
       default:
         return 'Unknown Format';
     }
@@ -226,6 +229,8 @@ export default function SessionPage() {
         return 'bg-green-100 text-green-800';
       case SESSION_TYPES.GEMINI_CLI:
         return 'bg-yellow-100 text-yellow-800';
+      case SESSION_TYPES.CODEX:
+        return 'bg-orange-100 text-orange-800';
       default:
         return 'bg-gray-100 text-gray-800';
     }
