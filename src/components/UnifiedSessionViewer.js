@@ -2302,21 +2302,33 @@ function EnvironmentContextDisplay({ message }) {
   const parseEnvironmentContext = (content) => {
     const contextInfo = {};
     
-    // Extract working directory
-    const cwdMatch = content.match(/Current working directory:\s*([^\n]+)/);
-    if (cwdMatch) contextInfo.cwd = cwdMatch[1].trim();
+    // Extract working directory - support both XML and plain text formats
+    const cwdXmlMatch = content.match(/<cwd>(.+?)<\/cwd>/);
+    const cwdTextMatch = content.match(/Current working directory:\s*([^\n]+)/);
+    if (cwdXmlMatch) contextInfo.cwd = cwdXmlMatch[1].trim();
+    else if (cwdTextMatch) contextInfo.cwd = cwdTextMatch[1].trim();
     
-    // Extract approval policy
-    const approvalMatch = content.match(/Approval policy:\s*([^\n]+)/);
-    if (approvalMatch) contextInfo.approvalPolicy = approvalMatch[1].trim();
+    // Extract approval policy - support both XML and plain text formats
+    const approvalXmlMatch = content.match(/<approval_policy>(.+?)<\/approval_policy>/);
+    const approvalTextMatch = content.match(/Approval policy:\s*([^\n]+)/);
+    if (approvalXmlMatch) contextInfo.approvalPolicy = approvalXmlMatch[1].trim();
+    else if (approvalTextMatch) contextInfo.approvalPolicy = approvalTextMatch[1].trim();
     
-    // Extract sandbox mode
-    const sandboxMatch = content.match(/Sandbox mode:\s*([^\n]+)/);
-    if (sandboxMatch) contextInfo.sandboxMode = sandboxMatch[1].trim();
+    // Extract sandbox mode - support both XML and plain text formats
+    const sandboxXmlMatch = content.match(/<sandbox_mode>(.+?)<\/sandbox_mode>/);
+    const sandboxTextMatch = content.match(/Sandbox mode:\s*([^\n]+)/);
+    if (sandboxXmlMatch) contextInfo.sandboxMode = sandboxXmlMatch[1].trim();
+    else if (sandboxTextMatch) contextInfo.sandboxMode = sandboxTextMatch[1].trim();
     
-    // Extract network access
-    const networkMatch = content.match(/Network access:\s*([^\n]+)/);
-    if (networkMatch) contextInfo.networkAccess = networkMatch[1].trim();
+    // Extract network access - support both XML and plain text formats
+    const networkXmlMatch = content.match(/<network_access>(.+?)<\/network_access>/);
+    const networkTextMatch = content.match(/Network access:\s*([^\n]+)/);
+    if (networkXmlMatch) contextInfo.networkAccess = networkXmlMatch[1].trim();
+    else if (networkTextMatch) contextInfo.networkAccess = networkTextMatch[1].trim();
+    
+    // Extract shell from XML tags (XML format only)
+    const shellMatch = content.match(/<shell>(.+?)<\/shell>/);
+    if (shellMatch) contextInfo.shell = shellMatch[1].trim();
     
     return contextInfo;
   };
@@ -2356,6 +2368,13 @@ function EnvironmentContextDisplay({ message }) {
             <div className="flex items-start">
               <span className="font-medium text-blue-800 dark:text-blue-200 mr-2">Network:</span>
               <span className="text-blue-700 dark:text-blue-300">{envInfo.networkAccess}</span>
+            </div>
+          )}
+          
+          {envInfo.shell && (
+            <div className="flex items-start">
+              <span className="font-medium text-blue-800 dark:text-blue-200 mr-2">Shell:</span>
+              <span className="text-blue-700 dark:text-blue-300">{envInfo.shell}</span>
             </div>
           )}
         </div>
