@@ -701,11 +701,15 @@ function parseCodexSession(data) {
       
       // Extract content from the content array
       if (record.content && Array.isArray(record.content)) {
+        const textContent = [];
         for (const contentItem of record.content) {
           if (contentItem.type === 'input_text' && contentItem.text) {
-            content += contentItem.text;
+            textContent.push(contentItem.text);
+          } else if (contentItem.type === 'output_text' && contentItem.text) {
+            textContent.push(contentItem.text);
           }
         }
+        content = textContent.join('\n');
       }
       
       // Check if this message contains only environment context
