@@ -24,6 +24,13 @@ function getPlatformLogo(sessionType) {
       return <span className="text-lg">⚡</span>;
     case SESSION_TYPES.GEMINI_CLI:
       return <img src="/gemini-cli-logo.png" alt="Gemini CLI" className="w-6 h-6" />;
+    case SESSION_TYPES.CODEX:
+      return (
+        <>
+          <img src="/openai-logo-dark.png" alt="OpenAI Codex" className="w-6 h-6 dark:hidden" />
+          <img src="/openai-logo-light.png" alt="OpenAI Codex" className="w-6 h-6 hidden dark:block" />
+        </>
+      );
     default:
       return <span className="text-xs text-gray-400">?</span>;
   }
@@ -45,6 +52,7 @@ export default function SessionCard({ session, showActions, onAuthRequired }) {
       if (sessionType === 'claude' || sessionType === 'claude-code') return SESSION_TYPES.CLAUDE_CODE;
       if (sessionType === 'gemini_cli') return SESSION_TYPES.GEMINI_CLI;
       if (sessionType === 'cursor') return SESSION_TYPES.CURSOR;
+      if (sessionType === 'codex') return SESSION_TYPES.CODEX;
     }
     
     // Check metadata for sessionType
@@ -54,6 +62,7 @@ export default function SessionCard({ session, showActions, onAuthRequired }) {
       if (metaType === 'claude' || metaType === 'claude-code') return SESSION_TYPES.CLAUDE_CODE;
       if (metaType === 'gemini_cli') return SESSION_TYPES.GEMINI_CLI;
       if (metaType === 'cursor') return SESSION_TYPES.CURSOR;
+      if (metaType === 'codex') return SESSION_TYPES.CODEX;
     }
     
     // Try to detect based on raw data if available
@@ -71,6 +80,9 @@ export default function SessionCard({ session, showActions, onAuthRequired }) {
     }
     if (modelName.toLowerCase().includes('q-')) {
       return SESSION_TYPES.Q_CHAT;
+    }
+    if (modelName.toLowerCase().includes('codex') || modelName.toLowerCase().includes('openai')) {
+      return SESSION_TYPES.CODEX;
     }
     
     return SESSION_TYPES.UNKNOWN;
