@@ -670,7 +670,7 @@ function ConversationView({ session, isMobile }) {
                 title={`${allReasoningBlocksHidden ? 'Show' : 'Hide'} all reasoning blocks`}
                 className={`flex items-center space-x-2 px-3 py-2 rounded-md text-sm font-medium transition-all duration-200 hover:scale-105 ${
                   allReasoningBlocksHidden 
-                    ? 'bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-300 hover:bg-purple-200 dark:hover:bg-purple-900/50' 
+                    ? 'bg-purple-100 dark:bg-purple-900/20 text-purple-800 dark:text-purple-400 hover:bg-purple-200 dark:hover:bg-purple-900/30' 
                     : 'bg-gray-100 dark:bg-slate-600 dark:bg-slate-600 text-gray-700 dark:text-gray-300 dark:text-gray-200 hover:bg-gray-200 dark:bg-slate-500 dark:hover:bg-slate-500'
                 }`}
               >
@@ -2299,23 +2299,23 @@ function CollapsedReasoningBlock({ message, sessionType }) {
   return (
     <div className="mb-4 max-w-2xl">
       <div 
-        className="bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-700 rounded-lg cursor-pointer hover:shadow-md transition-all"
+        className="bg-purple-50 dark:bg-purple-900/10 border border-purple-200 dark:border-purple-800/50 rounded-lg cursor-pointer hover:shadow-md transition-all"
         onClick={() => setIsExpanded(!isExpanded)}
       >
         <div className="p-3 flex items-center justify-between">
           <div className="flex items-center space-x-3">
-            <span className="text-purple-600 dark:text-purple-300">🧠</span>
-            <div className="font-medium text-purple-900 dark:text-purple-100">
+            <span className="text-purple-600 dark:text-purple-400">🧠</span>
+            <div className="font-medium text-purple-900 dark:text-purple-200">
               {getAssistantName(sessionType)} reasoning • Click to {isExpanded ? 'collapse' : 'expand'}
             </div>
           </div>
-          <div className="text-purple-600 dark:text-purple-300">
+          <div className="text-purple-600 dark:text-purple-400">
             {isExpanded ? <ChevronDownIcon /> : <ChevronRightIcon />}
           </div>
         </div>
         
         {isExpanded && (
-          <div className="border-t border-purple-200 dark:border-purple-700 p-4">
+          <div className="border-t border-purple-200 dark:border-purple-800/50 p-4">
             <ReasoningMessageDisplay message={message} sessionType={sessionType} isInsideGroup={true} />
           </div>
         )}
@@ -2355,27 +2355,27 @@ function CollapsedToolUseGroup({ messages, sessionType }) {
   return (
     <div className="mb-4 max-w-2xl">
       <div 
-        className="bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-700 rounded-lg hover:shadow-md transition-all"
+        className="bg-orange-50 dark:bg-orange-900/10 border border-orange-200 dark:border-orange-800/50 rounded-lg hover:shadow-md transition-all"
       >
         <div 
           className="p-3 flex items-center justify-between cursor-pointer"
           onClick={handleGroupClick}
         >
           <div className="flex items-center space-x-3">
-            <span className="text-orange-600 dark:text-orange-300">🔧</span>
-            <div className="font-medium text-orange-900 dark:text-orange-100">
+            <span className="text-orange-600 dark:text-orange-400">🔧</span>
+            <div className="font-medium text-orange-900 dark:text-orange-200">
               {totalToolCalls} {getAssistantName(sessionType)} tool call{totalToolCalls !== 1 ? 's' : ''} • Click to {isExpanded ? 'collapse' : 'expand'}
             </div>
           </div>
-          <div className="text-orange-600 dark:text-orange-300">
+          <div className="text-orange-600 dark:text-orange-400">
             {isExpanded ? <ChevronDownIcon /> : <ChevronRightIcon />}
           </div>
         </div>
         
         {isExpanded && (
-          <div className="border-t border-orange-200 dark:border-orange-700">
+          <div className="border-t border-orange-200 dark:border-orange-800/50">
             {messages.map((message, index) => (
-              <div key={message.id} className={`${index > 0 ? 'border-t border-orange-100 dark:border-orange-800' : ''}`}>
+              <div key={message.id} className={`${index > 0 ? 'border-t border-orange-100 dark:border-orange-800/30' : ''}`}>
                 <UnifiedMessageBubble 
                   message={message} 
                   sessionType={sessionType}
@@ -2432,7 +2432,7 @@ function ReasoningMessageDisplay({ message, sessionType, isInsideGroup = false }
         </div>
 
         {/* Reasoning Content */}
-        <div className="bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-700 rounded-lg p-4">
+        <div className="bg-purple-50 dark:bg-purple-900/10 border border-purple-200 dark:border-purple-800/50 rounded-lg p-4">
           <div className="prose prose-sm dark:prose-invert max-w-none">
             <ReactMarkdown
               components={{
@@ -2442,9 +2442,9 @@ function ReasoningMessageDisplay({ message, sessionType, isInsideGroup = false }
                   const isShortCode = codeText.length < 50 && !codeText.includes('\n');
                   
                   if (inline || isShortCode) {
-                    return <code className="bg-purple-100 dark:bg-purple-800 px-1 py-0.5 rounded text-sm font-mono" {...props}>{children}</code>;
+                    return <code className="bg-purple-100 dark:bg-purple-800/50 px-1 py-0.5 rounded text-sm font-mono" {...props}>{children}</code>;
                   }
-                  return <code className="block bg-purple-100 dark:bg-purple-800 p-2 rounded text-sm font-mono overflow-x-auto" {...props}>{children}</code>;
+                  return <code className="block bg-purple-100 dark:bg-purple-800/50 p-2 rounded text-sm font-mono overflow-x-auto" {...props}>{children}</code>;
                 },
                 pre: ({ children }) => {
                   // Extract code content to check if it should be inline
@@ -2454,7 +2454,7 @@ function ReasoningMessageDisplay({ message, sessionType, isInsideGroup = false }
                   
                   if (isShortCode) {
                     // Render as inline code instead of pre block
-                    return <code className="bg-purple-100 dark:bg-purple-800 px-1 py-0.5 rounded text-sm font-mono">{codeContent}</code>;
+                    return <code className="bg-purple-100 dark:bg-purple-800/50 px-1 py-0.5 rounded text-sm font-mono">{codeContent}</code>;
                   }
                   return <div className="my-2">{children}</div>;
                 },
@@ -2476,7 +2476,7 @@ function ReasoningMessageDisplay({ message, sessionType, isInsideGroup = false }
               e.stopPropagation();
               setShowRawData(!showRawData);
             }}
-            className="text-xs text-gray-500 dark:text-gray-400 hover:text-purple-600 dark:hover:text-purple-300 underline transition-colors"
+            className="text-xs text-gray-500 dark:text-gray-400 hover:text-purple-600 dark:hover:text-purple-400 underline transition-colors"
           >
             {showRawData ? 'Hide' : 'Show'} Raw Data
           </button>
