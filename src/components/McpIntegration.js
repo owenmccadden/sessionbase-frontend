@@ -142,9 +142,6 @@ export default function McpIntegration() {
           <p className="text-lg text-slate-600 max-w-3xl mx-auto leading-relaxed dark:text-slate-300">
             Tell Claude, Gemini, Q Chat, or Codex to push your session to SessionBase.
           </p>
-          <p className="text-lg text-slate-600 max-w-3xl mx-auto leading-relaxed dark:text-slate-300">
-            No commands to remember, no workflow interruption.
-          </p>
         </div>
 
         <div className="grid lg:grid-cols-2 gap-16 items-center">
@@ -323,7 +320,7 @@ export default function McpIntegration() {
                 Just ask your AI to share
               </h3>
               <p className="text-lg text-slate-600 dark:text-slate-300 leading-relaxed">
-                No commands to memorize, no apps to switch to. Stay in your conversation and let natural language do the work.
+                Stay in your conversation and let natural language do the work.
               </p>
             </div>
 
@@ -348,6 +345,18 @@ export default function McpIntegration() {
                   <h4 className="font-semibold text-slate-900 dark:text-white mb-2">Auto-generated metadata</h4>
                   <p className="text-slate-600 dark:text-slate-300">
                     Uploading via MCP automatically creates titles, tags, and descriptions based on your conversation context.
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-4">
+                <div className="flex-shrink-0 w-8 h-8 rounded-lg bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center mt-0.5">
+                  <span className="text-purple-600 dark:text-purple-400 font-mono text-sm font-semibold">/</span>
+                </div>
+                <div>
+                  <h4 className="font-semibold text-slate-900 dark:text-white mb-2">Custom slash commands</h4>
+                  <p className="text-slate-600 dark:text-slate-300">
+                    Set up <code className="bg-slate-100 dark:bg-slate-800 px-1 py-0.5 rounded text-sm">/upload</code> commands in Claude and Gemini for instant single-command sharing.
                   </p>
                 </div>
               </div>
