@@ -94,6 +94,30 @@ export default function McpIntegration() {
         }
       },
       success: '✓ Uploaded as b3n7k9'
+    },
+    {
+      name: 'OpenAI Codex',
+      logo: '/openai-logo-dark.png',
+      logoLight: '/openai-logo-light.png',
+      hasBox: true,
+      conversation: [
+        'Codex: I\'ve helped you implement the user authentication system.',
+        'The JWT middleware is working correctly now.'
+      ],
+      input: 'push to sessionbase',
+      response: 'Pushing this session to SessionBase with a clear title, tags, and summary.',
+      toolUse: {
+        type: 'codex',
+        content: {
+          header: 'tool running...',
+          details: [
+            'sessionbase.push_session({"codex":true,"title":"JWT Auth Implementation","tags":"auth,jwt,middleware","summary":"Implemented user authentication system with JWT middleware"})',
+            '',
+            'tool success, duration: 1.2s'
+          ]
+        }
+      },
+      success: 'Session ID: 1a3dd9'
     }
   ];
 
@@ -116,7 +140,7 @@ export default function McpIntegration() {
             Share sessions with natural language
           </h2>
           <p className="text-lg text-slate-600 max-w-3xl mx-auto leading-relaxed dark:text-slate-300">
-            Tell Claude, Gemini, or Q Chat to push your session to SessionBase.
+            Tell Claude, Gemini, Q Chat, or Codex to push your session to SessionBase.
           </p>
           <p className="text-lg text-slate-600 max-w-3xl mx-auto leading-relaxed dark:text-slate-300">
             No commands to remember, no workflow interruption.
@@ -151,7 +175,13 @@ export default function McpIntegration() {
                 {currentPlatform.hasBox ? (
                   <div className="bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded p-3 mb-4">
                     <div className="text-slate-900 dark:text-slate-100">
-                      &gt; {currentPlatform.input}
+                      {currentPlatform.name === 'OpenAI Codex' ? (
+                        <>
+                          <span className="text-blue-400">▌</span>{currentPlatform.input}
+                        </>
+                      ) : (
+                        <>&gt; {currentPlatform.input}</>
+                      )}
                     </div>
                   </div>
                 ) : (
@@ -164,7 +194,13 @@ export default function McpIntegration() {
                 
                 {/* Response */}
                 <div className="space-y-2 mb-4">
-                  <div className="text-slate-600 dark:text-slate-300">{currentPlatform.response}</div>
+                  <div className="text-slate-600 dark:text-slate-300">
+                    {currentPlatform.name === 'OpenAI Codex' ? (
+                      <>&gt; {currentPlatform.response}</>
+                    ) : (
+                      currentPlatform.response
+                    )}
+                  </div>
                 </div>
                 
                 {/* Tool use confirmation */}
@@ -223,6 +259,24 @@ export default function McpIntegration() {
                       <div className="text-slate-500 dark:text-slate-400">{currentPlatform.toolUse.content.prompt}</div>
                     </div>
                   )}
+                  
+                  {currentPlatform.toolUse.type === 'codex' && (
+                    <div className="text-xs space-y-2">
+                      <div className="space-y-2">
+                        {currentPlatform.toolUse.content.details.map((detail, idx) => (
+                          <div key={idx} className={`${detail === '' ? 'h-1' : 'text-slate-600 dark:text-slate-400'}`}>
+                            {detail.includes('tool success') ? (
+                              <>
+                                tool <span className="text-green-600 dark:text-green-400">success</span>, duration: 1.2s
+                              </>
+                            ) : (
+                              detail
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
                 
                 {/* Final success */}
@@ -245,11 +299,18 @@ export default function McpIntegration() {
                       : 'bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700'
                   }`}
                 >
-                  <img 
-                    src={platform.logo} 
-                    alt={platform.name} 
-                    className="h-12 w-12 rounded"
-                  />
+                  {platform.logoLight ? (
+                    <>
+                      <img className="h-12 w-12 rounded dark:hidden" src={platform.logo} alt={platform.name} />
+                      <img className="h-12 w-12 rounded hidden dark:block" src={platform.logoLight} alt={platform.name} />
+                    </>
+                  ) : (
+                    <img 
+                      src={platform.logo} 
+                      alt={platform.name} 
+                      className="h-12 w-12 rounded"
+                    />
+                  )}
                 </button>
               ))}
             </div>
