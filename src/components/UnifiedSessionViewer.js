@@ -545,8 +545,8 @@ function ConversationView({ session, isMobile }) {
   const [allMarkdownBlocksCollapsed, setAllMarkdownBlocksCollapsed] = useState(isMobile || false);
   const [forceCollapseToggle, setForceCollapseToggle] = useState(0);
   const [forceMarkdownCollapseToggle, setForceMarkdownCollapseToggle] = useState(0);
-  const [allToolUseBlocksHidden, setAllToolUseBlocksHidden] = useState(isMobile || false);
-  const [allReasoningBlocksHidden, setAllReasoningBlocksHidden] = useState(isMobile || false);
+  const [allToolUseBlocksHidden, setAllToolUseBlocksHidden] = useState(true); // Default to collapsed/hidden
+  const [allReasoningBlocksHidden, setAllReasoningBlocksHidden] = useState(true); // Default to collapsed/hidden
 
   // Update collapsed states when mobile state changes
   useEffect(() => {
@@ -558,6 +558,7 @@ function ConversationView({ session, isMobile }) {
       setForceCollapseToggle(prev => prev + 1);
       setForceMarkdownCollapseToggle(prev => prev + 1);
     }
+    // Note: We don't expand tool use/reasoning blocks when not mobile since they default to collapsed
   }, [isMobile]);
 
   const handleToggleAll = () => {
@@ -658,7 +659,7 @@ function ConversationView({ session, isMobile }) {
                 }`}
               >
                 {allToolUseBlocksHidden ? <ChevronRightIcon /> : <ChevronDownIcon />}
-                <span>🔧 Tools</span>
+                <span>🔧 Tool Use</span>
               </button>
             )}
             
@@ -682,33 +683,96 @@ function ConversationView({ session, isMobile }) {
       )}
       
       {/* Messages */}
-      {groupCommandMessages(session.messages, session.type).map((message) => {
-        // Hide entire message if it contains tool calls or tool results and tool use blocks are hidden
-        const hasToolCalls = message.toolCalls && message.toolCalls.length > 0;
-        const hasToolResults = message.toolResults && message.toolResults.length > 0;
-        if ((hasToolCalls || hasToolResults) && allToolUseBlocksHidden) {
-          return null;
+      {(() => {
+        const messages = groupCommandMessages(session.messages, session.type);
+        const processedMessages = [];
+        let i = 0;
+        
+        while (i < messages.length) {
+          const message = messages[i];
+          
+          // Handle reasoning messages
+          if (message.type === 'reasoning') {
+            if (allReasoningBlocksHidden) {
+              // Show individual reasoning message as collapsed block
+              processedMessages.push(
+                <CollapsedReasoningBlock 
+                  key={message.id}
+                  message={message}
+                  sessionType={session.type}
+                />
+              );
+            } else {
+              // Show individual reasoning message normally
+              processedMessages.push(
+                <UnifiedMessageBubble 
+                  key={message.groupedMessageIds ? message.groupedMessageIds.join('-') : message.id} 
+                  message={message} 
+                  sessionType={session.type}
+                  allCodeBlocksCollapsed={allCodeBlocksCollapsed}
+                  forceCollapseToggle={forceCollapseToggle}
+                  allMarkdownBlocksCollapsed={allMarkdownBlocksCollapsed}
+                  forceMarkdownCollapseToggle={forceMarkdownCollapseToggle}
+                  allToolUseBlocksHidden={allToolUseBlocksHidden}
+                  session={session}
+                />
+              );
+            }
+            i++;
+          } else {
+            // Handle non-reasoning messages normally
+            // Check if this message contains tool calls or tool results
+            const hasToolCalls = message.toolCalls && message.toolCalls.length > 0;
+            const hasToolResults = message.toolResults && message.toolResults.length > 0;
+            
+            if ((hasToolCalls || hasToolResults) && allToolUseBlocksHidden) {
+              // Group consecutive tool use messages
+              const toolGroup = [message];
+              let j = i + 1;
+              
+              while (j < messages.length) {
+                const nextMessage = messages[j];
+                const nextHasToolCalls = nextMessage.toolCalls && nextMessage.toolCalls.length > 0;
+                const nextHasToolResults = nextMessage.toolResults && nextMessage.toolResults.length > 0;
+                
+                if ((nextHasToolCalls || nextHasToolResults) && nextMessage.type !== 'reasoning') {
+                  toolGroup.push(nextMessage);
+                  j++;
+                } else {
+                  break;
+                }
+              }
+              
+              processedMessages.push(
+                <CollapsedToolUseGroup 
+                  key={`tool-group-${i}`}
+                  messages={toolGroup}
+                  sessionType={session.type}
+                />
+              );
+              
+              i = j; // Skip the grouped messages
+            } else {
+              processedMessages.push(
+                <UnifiedMessageBubble 
+                  key={message.groupedMessageIds ? message.groupedMessageIds.join('-') : message.id} 
+                  message={message} 
+                  sessionType={session.type}
+                  allCodeBlocksCollapsed={allCodeBlocksCollapsed}
+                  forceCollapseToggle={forceCollapseToggle}
+                  allMarkdownBlocksCollapsed={allMarkdownBlocksCollapsed}
+                  forceMarkdownCollapseToggle={forceMarkdownCollapseToggle}
+                  allToolUseBlocksHidden={allToolUseBlocksHidden}
+                  session={session}
+                />
+              );
+              i++;
+            }
+          }
         }
         
-        // Hide reasoning messages if reasoning blocks are hidden
-        if (message.type === 'reasoning' && allReasoningBlocksHidden) {
-          return null;
-        }
-        
-        return (
-          <UnifiedMessageBubble 
-            key={message.groupedMessageIds ? message.groupedMessageIds.join('-') : message.id} 
-            message={message} 
-            sessionType={session.type}
-            allCodeBlocksCollapsed={allCodeBlocksCollapsed}
-            forceCollapseToggle={forceCollapseToggle}
-            allMarkdownBlocksCollapsed={allMarkdownBlocksCollapsed}
-            forceMarkdownCollapseToggle={forceMarkdownCollapseToggle}
-            allToolUseBlocksHidden={allToolUseBlocksHidden}
-            session={session}
-          />
-        );
-      })}
+        return processedMessages;
+      })()}
     </div>
   );
 }
@@ -1316,9 +1380,9 @@ function MarkdownBlock({ content, allMarkdownBlocksCollapsed, forceMarkdownColla
   );
 }
 
-function UnifiedMessageBubble({ message, sessionType, allCodeBlocksCollapsed, forceCollapseToggle, allMarkdownBlocksCollapsed, forceMarkdownCollapseToggle, allToolUseBlocksHidden, session }) {
+function UnifiedMessageBubble({ message, sessionType, allCodeBlocksCollapsed, forceCollapseToggle, allMarkdownBlocksCollapsed, forceMarkdownCollapseToggle, allToolUseBlocksHidden, session, isInsideGroup = false, autoExpandToolUse = false }) {
   const [showRawData, setShowRawData] = useState(false);
-  const [showToolDetails, setShowToolDetails] = useState(false);
+  const [showToolDetails, setShowToolDetails] = useState(autoExpandToolUse);
   const [copySuccess, setCopySuccess] = useState(false);
 
   const copyToClipboard = async (text) => {
@@ -1368,8 +1432,8 @@ function UnifiedMessageBubble({ message, sessionType, allCodeBlocksCollapsed, fo
   }
 
   return (
-    <div className={`flex ${isUser ? 'justify-end' : 'justify-start'} mb-4`}>
-      <div className={`max-w-4xl min-w-0 break-words overflow-wrap-anywhere ${isUser ? 'ml-12' : 'mr-12'}`}>
+    <div className={isInsideGroup ? "p-4" : `flex ${isUser ? 'justify-end' : 'justify-start'} mb-4`}>
+      <div className={isInsideGroup ? "" : `max-w-4xl min-w-0 break-words overflow-wrap-anywhere ${isUser ? 'ml-12' : 'mr-12'}`}>
         {/* Message Header */}
         <div className={`flex items-center mb-2 ${isUser ? 'justify-end' : 'justify-start'}`}>
           <div className="group flex items-center space-x-2 text-sm text-gray-500 dark:text-gray-400 dark:text-gray-500">
@@ -1431,16 +1495,20 @@ function UnifiedMessageBubble({ message, sessionType, allCodeBlocksCollapsed, fo
         </div>
 
         {/* Message Content */}
-        <div className={`relative rounded-lg ${
-          !isSystem && !shouldRenderCode && !shouldRenderMarkdown && !isCommand ? 'p-4 pr-12' : 'p-4'
-        } ${
-          isCommand 
-            ? 'p-0 bg-transparent'
-            : isUser 
-            ? 'bg-primary-dark dark:bg-primary-dark text-white' 
-            : isSystem
-            ? 'bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-700 shadow-sm text-gray-900 dark:text-gray-100'
-            : 'bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 shadow-sm text-gray-900 dark:text-gray-100'
+        <div className={`relative ${
+          shouldRenderCode || shouldRenderMarkdown 
+            ? '' // No padding/styling for code and markdown blocks
+            : `rounded-lg ${
+                !isSystem && !isCommand ? 'p-4 pr-12' : 'p-4'
+              } ${
+                isCommand 
+                  ? 'p-0 bg-transparent'
+                  : isUser 
+                  ? 'bg-primary-dark dark:bg-primary-dark text-white' 
+                  : isSystem
+                  ? 'bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-700 shadow-sm text-gray-900 dark:text-gray-100'
+                  : 'bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 shadow-sm text-gray-900 dark:text-gray-100'
+              }`
         }`}>
           {/* Copy Button - Hide for tool blocks, code blocks, markdown blocks, commands, and tool calls */}
           {!isSystem && !shouldRenderCode && !shouldRenderMarkdown && !isCommand && !(message.toolCalls && message.toolCalls.length > 0) && (
@@ -1507,6 +1575,7 @@ function UnifiedMessageBubble({ message, sessionType, allCodeBlocksCollapsed, fo
                   toolUse={tool} 
                   isUser={isUser}
                   sessionType={sessionType}
+                  autoExpand={autoExpandToolUse}
                 />
               ))}
             </div>
@@ -1519,6 +1588,7 @@ function UnifiedMessageBubble({ message, sessionType, allCodeBlocksCollapsed, fo
               showDetails={showToolDetails}
               onToggleDetails={() => setShowToolDetails(!showToolDetails)}
               isUser={isUser}
+              isInsideGroup={isInsideGroup}
             />
           )}
 
@@ -1551,16 +1621,18 @@ function UnifiedMessageBubble({ message, sessionType, allCodeBlocksCollapsed, fo
         </div>
 
         {/* Message Actions */}
-        <div className={`flex items-center mt-2 space-x-2 text-xs ${
-          isUser ? 'justify-end' : 'justify-start'
-        }`}>
-          <button
-            onClick={() => setShowRawData(!showRawData)}
-            className="text-gray-500 dark:text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:text-gray-300 underline cursor-pointer"
-          >
-            {showRawData ? 'Hide' : 'Show'} Raw Data
-          </button>
-        </div>
+        {!isInsideGroup && !(message.toolResults && message.toolResults.length > 0) && (
+          <div className={`flex items-center mt-2 space-x-2 text-xs ${
+            isUser ? 'justify-end' : 'justify-start'
+          }`}>
+            <button
+              onClick={() => setShowRawData(!showRawData)}
+              className="text-gray-500 dark:text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:text-gray-300 underline cursor-pointer"
+            >
+              {showRawData ? 'Hide' : 'Show'} Raw Data
+            </button>
+          </div>
+        )}
 
         {/* Raw Data Display */}
         {showRawData && (
@@ -1645,8 +1717,8 @@ function RawMessageDataDisplay({ message }) {
   );
 }
 
-function UnifiedToolUseDisplay({ toolUse, isUser, sessionType }) {
-  const [showInput, setShowInput] = useState(false);
+function UnifiedToolUseDisplay({ toolUse, isUser, sessionType, autoExpand = false }) {
+  const [showInput, setShowInput] = useState(autoExpand);
 
   return (
     <div className={`rounded-lg p-4 ${
@@ -1730,25 +1802,27 @@ function UnifiedToolUseDisplay({ toolUse, isUser, sessionType }) {
   );
 }
 
-function UnifiedToolResultDisplay({ results, showDetails, onToggleDetails, isUser }) {
+function UnifiedToolResultDisplay({ results, showDetails, onToggleDetails, isUser, isInsideGroup = false }) {
   if (!results || results.length === 0) return null;
 
   return (
     <div className={`mt-3 pt-3 ${
       isUser ? 'border-t border-blue-400' : 'border-t border-gray-200'
     }`}>
-      <div className="flex items-center justify-between mb-3">
-        <button
-          onClick={onToggleDetails}
-          className={`text-sm underline ${
-            isUser 
-              ? 'text-blue-200 hover:text-blue-100' 
-              : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
-          }`}
-        >
-          {showDetails ? 'Hide' : 'Show'} Details
-        </button>
-      </div>
+      {!isInsideGroup && (
+        <div className="flex items-center justify-between mb-3">
+          <button
+            onClick={onToggleDetails}
+            className={`text-sm underline ${
+              isUser 
+                ? 'text-blue-200 hover:text-blue-100' 
+                : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
+            }`}
+          >
+            {showDetails ? 'Hide' : 'Show'} Details
+          </button>
+        </div>
+      )}
 
       {showDetails && (
         <div className="space-y-2">
@@ -2204,12 +2278,132 @@ function CheckIcon() {
 }
 
 
-function ReasoningMessageDisplay({ message, sessionType }) {
+function CollapsedReasoningBlock({ message, sessionType }) {
+  const [isExpanded, setIsExpanded] = useState(false);
+
+  const getAssistantName = (sessionType) => {
+    switch (sessionType) {
+      case SESSION_TYPES.CLAUDE_CODE:
+        return 'Claude';
+      case SESSION_TYPES.Q_CHAT:
+        return 'Amazon Q';
+      case SESSION_TYPES.GEMINI_CLI:
+        return 'Gemini';
+      case SESSION_TYPES.CODEX:
+        return 'Codex';
+      default:
+        return 'Assistant';
+    }
+  };
+  
+  return (
+    <div className="mb-4 max-w-2xl">
+      <div 
+        className="bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-700 rounded-lg cursor-pointer hover:shadow-md transition-all"
+        onClick={() => setIsExpanded(!isExpanded)}
+      >
+        <div className="p-3 flex items-center justify-between">
+          <div className="flex items-center space-x-3">
+            <span className="text-purple-600 dark:text-purple-300">🧠</span>
+            <div className="font-medium text-purple-900 dark:text-purple-100">
+              {getAssistantName(sessionType)} reasoning • Click to {isExpanded ? 'collapse' : 'expand'}
+            </div>
+          </div>
+          <div className="text-purple-600 dark:text-purple-300">
+            {isExpanded ? <ChevronDownIcon /> : <ChevronRightIcon />}
+          </div>
+        </div>
+        
+        {isExpanded && (
+          <div className="border-t border-purple-200 dark:border-purple-700 p-4">
+            <ReasoningMessageDisplay message={message} sessionType={sessionType} isInsideGroup={true} />
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function CollapsedToolUseGroup({ messages, sessionType }) {
+  const [isExpanded, setIsExpanded] = useState(false);
+  
+  // Count total tool calls across all messages
+  const totalToolCalls = messages.reduce((count, message) => {
+    return count + (message.toolCalls ? message.toolCalls.length : 0);
+  }, 0);
+
+  const handleGroupClick = (e) => {
+    e.stopPropagation();
+    setIsExpanded(!isExpanded);
+  };
+
+  const getAssistantName = (sessionType) => {
+    switch (sessionType) {
+      case SESSION_TYPES.CLAUDE_CODE:
+        return 'Claude';
+      case SESSION_TYPES.Q_CHAT:
+        return 'Amazon Q';
+      case SESSION_TYPES.GEMINI_CLI:
+        return 'Gemini';
+      case SESSION_TYPES.CODEX:
+        return 'Codex';
+      default:
+        return 'Assistant';
+    }
+  };
+  
+  return (
+    <div className="mb-4 max-w-2xl">
+      <div 
+        className="bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-700 rounded-lg hover:shadow-md transition-all"
+      >
+        <div 
+          className="p-3 flex items-center justify-between cursor-pointer"
+          onClick={handleGroupClick}
+        >
+          <div className="flex items-center space-x-3">
+            <span className="text-orange-600 dark:text-orange-300">🔧</span>
+            <div className="font-medium text-orange-900 dark:text-orange-100">
+              {totalToolCalls} {getAssistantName(sessionType)} tool call{totalToolCalls !== 1 ? 's' : ''} • Click to {isExpanded ? 'collapse' : 'expand'}
+            </div>
+          </div>
+          <div className="text-orange-600 dark:text-orange-300">
+            {isExpanded ? <ChevronDownIcon /> : <ChevronRightIcon />}
+          </div>
+        </div>
+        
+        {isExpanded && (
+          <div className="border-t border-orange-200 dark:border-orange-700">
+            {messages.map((message, index) => (
+              <div key={message.id} className={`${index > 0 ? 'border-t border-orange-100 dark:border-orange-800' : ''}`}>
+                <UnifiedMessageBubble 
+                  message={message} 
+                  sessionType={sessionType}
+                  allCodeBlocksCollapsed={false}
+                  forceCollapseToggle={0}
+                  allMarkdownBlocksCollapsed={false}
+                  forceMarkdownCollapseToggle={0}
+                  allToolUseBlocksHidden={false}
+                  session={{}} // Pass minimal session object
+                  isInsideGroup={true}
+                  autoExpandToolUse={true}
+                />
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+
+function ReasoningMessageDisplay({ message, sessionType, isInsideGroup = false }) {
   const [showRawData, setShowRawData] = useState(false);
 
   return (
-    <div className="mb-4">
-      <div className="max-w-4xl mr-12">
+    <div className={isInsideGroup ? "" : "mb-4"}>
+      <div className={isInsideGroup ? "" : "max-w-4xl mr-12"}>
         {/* Message Header */}
         <div className="flex items-center mb-2 justify-start">
           <div className="group flex items-center space-x-2 text-sm text-gray-500 dark:text-gray-400">
@@ -2278,7 +2472,10 @@ function ReasoningMessageDisplay({ message, sessionType }) {
         {/* Show Raw Data Link */}
         <div className="mt-2 flex justify-end">
           <button
-            onClick={() => setShowRawData(!showRawData)}
+            onClick={(e) => {
+              e.stopPropagation();
+              setShowRawData(!showRawData);
+            }}
             className="text-xs text-gray-500 dark:text-gray-400 hover:text-purple-600 dark:hover:text-purple-300 underline transition-colors"
           >
             {showRawData ? 'Hide' : 'Show'} Raw Data
