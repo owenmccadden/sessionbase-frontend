@@ -63,7 +63,7 @@ export function detectSessionFormat(data) {
           return SESSION_TYPES.GEMINI_CLI;
         }
         
-        // Codex JSONL detection
+        // Codex JSONL detection (old format)
         if (firstLine.id && firstLine.timestamp && 
             (firstLine.type === 'message' || firstLine.type === 'reasoning')) {
           return SESSION_TYPES.CODEX;
@@ -74,6 +74,36 @@ export function detectSessionFormat(data) {
       
       // Try to parse as JSON
       data = JSON.parse(data);
+    }
+    
+    // Check for new Codex format - array with nested structure
+    if (Array.isArray(data) && data.length > 0) {
+      const firstItem = data[0];
+      
+      // New Codex format detection - has type and payload structure
+      if (firstItem.type === 'session_meta' && firstItem.payload && firstItem.payload.originator === 'codex_cli_rs') {
+        return SESSION_TYPES.CODEX;
+      }
+      
+      // More generic new Codex detection - check if any item has the new structure
+      const hasCodexStructure = data.some(item => 
+        (item.type === 'session_meta' && item.payload?.originator === 'codex_cli_rs') ||
+        (item.type === 'response_item' && item.payload?.type === 'message') ||
+        (item.type === 'event_msg' && item.payload?.type)
+      );
+      
+      if (hasCodexStructure) {
+        return SESSION_TYPES.CODEX;
+      }
+      
+      // Also check for response_item structure
+      if (firstItem.type === 'response_item' && firstItem.payload) {
+        return SESSION_TYPES.CODEX;
+      }
+      // Check for event_msg structure
+      if (firstItem.type === 'event_msg' && firstItem.payload) {
+        return SESSION_TYPES.CODEX;
+      }
     }
     
     // Claude Code wrapped format detection (new format with messages array)
@@ -620,45 +650,148 @@ function groupCodexFunctionCalls(records) {
  */
 function parseCodexSession(data) {
   let records = [];
+  let sessionMetadata = null;
   
   if (typeof data === 'string') {
-    // Parse JSONL
-    const lines = data.trim().split('\n').filter(line => line.trim());
-    records = lines.map(line => JSON.parse(line));
-  } else if (Array.isArray(data)) {
-    records = data;
+    // First, try to parse as a single JSON array (new Codex format)
+    try {
+      const parsed = JSON.parse(data);
+      if (Array.isArray(parsed)) {
+        data = parsed; // Convert to array and continue processing
+      } else {
+        records = [parsed];
+      }
+    } catch (jsonError) {
+      // Fall back to JSONL parsing
+      try {
+        const lines = data.trim().split('\n').filter(line => line.trim());
+        const parsedLines = lines.map(line => JSON.parse(line));
+        
+        // Convert JSONL to array format for processing
+        data = parsedLines;
+      } catch (jsonlError) {
+        throw new Error(`Unable to parse Codex session data: ${jsonlError.message}`);
+      }
+    }
+  }
+  
+  // Process as array (either original array or converted from string)
+  if (Array.isArray(data)) {
+    // Check if this is the new nested format
+    const hasNestedStructure = data.some(item => 
+      (item.type === 'session_meta' || item.type === 'response_item' || item.type === 'event_msg') 
+      && item.payload
+    );
+    
+    if (hasNestedStructure) {
+      // New format: extract session metadata and flatten records
+      sessionMetadata = data.find(item => item.type === 'session_meta')?.payload;
+      
+      // Extract conversational records from the nested structure
+      const filteredItems = data.filter(item => {
+        // Prioritize response_item with message payloads (these are the main conversation)
+        if (item.type === 'response_item' && item.payload) {
+          // Include message, reasoning, function call and function output types
+          return item.payload.type === 'message' || 
+                 item.payload.type === 'reasoning' ||
+                 item.payload.type === 'function_call' ||
+                 item.payload.type === 'function_call_output';
+        }
+        
+        // Only include event_msg for agent reasoning (not user_message or agent_message to avoid duplication)
+        if (item.type === 'event_msg' && item.payload) {
+          return item.payload.type === 'agent_reasoning';
+        }
+        
+        return false;
+      });
+      
+      records = filteredItems.map(item => {
+        // Flatten the structure
+        if (item.type === 'response_item') {
+          // Handle response_item payload structure
+          const payload = item.payload;
+          
+          // Convert payload.content array to the expected format for message processing
+          let content = payload.content;
+          if (Array.isArray(payload.content)) {
+            content = payload.content.map(contentItem => {
+              if (contentItem.type === 'input_text') {
+                return { type: 'input_text', text: contentItem.text };
+              } else if (contentItem.type === 'output_text') {
+                return { type: 'output_text', text: contentItem.text };
+              }
+              return contentItem;
+            });
+          }
+          
+          return {
+            id: `response-${item.timestamp}-${Math.random()}`,
+            type: payload.type, // 'message', 'reasoning', 'function_call', or 'function_call_output'
+            role: payload.role || (payload.type === 'message' ? 'user' : 'assistant'),
+            content: content,
+            timestamp: item.timestamp,
+            originalType: item.type,
+            payload: payload
+          };
+        } else if (item.type === 'event_msg') {
+          // Convert event_msg to a message-like structure
+          const isReasoning = item.payload.type === 'agent_reasoning';
+          
+          return {
+            id: `event-${item.timestamp}-${Math.random()}`,
+            type: isReasoning ? 'reasoning' : 'message',
+            role: item.payload.type === 'user_message' ? 'user' : 'assistant',
+            content: item.payload.type === 'user_message' ? 
+              [{ type: 'input_text', text: item.payload.message }] :
+              item.payload.text ? [{ type: 'output_text', text: item.payload.text }] : [],
+            timestamp: item.timestamp,
+            originalType: item.type,
+            payload: item.payload,
+            // For reasoning, store the text directly for easier access
+            reasoningText: isReasoning ? item.payload.text : undefined
+          };
+        }
+        return item;
+      });
+    } else {
+      // Old format: use as-is
+      records = data;
+    }
   } else if (data.messages && Array.isArray(data.messages)) {
     // Handle wrapped format: {"messages": [...], "platform": "codex"}
     records = data.messages;
   }
   
-  const sessionId = records[0]?.id || 'codex-session';
-  let cwd = '';
+  const sessionId = sessionMetadata?.id || records[0]?.id || 'codex-session';
+  let cwd = sessionMetadata?.cwd || '';
   
-  // Extract CWD from the session data
-  for (const record of records) {
-    if (record.type === 'message' && record.content && Array.isArray(record.content)) {
-      for (const contentItem of record.content) {
-        if (contentItem.type === 'input_text' && contentItem.text && !cwd) {
-          // Try newer <cwd> tag format
-          if (contentItem.text.includes('<cwd>')) {
-            const cwdMatch = contentItem.text.match(/<cwd>(.+?)<\/cwd>/);
-            if (cwdMatch) {
-              cwd = cwdMatch[1];
-              break;
+  // Extract CWD from the session data if not in metadata
+  if (!cwd) {
+    for (const record of records) {
+      if (record.type === 'message' && record.content && Array.isArray(record.content)) {
+        for (const contentItem of record.content) {
+          if (contentItem.type === 'input_text' && contentItem.text && !cwd) {
+            // Try newer <cwd> tag format
+            if (contentItem.text.includes('<cwd>')) {
+              const cwdMatch = contentItem.text.match(/<cwd>(.+?)<\/cwd>/);
+              if (cwdMatch) {
+                cwd = cwdMatch[1];
+                break;
+              }
             }
-          }
-          // Try older "Current working directory:" format
-          else if (contentItem.text.includes('Current working directory:')) {
-            const cwdMatch = contentItem.text.match(/Current working directory:\s*([^\n<]+)/);
-            if (cwdMatch) {
-              cwd = cwdMatch[1].trim();
-              break;
+            // Try older "Current working directory:" format
+            else if (contentItem.text.includes('Current working directory:')) {
+              const cwdMatch = contentItem.text.match(/Current working directory:\s*([^\n<]+)/);
+              if (cwdMatch) {
+                cwd = cwdMatch[1].trim();
+                break;
+              }
             }
           }
         }
+        if (cwd) break;
       }
-      if (cwd) break;
     }
   }
   
@@ -669,16 +802,19 @@ function parseCodexSession(data) {
       return true;
     }
     
-    // Include function_call and function_call_output records
-    if (record.type === 'function_call' || record.type === 'function_call_output') {
-      return true;
-    }
-    
-    // For reasoning records, only include if they have summary or content
+    // Include reasoning records from new format
     if (record.type === 'reasoning') {
       const hasSummary = record.summary && Array.isArray(record.summary) && record.summary.length > 0;
-      const hasContent = record.content && record.content.trim().length > 0;
-      return hasSummary || hasContent;
+      const hasContent = record.content && typeof record.content === 'string' && record.content.trim().length > 0;
+      const hasReasoningText = record.reasoningText && record.reasoningText.trim().length > 0;
+      const hasPayloadText = record.payload && record.payload.text && record.payload.text.trim().length > 0;
+      
+      return hasSummary || hasContent || hasReasoningText || hasPayloadText;
+    }
+    
+    // Include function_call and function_call_output records (both old and new formats)
+    if (record.type === 'function_call' || record.type === 'function_call_output') {
+      return true;
     }
     
     return false;
@@ -726,35 +862,49 @@ function parseCodexSession(data) {
       messageType = 'reasoning';
       messageRole = 'assistant';
       
-      // Extract content from reasoning summary
-      if (record.summary && Array.isArray(record.summary)) {
+      // Handle new format reasoning from event_msg (stored in reasoningText)
+      if (record.reasoningText) {
+        content = record.reasoningText;
+      } 
+      // Handle new format reasoning from response_item payload
+      else if (record.payload && record.payload.text) {
+        content = record.payload.text;
+      } 
+      // Handle reasoning with summary structure (both old and new formats)
+      else if (record.summary && Array.isArray(record.summary)) {
         const summaryTexts = [];
         for (const summaryItem of record.summary) {
           if (summaryItem.type === 'summary_text' && summaryItem.text) {
             summaryTexts.push(summaryItem.text);
           }
         }
-        // Join multiple summary texts with triple newlines for better visual separation
         content = summaryTexts.join('\n\n\n');
-      }
-      
-      // Also check for direct content
-      if (record.content && record.content.trim().length > 0) {
-        content += record.content;
+        
+        // Also check for direct content (old format)
+        if (record.content && typeof record.content === 'string' && record.content.trim().length > 0) {
+          content += (content ? '\n\n' : '') + record.content;
+        }
       }
     } else if (record.type === 'function_call') {
       // Function calls are assistant messages with toolCalls
       messageType = 'assistant';
       messageRole = 'assistant';
-      content = `Using tool: ${record.name}`;
+      
+      // Handle new format (payload structure) vs old format (direct properties)
+      const functionName = record.payload?.name || record.name;
+      const functionCallId = record.payload?.call_id || record.call_id;
+      const functionArgs = record.payload?.arguments || record.arguments;
+      
+      content = `Using tool: ${functionName}`;
       
       toolCalls = [{
-        id: record.call_id,
-        name: record.name,
-        input: parseJSONSafely(record.arguments),
+        id: functionCallId,
+        name: functionName,
+        input: parseJSONSafely(functionArgs),
         timestamp: new Date(record.timestamp || Date.now()),
         metadata: {
-          codexFunctionCallId: record.id
+          codexFunctionCallId: record.id,
+          originalPayload: record.payload
         }
       }];
       
@@ -776,15 +926,21 @@ function parseCodexSession(data) {
       // Standalone function call output (shouldn't happen with proper grouping, but handle as fallback)
       messageType = 'tool';
       messageRole = 'tool';
-      content = `Tool result for call ${record.call_id}`;
       
-      const parsedOutput = parseJSONSafely(record.output);
+      // Handle new format (payload structure) vs old format (direct properties)
+      const callId = record.payload?.call_id || record.call_id;
+      const output = record.payload?.output || record.output;
+      
+      content = `Tool result for call ${callId}`;
+      
+      const parsedOutput = parseJSONSafely(output);
       toolResults = [{
-        tool_use_id: record.call_id,
+        tool_use_id: callId,
         content: typeof parsedOutput === 'string' ? parsedOutput : JSON.stringify(parsedOutput, null, 2),
         is_error: false,
         metadata: {
-          codexOutputId: record.id
+          codexOutputId: record.id,
+          originalPayload: record.payload
         }
       }];
     }
@@ -825,11 +981,14 @@ function parseCodexSession(data) {
       sessionId,
       cwd,
       totalRecords: records.length,
-      conversationalRecords: conversationalRecords.length
+      conversationalRecords: conversationalRecords.length,
+      originator: sessionMetadata?.originator,
+      cli_version: sessionMetadata?.cli_version,
+      git: sessionMetadata?.git
     },
     messages: normalizedMessages,
     stats: calculateStats(normalizedMessages),
-    rawData: records
+    rawData: data // Keep original data structure
   };
 }
 

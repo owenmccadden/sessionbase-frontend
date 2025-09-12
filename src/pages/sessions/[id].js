@@ -67,19 +67,21 @@ export default function SessionPage() {
         // Handle potentially nested data structure
         // Some sessions might be stored with their own wrapper format
         let parsedSessionData = sessionData;
-        if (typeof sessionData === 'string' && sessionData.trim().startsWith('{')) {
-          try {
-            const parsed = JSON.parse(sessionData);
-            // Check if this is a nested structure with its own "data" property
-            if (parsed && typeof parsed === 'object' && parsed.data) {
-              parsedSessionData = parsed.data;
-            } else {
-              parsedSessionData = parsed;
+        if (typeof sessionData === 'string') {
+          if (sessionData.trim().startsWith('{') || sessionData.trim().startsWith('[')) {
+            try {
+              const parsed = JSON.parse(sessionData);
+              // Check if this is a nested structure with its own "data" property
+              if (parsed && typeof parsed === 'object' && parsed.data) {
+                parsedSessionData = parsed.data;
+              } else {
+                parsedSessionData = parsed;
+              }
+            } catch (parseError) {
+              // If parsing fails, keep as string (might be JSONL)
+              console.warn('Failed to parse session data as JSON, keeping as string:', parseError);
+              parsedSessionData = sessionData;
             }
-          } catch (parseError) {
-            // If parsing fails, keep as string (might be JSONL)
-            console.warn('Failed to parse session data as JSON, keeping as string:', parseError);
-            parsedSessionData = sessionData;
           }
         }
         
@@ -202,39 +204,6 @@ export default function SessionPage() {
     );
   }
 
-  const getFormatLabel = (sessionType) => {
-    switch (sessionType) {
-      case SESSION_TYPES.Q_CHAT:
-        return 'Q Chat JSON';
-      case SESSION_TYPES.CLAUDE_CODE:
-        return 'Claude Code JSONL';
-      case SESSION_TYPES.CURSOR:
-        return 'Cursor Format';
-      case SESSION_TYPES.GEMINI_CLI:
-        return 'Gemini CLI Format';
-      case SESSION_TYPES.CODEX:
-        return 'Codex JSONL';
-      default:
-        return 'Unknown Format';
-    }
-  };
-
-  const getFormatColor = (sessionType) => {
-    switch (sessionType) {
-      case SESSION_TYPES.Q_CHAT:
-        return 'bg-blue-100 text-blue-800';
-      case SESSION_TYPES.CLAUDE_CODE:
-        return 'bg-purple-100 text-purple-800';
-      case SESSION_TYPES.CURSOR:
-        return 'bg-green-100 text-green-800';
-      case SESSION_TYPES.GEMINI_CLI:
-        return 'bg-yellow-100 text-yellow-800';
-      case SESSION_TYPES.CODEX:
-        return 'bg-orange-100 text-orange-800';
-      default:
-        return 'bg-gray-100 text-gray-800';
-    }
-  };
 
   return (
     <>
