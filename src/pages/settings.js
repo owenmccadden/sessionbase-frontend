@@ -201,11 +201,11 @@ export default function Settings() {
                 <div className="relative">
                   <div className="bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg p-4 pr-12">
                     <code className="text-slate-800 dark:text-slate-100 text-sm block" style={{fontFamily: 'SF Mono, Monaco, Inconsolata, "Roboto Mono", Consolas, "Courier New", monospace'}}>
-                      npm i @sessionbase/cli
+                      npm i -g @sessionbase/cli
                     </code>
                   </div>
                   <button
-                    onClick={() => handleCopyCommand('npm i @sessionbase/cli', 'install')}
+                    onClick={() => handleCopyCommand('npm i -g @sessionbase/cli', 'install')}
                     className={`absolute top-3 right-3 p-1.5 rounded-md transition-all duration-200 ${
                       copiedCommand === 'install'
                         ? 'bg-emerald-600 text-white shadow-sm'
