@@ -30,6 +30,23 @@ export default function Footer() {
               className="mx-auto max-w-4xl w-full h-auto"
             />
           </div>
+          
+          {/* Footer Links */}
+          <div className="mt-8 flex justify-center space-x-6 text-sm text-slate-600 dark:text-slate-400">
+            <a 
+              href="/privacy-policy" 
+              className="hover:text-slate-800 dark:hover:text-slate-200 transition-colors"
+            >
+              Privacy Policy
+            </a>
+            <span>•</span>
+            <a 
+              href="/terms-of-service" 
+              className="hover:text-slate-800 dark:hover:text-slate-200 transition-colors"
+            >
+              Terms of Service
+            </a>
+          </div>
         </div>
       </div>
     </footer>
