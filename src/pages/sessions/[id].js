@@ -208,10 +208,26 @@ export default function SessionPage() {
   return (
     <>
       <Head>
-        <title>Session {session.id} - SessionBase</title>
-        <meta name="description" content={`View session ${session.id} on SessionBase.`} />
+        <title>{session.metadata?.title ? `${session.metadata.title} - SessionBase` : `Session ${session.id} - SessionBase`}</title>
+        <meta name="description" content={session.metadata?.summary || `View ${session.sessionType || 'AI'} session ${session.id} on SessionBase.`} />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/favicon.ico" />
+
+        {/* Open Graph tags */}
+        <meta property="og:title" content={session.metadata?.title ? `${session.metadata.title} - SessionBase` : `Session ${session.id} - SessionBase`} />
+        <meta property="og:description" content={session.metadata?.summary || `View ${session.sessionType || 'AI'} session ${session.id} on SessionBase. ${session.author?.username ? `Shared by ${session.author.username}.` : ''}`} />
+        <meta property="og:image" content={`${typeof window !== 'undefined' ? window.location.origin : 'https://sessionbase.com'}/sessionbase-logo.png`} />
+        <meta property="og:url" content={typeof window !== 'undefined' ? window.location.href : `https://sessionbase.com/sessions/${session.id}`} />
+        <meta property="og:type" content="article" />
+        <meta property="og:site_name" content="SessionBase" />
+        {session.author?.username && <meta property="article:author" content={session.author.username} />}
+        {session.metadata?.tags && <meta property="article:tag" content={session.metadata.tags} />}
+
+        {/* Twitter Card tags */}
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content={session.metadata?.title ? `${session.metadata.title} - SessionBase` : `Session ${session.id} - SessionBase`} />
+        <meta name="twitter:description" content={session.metadata?.summary || `View ${session.sessionType || 'AI'} session ${session.id} on SessionBase. ${session.author?.username ? `Shared by ${session.author.username}.` : ''}`} />
+        <meta name="twitter:image" content={`${typeof window !== 'undefined' ? window.location.origin : 'https://sessionbase.com'}/sessionbase-logo.png`} />
       </Head>
 
       <div className="min-h-screen bg-gray-50 dark:bg-slate-900">

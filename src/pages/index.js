@@ -31,10 +31,24 @@ export default function Landing() {
   return (
     <>
       <Head>
-        <title>SessionBase - AI Chat Sessions & Prompts</title>
-        <meta name="description" content="Discover, share, and learn from AI chat sessions. Browse conversations with Claude, GPT-4, and other AI models." />
+        <title>SessionBase - Share AI Coding Sessions</title>
+        <meta name="description" content="Discover, share, and learn from AI coding sessions on Claude Code, Codex, Gemini CLI, and Q Chat." />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/favicon.ico" />
+
+        {/* Open Graph tags */}
+        <meta property="og:title" content="SessionBase - Share AI Coding Sessions" />
+        <meta property="og:description" content="Discover, share, and learn from AI coding sessions on Claude Code, Codex, Gemini CLI, and Q Chat." />
+        <meta property="og:image" content={`${typeof window !== 'undefined' ? window.location.origin : 'https://sessionbase.com'}/sessionbase-logo.png`} />
+        <meta property="og:url" content={typeof window !== 'undefined' ? window.location.href : 'https://sessionbase.com'} />
+        <meta property="og:type" content="website" />
+        <meta property="og:site_name" content="SessionBase" />
+
+        {/* Twitter Card tags */}
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="SessionBase - Share AI Coding Sessions" />
+        <meta name="twitter:description" content="Discover, share, and learn from AI coding sessions on Claude Code, Codex, Gemini CLI, and Q Chat." />
+        <meta name="twitter:image" content={`${typeof window !== 'undefined' ? window.location.origin : 'https://sessionbase.com'}/sessionbase-logo.png`} />
       </Head>
 
       {isMobile ? (
