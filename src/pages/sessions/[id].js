@@ -216,9 +216,10 @@ export default function SessionPage() {
         {/* Open Graph tags */}
         <meta property="og:title" content={session.metadata?.title ? `${session.metadata.title} - SessionBase` : `Session ${session.id} - SessionBase`} />
         <meta property="og:description" content={session.metadata?.summary || `View ${session.sessionType || 'AI'} session ${session.id} on SessionBase. ${session.author?.username ? `Shared by ${session.author.username}.` : ''}`} />
-        <meta property="og:image" content="https://www.sessionbase.ai/sessionbase-logo.png" />
-        <meta property="og:image:width" content="1068" />
-        <meta property="og:image:height" content="154" />
+        <meta property="og:image" content="https://www.sessionbase.ai/sessionbase-og.png" />
+        <meta property="og:image:width" content="1200" />
+        <meta property="og:image:height" content="630" />
+        <meta property="og:image:alt" content={session.metadata?.title ? `${session.metadata.title} – SessionBase` : 'SessionBase logo'} />
         <meta property="og:url" content={`https://www.sessionbase.ai/sessions/${session.id}`} />
         <meta property="og:type" content="article" />
         <meta property="og:site_name" content="SessionBase" />
@@ -229,7 +230,8 @@ export default function SessionPage() {
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content={session.metadata?.title ? `${session.metadata.title} - SessionBase` : `Session ${session.id} - SessionBase`} />
         <meta name="twitter:description" content={session.metadata?.summary || `View ${session.sessionType || 'AI'} session ${session.id} on SessionBase. ${session.author?.username ? `Shared by ${session.author.username}.` : ''}`} />
-        <meta name="twitter:image" content="https://www.sessionbase.ai/sessionbase-logo.png" />
+        <meta name="twitter:image" content="https://www.sessionbase.ai/sessionbase-og.png" />
+        <meta name="twitter:image:alt" content={session.metadata?.title ? `${session.metadata.title} – SessionBase` : 'SessionBase logo'} />
       </Head>
 
       <div className="min-h-screen bg-gray-50 dark:bg-slate-900">
