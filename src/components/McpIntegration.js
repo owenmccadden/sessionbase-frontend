@@ -133,11 +133,11 @@ export default function McpIntegration() {
   const currentPlatform = platforms[activeIndex];
 
   return (
-    <section className="py-24 bg-gradient-to-b from-white via-slate-50 to-white dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
+    <section className="py-24 bg-gradient-to-b from-white to-slate-50 dark:from-slate-800 dark:to-slate-800">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-16">
           <h2 className="text-4xl font-bold text-slate-900 mb-4 dark:text-white">
-            Share sessions with natural language
+            Share Sessions with Natural Language
           </h2>
           <p className="text-lg text-slate-600 max-w-3xl mx-auto leading-relaxed dark:text-slate-300">
             Tell Claude, Gemini, Q Chat, or Codex to push your session to SessionBase.
@@ -149,7 +149,7 @@ export default function McpIntegration() {
           <div className="relative">
             <div className="absolute inset-0 bg-gradient-to-br from-slate-200/30 to-slate-100/20 rounded-2xl blur-xl dark:from-slate-800/30 dark:to-slate-700/20"></div>
             <div className="relative bg-white dark:bg-slate-900 rounded-2xl shadow-2xl overflow-hidden border border-slate-200 dark:border-slate-800">
-              <div className="bg-slate-100 dark:bg-slate-800 px-6 py-3 border-b border-slate-200 dark:border-slate-700">
+              <div className="bg-slate-200 dark:bg-slate-700 px-6 py-3 border-b border-slate-300 dark:border-slate-600">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-2">
                     <div className="w-3 h-3 rounded-full bg-red-500"></div>
@@ -290,10 +290,10 @@ export default function McpIntegration() {
                 <button
                   key={platform.name}
                   onClick={() => setActiveIndex(index)}
-                  className={`relative p-3 rounded-lg transition-all duration-300 ${
+                  className={`relative p-3 rounded-lg transition-all duration-300 border ${
                     index === activeIndex 
-                      ? 'ring-2 ring-blue-500 ring-offset-2 ring-offset-white dark:ring-offset-slate-900 bg-blue-50 dark:bg-blue-900/30' 
-                      : 'bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700'
+                      ? 'bg-blue-50 dark:bg-blue-900/40 ring-2 ring-blue-500 ring-offset-2 ring-offset-white dark:ring-offset-slate-800 border-blue-200 dark:border-blue-700' 
+                      : 'bg-white dark:bg-slate-700 hover:bg-slate-50 dark:hover:bg-slate-600 border-slate-200 dark:border-slate-600'
                   }`}
                 >
                   {platform.logoLight ? (
@@ -326,8 +326,8 @@ export default function McpIntegration() {
 
             <div className="space-y-6">
               <div className="flex items-start gap-4">
-                <div className="flex-shrink-0 w-8 h-8 rounded-lg bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center mt-0.5">
-                  <Share className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                <div className="flex-shrink-0 w-8 h-8 rounded-lg border border-slate-200 bg-slate-50 dark:border-slate-600 dark:bg-slate-800 flex items-center justify-center mt-0.5">
+                  <Share className="w-4 h-4 text-slate-700 dark:text-slate-200" />
                 </div>
                 <div>
                   <h4 className="font-semibold text-slate-900 dark:text-white mb-2">Share without interruption</h4>
@@ -338,8 +338,8 @@ export default function McpIntegration() {
               </div>
 
               <div className="flex items-start gap-4">
-                <div className="flex-shrink-0 w-8 h-8 rounded-lg bg-green-100 dark:bg-green-900/30 flex items-center justify-center mt-0.5">
-                  <Bot className="w-4 h-4 text-green-600 dark:text-green-400" />
+                <div className="flex-shrink-0 w-8 h-8 rounded-lg border border-slate-200 bg-slate-50 dark:border-slate-600 dark:bg-slate-800 flex items-center justify-center mt-0.5">
+                  <Bot className="w-4 h-4 text-slate-700 dark:text-slate-200" />
                 </div>
                 <div>
                   <h4 className="font-semibold text-slate-900 dark:text-white mb-2">Auto-generated metadata</h4>
@@ -350,8 +350,8 @@ export default function McpIntegration() {
               </div>
 
               <div className="flex items-start gap-4">
-                <div className="flex-shrink-0 w-8 h-8 rounded-lg bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center mt-0.5">
-                  <span className="text-purple-600 dark:text-purple-400 font-mono text-sm font-semibold">/</span>
+                <div className="flex-shrink-0 w-8 h-8 rounded-lg border border-slate-200 bg-slate-50 dark:border-slate-600 dark:bg-slate-800 flex items-center justify-center mt-0.5">
+                  <span className="text-slate-700 dark:text-slate-200 font-mono text-sm font-semibold">/</span>
                 </div>
                 <div>
                   <h4 className="font-semibold text-slate-900 dark:text-white mb-2">Custom slash commands</h4>

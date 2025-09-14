@@ -1,6 +1,6 @@
 export default function Footer() {
   return (
-    <footer className="footer-elegant bg-slate-100 dark:bg-slate-800 py-48 relative overflow-hidden">
+    <footer className="footer-elegant bg-gradient-to-b from-slate-50 to-white dark:from-slate-900 dark:to-slate-900 py-48 relative overflow-hidden">
       {/* Subtle Background Effects */}
       <div className="absolute inset-0">
         {/* Dot Matrix Pattern */}

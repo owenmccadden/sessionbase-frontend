@@ -12,17 +12,32 @@ import {
 import { useEffect, useRef, useState, forwardRef } from 'react';
 
 export default function TerminalToTeam() {
-  const { containerRef, terminalRef, hubRef, destRefs, dims, paths, ready } = useArrowLayout();
-  // Per-row horizontal offsets (negative moves closer to center)
+  const [activeIdx, setActiveIdx] = useState(0);
+  const { containerRef, terminalRef, hubRef, destRefs, dims, paths, ready } = useArrowLayout(activeIdx);
   // Staggered right-shift for longer arrows (px)
-  const destOffsets = [60, 84, 108, 96, 72];
+  const destOffsets = [48, 72, 96, 84, 60];
+
+  // Track dark mode to pick marker color variants that match line color
+  const [isDark, setIsDark] = useState(false);
+  useEffect(() => {
+    const update = () => setIsDark(typeof document !== 'undefined' && document.documentElement.classList.contains('dark'));
+    update();
+    const mo = new MutationObserver(update);
+    mo.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+    return () => mo.disconnect();
+  }, []);
+
+  useEffect(() => {
+    const id = setInterval(() => setActiveIdx((i) => (i + 1) % 5), 2400);
+    return () => clearInterval(id);
+  }, []);
   return (
     <section className="py-24 bg-gradient-to-b from-slate-50 to-white dark:from-slate-900 dark:to-slate-900">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-16">
-          <h2 className="text-4xl font-bold text-slate-900 mb-4 dark:text-white">From terminal to team</h2>
+          <h2 className="text-4xl font-bold text-slate-900 mb-4 dark:text-white">From Terminal to Team</h2>
           <p className="text-lg text-slate-600 max-w-3xl mx-auto leading-relaxed dark:text-slate-300">
-            Save your sessions where you work, get a shareable link, and give your team the full story.
+            Save sessions right from your terminal, get a shareable link, and give your team the full context.
           </p>
         </div>
 
@@ -39,17 +54,42 @@ export default function TerminalToTeam() {
               aria-hidden
             >
               <defs>
-                <marker id="arrow-dash" markerWidth="10" markerHeight="10" refX="7" refY="5" orient="auto" fill="currentColor">
-                  <path d="M0,0 L10,5 L0,10 z" />
+                {/* Light mode markers (exactly match .flow-line colors) */}
+                <marker id="arrow-dash-light" markerWidth="12" markerHeight="12" refX="11" refY="6" orient="auto" markerUnits="userSpaceOnUse">
+                  <path d="M1,1 L11,6 L1,11" stroke="rgba(100,116,139,0.8)" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.7" />
+                </marker>
+                <marker id="arrow-stop-light" markerWidth="12" markerHeight="12" refX="11" refY="6" orient="auto" markerUnits="userSpaceOnUse">
+                  <path d="M1,1 L11,6 L1,11" stroke="rgba(100,116,139,0.8)" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" />
+                </marker>
+                <marker id="arrow-dash-active-light" markerWidth="14" markerHeight="14" refX="13" refY="7" orient="auto" markerUnits="userSpaceOnUse">
+                  <path d="M1,1 L13,7 L1,13" stroke="rgba(59,130,246,0.98)" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.4" />
+                </marker>
+
+                {/* Dark mode markers (exactly match :global(html.dark) colors) */}
+                <marker id="arrow-dash-dark" markerWidth="12" markerHeight="12" refX="11" refY="6" orient="auto" markerUnits="userSpaceOnUse">
+                  <path d="M1,1 L11,6 L1,11" stroke="rgba(148,163,184,0.75)" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.7" />
+                </marker>
+                <marker id="arrow-stop-dark" markerWidth="12" markerHeight="12" refX="11" refY="6" orient="auto" markerUnits="userSpaceOnUse">
+                  <path d="M1,1 L11,6 L1,11" stroke="rgba(148,163,184,0.75)" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" />
+                </marker>
+                <marker id="arrow-dash-active-dark" markerWidth="14" markerHeight="14" refX="13" refY="7" orient="auto" markerUnits="userSpaceOnUse">
+                  <path d="M1,1 L13,7 L1,13" stroke="rgba(147,197,253,0.98)" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.4" />
                 </marker>
               </defs>
-              {/* left -> center */}
+              {/* left -> center (subtle highlight) */}
               {paths.leftToCenter && (
-                <path d={paths.leftToCenter} className="flow-line" fill="none" stroke="currentColor" markerEnd="url(#arrow-dash)" />
+                <path d={paths.leftToCenter} className="flow-line flow-line-leading" fill="none" stroke="currentColor" markerEnd={`url(#${isDark ? 'arrow-stop-dark' : 'arrow-stop-light'})`} />
               )}
               {/* center -> destinations */}
               {paths.toDests.map((d, i) => (
-                <path key={i} d={d} className="flow-line" fill="none" stroke="currentColor" markerEnd="url(#arrow-dash)" />
+                <path
+                  key={i}
+                  d={d}
+                  className={`flow-line ${i === activeIdx ? 'flow-line-active' : ''}`}
+                  fill="none"
+                  stroke="currentColor"
+                  markerEnd={`url(#${i === activeIdx ? (isDark ? 'arrow-dash-active-dark' : 'arrow-dash-active-light') : (isDark ? 'arrow-dash-dark' : 'arrow-dash-light')})`}
+                />
               ))}
             </svg>
           )}
@@ -78,11 +118,11 @@ export default function TerminalToTeam() {
             {/* Destinations on the right */}
             <div className="col-span-6 pl-8 ml-40 xl:ml-56 2xl:ml-72">
               <div className="grid grid-cols-1 gap-y-6 place-items-start">
-                <Destination style={{ marginLeft: destOffsets[0] }} ref={(el) => (destRefs.current[0] = el)} label="Pull Requests" Icon={GitPullRequest} />
-                <Destination style={{ marginLeft: destOffsets[1] }} ref={(el) => (destRefs.current[1] = el)} label="Documentation" Icon={FileText} />
-                <Destination style={{ marginLeft: destOffsets[2] }} ref={(el) => (destRefs.current[2] = el)} label="Scrum Tickets" Icon={Ticket} />
-                <Destination style={{ marginLeft: destOffsets[3] }} ref={(el) => (destRefs.current[3] = el)} label="Team Chats" Icon={MessageSquare} />
-                <Destination style={{ marginLeft: destOffsets[4] }} ref={(el) => (destRefs.current[4] = el)} label="Onboarding" Icon={UserPlus} />
+                <Destination active={activeIdx === 0} style={{ marginLeft: destOffsets[0] }} ref={(el) => (destRefs.current[0] = el)} label="Pull Requests" Icon={GitPullRequest} />
+                <Destination active={activeIdx === 1} style={{ marginLeft: destOffsets[1] }} ref={(el) => (destRefs.current[1] = el)} label="Documentation" Icon={FileText} />
+                <Destination active={activeIdx === 2} style={{ marginLeft: destOffsets[2] }} ref={(el) => (destRefs.current[2] = el)} label="Scrum Tickets" Icon={Ticket} />
+                <Destination active={activeIdx === 3} style={{ marginLeft: destOffsets[3] }} ref={(el) => (destRefs.current[3] = el)} label="Team Chats" Icon={MessageSquare} />
+                <Destination active={activeIdx === 4} style={{ marginLeft: destOffsets[4] }} ref={(el) => (destRefs.current[4] = el)} label="Onboarding" Icon={UserPlus} />
               </div>
             </div>
           </div>
@@ -98,8 +138,8 @@ export default function TerminalToTeam() {
               <div className="mt-2 text-sm text-slate-500 dark:text-slate-400">Terminal</div>
             </div>
             <div className="relative text-center">
-              <div className="relative w-24 h-24 rounded-full border border-slate-300 bg-white shadow-md overflow-hidden dark:border-slate-700 dark:bg-slate-900">
-                <img src="/android-chrome-512x512.png" alt="SessionBase" className="absolute inset-0 w-full h-full object-cover object-center opacity-95" />
+              <div className="relative w-24 h-24 rounded-2xl border border-slate-300 bg-white shadow-md overflow-hidden dark:border-slate-700 dark:bg-slate-900 flex items-center justify-center p-2">
+                <img src="/android-chrome-512x512.png" alt="SessionBase" className="w-full h-full object-contain opacity-95" />
               </div>
               <div className="mt-2 text-sm font-medium text-slate-700 dark:text-slate-300">SessionBase</div>
             </div>
@@ -146,19 +186,23 @@ export default function TerminalToTeam() {
         </div>
       </div>
       <style jsx>{`
-        .flow-line { stroke-width: 2; stroke-dasharray: 8 10; opacity: 0.9; animation: dash 2.6s linear infinite; color: rgba(100,116,139,0.9); }
-        :global(html.dark) .flow-line { color: rgba(148,163,184,0.85); }
+        .flow-line { stroke-width: 2; stroke-dasharray: 8 10; opacity: 0.9; animation: dash 2.6s linear infinite; color: rgba(100,116,139,0.8); }
+        .flow-line-leading { opacity: 0.75; }
+        .flow-line-active { stroke-width: 3.4; color: rgba(59,130,246,0.98); filter: drop-shadow(0 0 8px rgba(59,130,246,0.35)); }
+        :global(html.dark) .flow-line { color: rgba(148,163,184,0.75); }
+        :global(html.dark) .flow-line-active { color: rgba(147,197,253,0.98); filter: drop-shadow(0 0 10px rgba(96,165,250,0.45)); }
         @keyframes dash { to { stroke-dashoffset: -80; } }
       `}</style>
     </section>
   );
 }
 
-const Destination = forwardRef(function Destination({ label, Icon, className = "", style }, ref) {
+const Destination = forwardRef(function Destination({ label, Icon, className = "", style, active = false }, ref) {
   return (
     <div
       ref={ref}
-      className={`flex items-center gap-3 rounded-xl border border-slate-200 bg-white px-4 py-3 shadow-sm text-slate-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 ${className}`}
+      className={`flex items-center gap-3 rounded-xl border px-4 py-3 shadow-sm text-slate-700 dark:text-slate-300 transition-all duration-300 ease-out
+        ${active ? 'border-blue-400/60 bg-white/95 dark:bg-slate-900/95 ring-2 ring-blue-400/40 shadow-md' : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900'} ${className}`}
       style={style}
     >
       <span className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 bg-slate-50 dark:border-slate-700 dark:bg-slate-800">
@@ -170,7 +214,7 @@ const Destination = forwardRef(function Destination({ label, Icon, className = "
 });
 
 // geometry and measurement helpers
-function useArrowLayout() {
+function useArrowLayout(watch) {
   const containerRef = useRef(null);
   const terminalRef = useRef(null);
   const hubRef = useRef(null);
@@ -221,7 +265,7 @@ function useArrowLayout() {
     calc();
     window.addEventListener('resize', onResize);
     return () => window.removeEventListener('resize', onResize);
-  }, []);
+  }, [watch]);
 
   return { containerRef, terminalRef, hubRef, destRefs, dims, paths, ready };
 }
