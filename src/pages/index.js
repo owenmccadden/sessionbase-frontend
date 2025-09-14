@@ -31,13 +31,13 @@ export default function Landing() {
   return (
     <>
       <Head>
-        <title>SessionBase - Share AI Coding Sessions</title>
+        <title>SessionBase - Save & Share AI Coding Sessions</title>
         <meta name="description" content="Discover, share, and learn from AI coding sessions on Claude Code, Codex, Gemini CLI, and Q Chat." />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/favicon.ico" />
 
         {/* Open Graph tags */}
-        <meta property="og:title" content="SessionBase - Share AI Coding Sessions" />
+        <meta property="og:title" content="SessionBase - Save & Share AI Coding Sessions" />
         <meta property="og:description" content="Discover, share, and learn from AI coding sessions on Claude Code, Codex, Gemini CLI, and Q Chat." />
         <meta property="og:image" content="https://www.sessionbase.ai/sessionbase-og.png" />
         <meta property="og:image:width" content="1200" />
@@ -49,7 +49,7 @@ export default function Landing() {
 
         {/* Twitter Card tags */}
         <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content="SessionBase - Share AI Coding Sessions" />
+        <meta name="twitter:title" content="SessionBase - Save & Share AI Coding Sessions" />
         <meta name="twitter:description" content="Discover, share, and learn from AI coding sessions on Claude Code, Codex, Gemini CLI, and Q Chat." />
         <meta name="twitter:image" content="https://www.sessionbase.ai/sessionbase-og.png" />
         <meta name="twitter:image:alt" content="SessionBase logo on branded background" />
