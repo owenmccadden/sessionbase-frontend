@@ -39,8 +39,8 @@ export default function Landing() {
         {/* Open Graph tags */}
         <meta property="og:title" content="SessionBase - Share AI Coding Sessions" />
         <meta property="og:description" content="Discover, share, and learn from AI coding sessions on Claude Code, Codex, Gemini CLI, and Q Chat." />
-        <meta property="og:image" content={`${typeof window !== 'undefined' ? window.location.origin : 'https://sessionbase.com'}/sessionbase-logo.png`} />
-        <meta property="og:url" content={typeof window !== 'undefined' ? window.location.href : 'https://sessionbase.com'} />
+        <meta property="og:image" content="https://www.sessionbase.ai/sessionbase-logo.png" />
+        <meta property="og:url" content="https://www.sessionbase.ai" />
         <meta property="og:type" content="website" />
         <meta property="og:site_name" content="SessionBase" />
 
@@ -48,7 +48,7 @@ export default function Landing() {
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content="SessionBase - Share AI Coding Sessions" />
         <meta name="twitter:description" content="Discover, share, and learn from AI coding sessions on Claude Code, Codex, Gemini CLI, and Q Chat." />
-        <meta name="twitter:image" content={`${typeof window !== 'undefined' ? window.location.origin : 'https://sessionbase.com'}/sessionbase-logo.png`} />
+        <meta name="twitter:image" content="https://www.sessionbase.ai/sessionbase-logo.png" />
       </Head>
 
       {isMobile ? (

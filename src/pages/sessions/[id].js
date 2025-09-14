@@ -216,8 +216,8 @@ export default function SessionPage() {
         {/* Open Graph tags */}
         <meta property="og:title" content={session.metadata?.title ? `${session.metadata.title} - SessionBase` : `Session ${session.id} - SessionBase`} />
         <meta property="og:description" content={session.metadata?.summary || `View ${session.sessionType || 'AI'} session ${session.id} on SessionBase. ${session.author?.username ? `Shared by ${session.author.username}.` : ''}`} />
-        <meta property="og:image" content={`${typeof window !== 'undefined' ? window.location.origin : 'https://sessionbase.com'}/sessionbase-logo.png`} />
-        <meta property="og:url" content={typeof window !== 'undefined' ? window.location.href : `https://sessionbase.com/sessions/${session.id}`} />
+        <meta property="og:image" content="https://www.sessionbase.ai/sessionbase-logo.png" />
+        <meta property="og:url" content={`https://www.sessionbase.ai/sessions/${session.id}`} />
         <meta property="og:type" content="article" />
         <meta property="og:site_name" content="SessionBase" />
         {session.author?.username && <meta property="article:author" content={session.author.username} />}
@@ -227,7 +227,7 @@ export default function SessionPage() {
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content={session.metadata?.title ? `${session.metadata.title} - SessionBase` : `Session ${session.id} - SessionBase`} />
         <meta name="twitter:description" content={session.metadata?.summary || `View ${session.sessionType || 'AI'} session ${session.id} on SessionBase. ${session.author?.username ? `Shared by ${session.author.username}.` : ''}`} />
-        <meta name="twitter:image" content={`${typeof window !== 'undefined' ? window.location.origin : 'https://sessionbase.com'}/sessionbase-logo.png`} />
+        <meta name="twitter:image" content="https://www.sessionbase.ai/sessionbase-logo.png" />
       </Head>
 
       <div className="min-h-screen bg-gray-50 dark:bg-slate-900">
