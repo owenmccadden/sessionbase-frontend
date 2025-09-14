@@ -49,51 +49,39 @@ export default function Hero({ onShowAuth }) {
 
           {/* Right Column */}
           <div className="space-y-8">
-            {/* Animated Code Block */}
-            <div className="bg-white rounded-xl p-6 shadow-2xl border border-slate-200 relative dark:bg-slate-800 dark:border-slate-700">
-              <div className="flex items-center space-x-2 mb-4">
-                <div className="w-3 h-3 rounded-full bg-red-500"></div>
-                <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
-                <div className="w-3 h-3 rounded-full bg-green-500"></div>
-                <div className="flex-1"></div>
-                <button
-                  onClick={copyToClipboard}
-                  className="text-slate-500 hover:text-slate-800 transition-colors relative group dark:text-slate-400 dark:hover:text-white"
-                  aria-label="Copy to clipboard"
-                >
-                  {copied ? (
-                    <svg className="w-5 h-5 text-green-600 dark:text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                    </svg>
-                  ) : (
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
-                      />
-                    </svg>
-                  )}
-                  <span className="absolute -top-8 right-0 bg-slate-900 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity">
-                    {copied ? 'Copied!' : 'Copy'}
-                  </span>
-                </button>
-              </div>
-              <div className="text-slate-800 text-lg flex items-center dark:text-slate-100" style={{fontFamily: 'SF Mono, Monaco, Inconsolata, "Roboto Mono", Consolas, "Courier New", monospace'}}>
-                <span className="text-slate-500 mr-2 dark:text-slate-400">$</span>
-                <span>npm i -g @sessionbase/cli</span>
-                <span className="w-2 h-5 bg-slate-400 inline-block ml-1 animate-pulse dark:bg-slate-300"></span>
-              </div>
-            </div>
+            {/* Copy Command Button (standalone) */}
+            <>
+              <button
+                onClick={copyToClipboard}
+                className="w-full flex items-center justify-center gap-3 px-4 sm:px-5 py-5 rounded-xl border border-slate-200 bg-slate-50 text-slate-800 hover:bg-slate-100 active:bg-slate-200 shadow-sm hover:shadow-md transition-colors transition-shadow dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:hover:bg-slate-800"
+                aria-label="Copy install command"
+                style={{fontFamily: 'SF Mono, Monaco, Inconsolata, "Roboto Mono", Consolas, "Courier New", monospace'}}
+              >
+                <span className="text-lg">npm i -g @sessionbase/cli</span>
+                {copied ? (
+                  <svg className="w-5 h-5 text-green-600 dark:text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                ) : (
+                  <svg className="w-5 h-5 text-slate-600 dark:text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
+                    />
+                  </svg>
+                )}
+              </button>
+            </>
 
             {/* Faux Browser Window */}
-            <div className="bg-white rounded-xl shadow-2xl overflow-hidden border border-slate-200 dark:bg-slate-900 dark:border-slate-800">
+            <div className="bg-white rounded-2xl shadow-2xl overflow-hidden border border-slate-200 dark:bg-slate-900 dark:border-slate-800">
               <div className="bg-slate-100 px-4 py-3 flex items-center space-x-2 dark:bg-slate-800">
                 <div className="w-3 h-3 rounded-full bg-red-500"></div>
                 <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
                 <div className="w-3 h-3 rounded-full bg-green-500"></div>
-                <div className="flex-1 bg-white dark:bg-slate-900 rounded ml-4 px-3 py-1 text-sm text-slate-600 dark:text-slate-300">
+                <div className="flex-1 bg-white dark:bg-slate-900 rounded ml-4 px-3 py-1 text-base text-slate-600 dark:text-slate-300">
                   sessionbase.ai/session/f47ac10b-58cc-4372-a567-0e02b2c3d479
                 </div>
               </div>
