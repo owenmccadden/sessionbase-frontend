@@ -40,6 +40,8 @@ export default function Landing() {
         <meta property="og:title" content="SessionBase - Share AI Coding Sessions" />
         <meta property="og:description" content="Discover, share, and learn from AI coding sessions on Claude Code, Codex, Gemini CLI, and Q Chat." />
         <meta property="og:image" content="https://www.sessionbase.ai/sessionbase-logo.png" />
+        <meta property="og:image:width" content="1068" />
+        <meta property="og:image:height" content="154" />
         <meta property="og:url" content="https://www.sessionbase.ai" />
         <meta property="og:type" content="website" />
         <meta property="og:site_name" content="SessionBase" />
