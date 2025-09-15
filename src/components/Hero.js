@@ -81,7 +81,7 @@ export default function Hero({ onShowAuth }) {
                 <div className="w-3 h-3 rounded-full bg-red-500"></div>
                 <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
                 <div className="w-3 h-3 rounded-full bg-green-500"></div>
-                <div className="flex-1 bg-white dark:bg-slate-900 rounded ml-4 px-3 py-1 text-base text-slate-600 dark:text-slate-300">
+                <div className="flex-1 bg-white dark:bg-slate-900 rounded ml-4 px-3 py-1 text-sm text-slate-600 dark:text-slate-300">
                   sessionbase.ai/session/f47ac10b-58cc-4372-a567-0e02b2c3d479
                 </div>
               </div>
