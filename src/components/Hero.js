@@ -23,7 +23,7 @@ export default function Hero({ onShowAuth }) {
                 Save & Share your AI Coding Sessions
               </h1>
               <p className="text-2xl text-slate-600 leading-relaxed dark:text-slate-200">
-                SessionBase helps you capture, organize, and share coding agent sessions across platforms, helping you and your dev team preserve valuable context.
+                Capture, organize, and share sessions across coding agent platforms, helping you and your dev team preserve valuable context.
               </p>
             </div>
 
@@ -34,7 +34,7 @@ export default function Hero({ onShowAuth }) {
                 rel="noopener noreferrer"
                 className="bg-primary-dark text-white px-8 py-4 rounded-lg font-semibold hover:bg-primary transition-colors shadow-lg text-center"
               >
-                Get Started — MCP Server
+                Get Started
               </a>
               <a
                 href="https://docs.sessionbase.ai/cli/installation"
