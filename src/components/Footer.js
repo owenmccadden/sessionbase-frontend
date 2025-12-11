@@ -47,6 +47,28 @@ export default function Footer() {
               Terms of Service
             </a>
           </div>
+
+          <p className="mt-6 text-sm text-slate-500 dark:text-slate-400">
+            Built by{' '}
+            <a
+              href="https://www.owenmc.dev/about"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline-offset-4 hover:underline"
+            >
+              Owen McCadden
+            </a>{' '}
+            with{' '}
+            <a
+              href="https://www.anuragd.me/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline-offset-4 hover:underline"
+            >
+              Anurag Dhungana
+            </a>{' '}
+            contributing.
+          </p>
         </div>
       </div>
     </footer>
