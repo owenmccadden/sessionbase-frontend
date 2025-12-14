@@ -6,7 +6,6 @@ import { useAuth } from '../contexts/AuthContext';
 import Header from '../components/Header';
 import MobileBanner from '../components/MobileBanner';
 import Hero from '../components/Hero';
-import LogosStrip from '../components/LogosStrip';
 import TerminalToTeam from '../components/TerminalToTeam';
 import McpIntegration from '../components/McpIntegration';
 import Footer from '../components/Footer';
@@ -63,7 +62,6 @@ export default function Landing() {
           <Header />
           <Hero onShowAuth={() => setShowAuthModal(true)} />
           <TerminalToTeam />
-          <LogosStrip />
           <McpIntegration />
           <Footer />
 
