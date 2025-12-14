@@ -67,7 +67,7 @@ export default function Footer() {
             >
               Anurag Dhungana
             </a>{' '}
-            contributing.
+            maintaining.
           </p>
         </div>
       </div>
