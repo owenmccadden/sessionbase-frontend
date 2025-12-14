@@ -107,10 +107,10 @@ export default function Hero({ onShowAuth }) {
           </p>
 
           {/* 4. CTA and npm command - Combined */}
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 w-full max-w-2xl">
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 w-full max-w-xl">
             <button
               onClick={copyToClipboard}
-              className="flex-1 w-full sm:w-auto flex items-center justify-center gap-3 px-5 py-3 rounded-lg border border-slate-200 bg-white text-slate-900 hover:bg-slate-50 hover:border-slate-300 transition-all dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:hover:bg-slate-800"
+              className="w-full sm:w-auto flex items-center justify-center gap-3 px-5 py-3 rounded-lg border border-slate-200 bg-white text-slate-900 hover:bg-slate-50 hover:border-slate-300 transition-all dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:hover:bg-slate-800"
               aria-label="Copy install command"
               style={{fontFamily: 'SF Mono, Monaco, Inconsolata, "Roboto Mono", Consolas, "Courier New", monospace'}}
             >
@@ -134,9 +134,9 @@ export default function Hero({ onShowAuth }) {
               href="https://docs.sessionbase.ai/"
               target="_blank"
               rel="noopener noreferrer"
-              className="w-full sm:w-auto bg-primary-dark text-white px-6 py-3 rounded-lg font-medium hover:bg-primary transition-colors shadow-sm text-center text-sm whitespace-nowrap"
+              className="w-full sm:w-auto bg-primary-dark text-white px-8 py-3 rounded-lg font-medium hover:bg-primary transition-colors shadow-sm text-center text-sm whitespace-nowrap"
             >
-              Get Started
+              Get Started →
             </a>
           </div>
 
