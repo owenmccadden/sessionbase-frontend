@@ -1,10 +1,8 @@
 import { useState } from 'react';
 import Image from 'next/image';
-import WaitlistForm from './WaitlistForm';
 import DynamicSessionViewer from './DynamicSessionViewer';
 
 export default function Hero({ onShowAuth }) {
-  const [showWaitlist, setShowWaitlist] = useState(false);
   const [copied, setCopied] = useState(false);
 
   const copyToClipboard = () => {
@@ -155,8 +153,6 @@ export default function Hero({ onShowAuth }) {
 
         </div>
       </div>
-
-      {showWaitlist && <WaitlistForm onClose={() => setShowWaitlist(false)} />}
     </section>
   );
 }
