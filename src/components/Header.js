@@ -172,7 +172,7 @@ export default function Header({ showMobileBanner = false }) {
               )}
             </button>
 
-            {/* Logo - Centered and Larger */}
+            {/* Logo - Centered */}
             <div className="flex-1 flex justify-center">
               <Link href="/" className="flex items-center">
                 <img
@@ -183,8 +183,18 @@ export default function Header({ showMobileBanner = false }) {
               </Link>
             </div>
 
-            {/* GitHub Link */}
-            <GitHubButton compact />
+            {/* Right side icons */}
+            <div className="flex items-center gap-2">
+              <GitHubButton compact />
+              <ThemeToggle />
+              {loading || authenticating ? (
+                <div className="w-8 h-8 bg-slate-200 rounded-full animate-pulse dark:bg-slate-700"></div>
+              ) : isAuthenticated ? (
+                <UserProfile />
+              ) : (
+                <LoginButton />
+              )}
+            </div>
           </div>
 
           {/* Mobile Menu Dropdown */}

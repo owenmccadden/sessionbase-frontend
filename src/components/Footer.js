@@ -1,6 +1,6 @@
 export default function Footer() {
   return (
-    <footer className="footer-elegant bg-gradient-to-b from-slate-100 to-slate-50 dark:from-slate-900 dark:to-slate-900 py-48 relative overflow-hidden">
+    <footer className="footer-elegant bg-gradient-to-b from-slate-100 to-slate-50 dark:from-slate-900 dark:to-slate-900 py-12 sm:py-24 md:py-32 lg:py-48 relative overflow-hidden">
       {/* Subtle Background Effects */}
       <div className="absolute inset-0">
         {/* Dot Matrix Pattern */}
@@ -24,10 +24,10 @@ export default function Footer() {
         <div className="text-center">
           {/* Logo with breathing glow */}
           <div className="logo-container">
-            <img 
-              src="/sessionbase-logo.png" 
-              alt="SessionBase" 
-              className="mx-auto max-w-4xl w-full h-auto"
+            <img
+              src="/sessionbase-logo.png"
+              alt="SessionBase"
+              className="mx-auto max-w-[200px] sm:max-w-md md:max-w-2xl lg:max-w-4xl w-full h-auto"
             />
           </div>
           
