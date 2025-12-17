@@ -14,6 +14,7 @@ import { useEffect, useRef, useState, forwardRef } from 'react';
 export default function TerminalToTeam() {
   const [activeIdx, setActiveIdx] = useState(0);
   const { containerRef, terminalRef, hubRef, destRefs, dims, paths, ready } = useArrowLayout(activeIdx);
+  const mobileLayout = useArrowLayoutMobile(activeIdx);
   // Staggered right-shift for longer arrows (px)
   const destOffsets = [48, 72, 96, 84, 60];
 
@@ -128,27 +129,69 @@ export default function TerminalToTeam() {
           </div>
         </div>
 
-        {/* Mobile / small screens: stack without arrows */}
-        <div className="lg:hidden">
-          <div className="flex flex-col items-center gap-6">
+        {/* Mobile / small screens: vertical flow with arrows */}
+        <div className="relative lg:hidden" ref={mobileLayout.containerRef}>
+          {/* Arrow overlay for mobile */}
+          {mobileLayout.ready && mobileLayout.dims.width > 0 && (
+            <svg
+              className="absolute inset-0 pointer-events-none"
+              width={mobileLayout.dims.width}
+              height={mobileLayout.dims.height}
+              viewBox={`0 0 ${mobileLayout.dims.width} ${mobileLayout.dims.height}`}
+              preserveAspectRatio="none"
+              aria-hidden
+            >
+              {/* Reuse marker definitions from desktop (they're in the same page) */}
+              {/* Terminal -> Hub arrow */}
+              {mobileLayout.paths.terminalToHub && (
+                <path
+                  d={mobileLayout.paths.terminalToHub}
+                  className="flow-line flow-line-leading"
+                  fill="none"
+                  stroke="currentColor"
+                  markerEnd={`url(#${isDark ? 'arrow-stop-dark' : 'arrow-stop-light'})`}
+                />
+              )}
+              {/* Hub -> destinations arrows */}
+              {mobileLayout.paths.toDests.map((d, i) => (
+                <path
+                  key={i}
+                  d={d}
+                  className={`flow-line ${i === activeIdx ? 'flow-line-active' : ''}`}
+                  fill="none"
+                  stroke="currentColor"
+                  markerEnd={`url(#${i === activeIdx ? (isDark ? 'arrow-dash-active-dark' : 'arrow-dash-active-light') : (isDark ? 'arrow-dash-dark' : 'arrow-dash-light')})`}
+                />
+              ))}
+            </svg>
+          )}
+
+          <div className="flex flex-col items-center gap-6 px-4">
+            {/* Terminal at top */}
             <div className="text-center">
-              <div className="inline-flex items-center justify-center rounded-2xl p-4 border border-slate-300 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-900">
+              <div ref={mobileLayout.terminalRef} className="inline-flex items-center justify-center rounded-2xl p-4 border border-slate-300 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-900">
                 <TerminalSquare className="w-8 h-8 text-slate-800 dark:text-slate-200" />
               </div>
               <div className="mt-2 text-sm text-slate-500 dark:text-slate-400">Terminal</div>
             </div>
+
+            {/* SessionBase hub in middle */}
             <div className="relative text-center">
-              <div className="relative w-24 h-24 rounded-2xl border border-slate-300 bg-white shadow-md overflow-hidden dark:border-slate-700 dark:bg-slate-900 flex items-center justify-center p-2">
+              <div ref={mobileLayout.hubRef} className="relative w-24 h-24 rounded-2xl border border-slate-300 bg-white shadow-md overflow-hidden dark:border-slate-700 dark:bg-slate-900 flex items-center justify-center p-2">
                 <img src="/android-chrome-512x512.png" alt="SessionBase" className="w-full h-full object-contain opacity-95" />
               </div>
               <div className="mt-2 text-sm font-medium text-slate-700 dark:text-slate-300">SessionBase</div>
             </div>
-            <div className="grid grid-cols-2 gap-3 w-full">
-              <Destination label="Pull Requests" Icon={GitPullRequest} />
-              <Destination label="Documentation" Icon={FileText} />
-              <Destination label="Scrum Tickets" Icon={Ticket} />
-              <Destination label="Team Chats" Icon={MessageSquare} />
-              <Destination label="Onboarding" Icon={UserPlus} />
+
+            {/* Destinations in 2-column grid */}
+            <div className="grid grid-cols-2 gap-3 w-full max-w-md">
+              <Destination active={activeIdx === 0} ref={(el) => (mobileLayout.destRefs.current[0] = el)} label="Pull Requests" Icon={GitPullRequest} />
+              <Destination active={activeIdx === 1} ref={(el) => (mobileLayout.destRefs.current[1] = el)} label="Documentation" Icon={FileText} />
+              <Destination active={activeIdx === 2} ref={(el) => (mobileLayout.destRefs.current[2] = el)} label="Scrum Tickets" Icon={Ticket} />
+              <Destination active={activeIdx === 3} ref={(el) => (mobileLayout.destRefs.current[3] = el)} label="Team Chats" Icon={MessageSquare} />
+              <div className="col-span-2 flex justify-center">
+                <Destination active={activeIdx === 4} ref={(el) => (mobileLayout.destRefs.current[4] = el)} label="Onboarding" Icon={UserPlus} className="w-full max-w-[calc(50%-0.375rem)]" />
+              </div>
             </div>
           </div>
         </div>
@@ -270,4 +313,71 @@ function useArrowLayout(watch) {
   return { containerRef, terminalRef, hubRef, destRefs, dims, paths, ready };
 }
 
-// (no-op)
+// Mobile/vertical layout geometry calculations
+function useArrowLayoutMobile(watch) {
+  const containerRef = useRef(null);
+  const terminalRef = useRef(null);
+  const hubRef = useRef(null);
+  const destRefs = useRef([]);
+  const [dims, setDims] = useState({ width: 0, height: 0 });
+  const [paths, setPaths] = useState({ terminalToHub: '', toDests: [] });
+  const [ready, setReady] = useState(false);
+
+  useEffect(() => {
+    const calc = () => {
+      const c = containerRef.current;
+      const t = terminalRef.current;
+      const h = hubRef.current;
+      if (!c || !t || !h) return;
+      const cr = c.getBoundingClientRect();
+      const tr = t.getBoundingClientRect();
+      const hr = h.getBoundingClientRect();
+
+      // Helper functions for vertical flow
+      const midX = (r) => r.left - cr.left + r.width / 2;
+      const bottomMid = (r) => ({ x: midX(r), y: r.bottom - cr.top });
+      const topMid = (r) => ({ x: midX(r), y: r.top - cr.top });
+
+      // Terminal to Hub (vertical arrow from terminal bottom to hub top)
+      const s1 = bottomMid(tr);
+      const e1 = topMid(hr);
+      const dy1 = e1.y - s1.y;
+      const deltaY1 = Math.min(40, Math.max(20, dy1 / 3));
+      const terminalToHub = `M ${s1.x} ${s1.y} C ${s1.x} ${s1.y + deltaY1}, ${e1.x} ${e1.y - deltaY1}, ${e1.x} ${e1.y}`;
+
+      // Hub to Destinations (arrows from hub bottom to each destination)
+      const s2 = bottomMid(hr);
+      const toDests = destRefs.current
+        .filter(Boolean)
+        .map((d) => {
+          const dr = d.getBoundingClientRect();
+          const e = topMid(dr);
+          const dx = e.x - s2.x;
+          const dy = e.y - s2.y;
+
+          // Calculate control points for curved path
+          // Vertical distance for curve control
+          const deltaY = Math.min(60, Math.max(30, dy / 3));
+          // Horizontal offset for curve - destinations on sides get more horizontal curve
+          const deltaX = Math.abs(dx) > 50 ? dx * 0.4 : dx * 0.2;
+
+          // Create smooth curve from hub to destination
+          return `M ${s2.x} ${s2.y} C ${s2.x + deltaX * 0.5} ${s2.y + deltaY}, ${e.x - deltaX * 0.5} ${e.y - deltaY}, ${e.x} ${e.y}`;
+        });
+
+      setDims({ width: cr.width, height: cr.height });
+      setPaths({ terminalToHub, toDests });
+      setReady(true);
+    };
+
+    const onResize = () => {
+      requestAnimationFrame(calc);
+    };
+
+    calc();
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, [watch]);
+
+  return { containerRef, terminalRef, hubRef, destRefs, dims, paths, ready };
+}
