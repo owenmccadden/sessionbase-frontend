@@ -47,22 +47,24 @@ export default function LogosStrip() {
 
 
   return (
-    <section className="py-20 bg-gradient-to-b from-white to-slate-50 dark:from-slate-800 dark:to-slate-800">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-16">
-          <h2 className="text-3xl font-bold text-slate-900 mb-4 dark:text-white">Connect Your Favorite Coding Agents</h2>
+    <section className="py-12 bg-white dark:bg-slate-900">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="text-center mb-10">
+          <h2 className="text-2xl font-semibold text-slate-900 dark:text-white">
+            Connect your favorite coding agents
+          </h2>
         </div>
         
-        <div className="flex justify-center items-center space-x-16 lg:space-x-24">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-10">
           {logos.map((logo) => (
             <a
               key={logo.name}
               href={logo.url}
               target="_blank"
               rel="noopener noreferrer"
-              className="group flex flex-col items-center space-y-3 transition-all duration-300 hover:scale-105"
+              className="group flex flex-col items-center gap-3 rounded-xl border border-slate-200 bg-white px-4 py-5 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-md dark:border-slate-800 dark:bg-slate-800/80"
             >
-              <div className={`relative bg-white rounded-xl shadow-lg border border-slate-100 group-hover:shadow-xl transition-all duration-300 dark:bg-slate-800 dark:border-slate-700 ${logo.name === 'OpenAI Codex' ? 'p-3' : 'p-6'}`}>
+              <div className="relative flex h-14 items-center justify-center">
                 {logo.srcDark ? (
                   <>
                     <Image
@@ -70,14 +72,14 @@ export default function LogosStrip() {
                       alt={logo.name}
                       width={logo.width}
                       height={logo.height}
-                      className="object-contain transition-all duration-300 dark:hidden"
+                      className="object-contain max-h-12 dark:hidden"
                     />
                     <Image
                       src={logo.srcDark}
                       alt={logo.name}
                       width={logo.width}
                       height={logo.height}
-                      className="object-contain transition-all duration-300 hidden dark:block"
+                      className="object-contain max-h-12 hidden dark:block"
                     />
                   </>
                 ) : (
@@ -86,26 +88,28 @@ export default function LogosStrip() {
                     alt={logo.name}
                     width={logo.width}
                     height={logo.height}
-                    className="object-contain transition-all duration-300"
+                    className="object-contain max-h-12"
                   />
                 )}
               </div>
               <div className="text-center">
-                <p className="text-slate-700 font-medium text-sm dark:text-slate-200">{logo.name}</p>
-                <p className="text-slate-500 text-xs mt-1 dark:text-slate-400">{logo.description}</p>
+                <p className="text-slate-800 font-medium text-sm dark:text-slate-100">
+                  {logo.name}
+                </p>
+                <p className="text-slate-500 text-xs dark:text-slate-400">
+                  {logo.description}
+                </p>
               </div>
             </a>
           ))}
         </div>
 
-        <div className="text-center mt-16">
-          <div className="inline-flex items-center space-x-3 bg-slate-50 px-8 py-4 rounded-2xl border border-slate-200 dark:bg-slate-800 dark:border-slate-700">
-            <svg className="w-6 h-6 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div className="flex justify-center mt-10">
+          <div className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-slate-50 px-6 py-2.5 text-sm font-medium text-slate-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200">
+            <svg className="w-4 h-4 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
             </svg>
-            <p className="text-lg font-semibold text-slate-700 dark:text-slate-200">
-              More platforms coming soon
-            </p>
+            More platforms coming soon
           </div>
         </div>
       </div>

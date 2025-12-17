@@ -133,7 +133,7 @@ export default function McpIntegration() {
   const currentPlatform = platforms[activeIndex];
 
   return (
-    <section className="py-24 bg-gradient-to-b from-white to-slate-50 dark:from-slate-800 dark:to-slate-800">
+    <section className="py-12 sm:py-16 md:py-24 bg-gradient-to-b from-white to-slate-50 dark:from-slate-800 dark:to-slate-800">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-16">
           <h2 className="text-4xl font-bold text-slate-900 mb-4 dark:text-white">
@@ -144,7 +144,7 @@ export default function McpIntegration() {
           </p>
         </div>
 
-        <div className="grid lg:grid-cols-2 gap-16 items-center">
+        <div className="grid lg:grid-cols-2 gap-6 sm:gap-10 lg:gap-16 items-center">
           {/* Left side - Terminal carousel */}
           <div className="relative">
             <div className="absolute inset-0 bg-gradient-to-br from-slate-200/30 to-slate-100/20 rounded-2xl blur-xl dark:from-slate-800/30 dark:to-slate-700/20"></div>
@@ -159,8 +159,8 @@ export default function McpIntegration() {
                   <div className="text-xs text-slate-600 dark:text-slate-400">{currentPlatform.name}</div>
                 </div>
               </div>
-              
-              <div className="p-6 text-sm" style={{fontFamily: 'SF Mono, Monaco, Inconsolata, "Roboto Mono", Consolas, "Courier New", monospace'}}>
+
+              <div className="p-4 sm:p-6 text-sm" style={{fontFamily: 'SF Mono, Monaco, Inconsolata, "Roboto Mono", Consolas, "Courier New", monospace'}}>
                 {/* Conversation history */}
                 <div className="space-y-2 mb-6 text-slate-600 dark:text-slate-300">
                   {currentPlatform.conversation.map((line, idx) => (
