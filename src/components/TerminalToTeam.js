@@ -13,10 +13,16 @@ import { useEffect, useRef, useState, forwardRef } from 'react';
 
 export default function TerminalToTeam() {
   const [activeIdx, setActiveIdx] = useState(0);
+  const [activeArrowIdx, setActiveArrowIdx] = useState(0);
   const { containerRef, terminalRef, hubRef, destRefs, dims, paths, ready } = useArrowLayout(activeIdx);
   const mobileLayout = useArrowLayoutMobile(activeIdx);
   // Staggered right-shift for longer arrows (px)
   const destOffsets = [48, 72, 96, 84, 60];
+
+  // Intersection Observer for scroll reveal
+  const [isVisible, setIsVisible] = useState(false);
+  const [cardsVisible, setCardsVisible] = useState(false);
+  const sectionRef = useRef(null);
 
   // Track dark mode to pick marker color variants that match line color
   const [isDark, setIsDark] = useState(false);
@@ -28,12 +34,53 @@ export default function TerminalToTeam() {
     return () => mo.disconnect();
   }, []);
 
+  // Scroll reveal - section entrance
   useEffect(() => {
-    const id = setInterval(() => setActiveIdx((i) => (i + 1) % 5), 2400);
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsVisible(true);
+          observer.disconnect(); // Only trigger once
+        }
+      },
+      { threshold: 0.15, rootMargin: '0px 0px -100px 0px' }
+    );
+
+    if (sectionRef.current) {
+      observer.observe(sectionRef.current);
+    }
+
+    return () => observer.disconnect();
+  }, []);
+
+  // Staggered card reveals - trigger after section is visible
+  useEffect(() => {
+    if (!isVisible) return;
+
+    // Small delay after section appears
+    const timer = setTimeout(() => {
+      setCardsVisible(true);
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [isVisible]);
+
+  // Staggered arrow activation - delay arrow by 150ms after card
+  useEffect(() => {
+    const timeout = setTimeout(() => setActiveArrowIdx(activeIdx), 150);
+    return () => clearTimeout(timeout);
+  }, [activeIdx]);
+
+  // Synchronized timing: 2.6s to match arrow dash animation
+  useEffect(() => {
+    const id = setInterval(() => setActiveIdx((i) => (i + 1) % 5), 2600);
     return () => clearInterval(id);
   }, []);
   return (
-    <section className="py-12 sm:py-16 md:py-24 bg-gradient-to-b from-slate-100 to-slate-50 dark:from-slate-900 dark:to-slate-900">
+    <section
+      ref={sectionRef}
+      className={`py-12 sm:py-16 md:py-24 bg-gradient-to-b from-slate-100 to-slate-50 dark:from-slate-900 dark:to-slate-900 transition-all duration-700 ease-out ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}
+    >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-16">
           <h2 className="text-4xl font-bold text-slate-900 mb-4 dark:text-white">From Terminal to Team</h2>
@@ -86,10 +133,10 @@ export default function TerminalToTeam() {
                 <path
                   key={i}
                   d={d}
-                  className={`flow-line ${i === activeIdx ? 'flow-line-active' : ''}`}
+                  className={`flow-line ${i === activeArrowIdx ? 'flow-line-active' : ''}`}
                   fill="none"
                   stroke="currentColor"
-                  markerEnd={`url(#${i === activeIdx ? (isDark ? 'arrow-dash-active-dark' : 'arrow-dash-active-light') : (isDark ? 'arrow-dash-dark' : 'arrow-dash-light')})`}
+                  markerEnd={`url(#${i === activeArrowIdx ? (isDark ? 'arrow-dash-active-dark' : 'arrow-dash-active-light') : (isDark ? 'arrow-dash-dark' : 'arrow-dash-light')})`}
                 />
               ))}
             </svg>
@@ -119,11 +166,11 @@ export default function TerminalToTeam() {
             {/* Destinations on the right */}
             <div className="col-span-6 pl-8 ml-40 xl:ml-56 2xl:ml-72">
               <div className="grid grid-cols-1 gap-y-6 place-items-start">
-                <Destination active={activeIdx === 0} style={{ marginLeft: destOffsets[0] }} ref={(el) => (destRefs.current[0] = el)} label="Pull Requests" Icon={GitPullRequest} />
-                <Destination active={activeIdx === 1} style={{ marginLeft: destOffsets[1] }} ref={(el) => (destRefs.current[1] = el)} label="Documentation" Icon={FileText} />
-                <Destination active={activeIdx === 2} style={{ marginLeft: destOffsets[2] }} ref={(el) => (destRefs.current[2] = el)} label="Scrum Tickets" Icon={Ticket} />
-                <Destination active={activeIdx === 3} style={{ marginLeft: destOffsets[3] }} ref={(el) => (destRefs.current[3] = el)} label="Team Chats" Icon={MessageSquare} />
-                <Destination active={activeIdx === 4} style={{ marginLeft: destOffsets[4] }} ref={(el) => (destRefs.current[4] = el)} label="Onboarding" Icon={UserPlus} />
+                <Destination active={activeIdx === 0} index={0} visible={cardsVisible} style={{ marginLeft: destOffsets[0] }} ref={(el) => (destRefs.current[0] = el)} label="Pull Requests" Icon={GitPullRequest} />
+                <Destination active={activeIdx === 1} index={1} visible={cardsVisible} style={{ marginLeft: destOffsets[1] }} ref={(el) => (destRefs.current[1] = el)} label="Documentation" Icon={FileText} />
+                <Destination active={activeIdx === 2} index={2} visible={cardsVisible} style={{ marginLeft: destOffsets[2] }} ref={(el) => (destRefs.current[2] = el)} label="Scrum Tickets" Icon={Ticket} />
+                <Destination active={activeIdx === 3} index={3} visible={cardsVisible} style={{ marginLeft: destOffsets[3] }} ref={(el) => (destRefs.current[3] = el)} label="Team Chats" Icon={MessageSquare} />
+                <Destination active={activeIdx === 4} index={4} visible={cardsVisible} style={{ marginLeft: destOffsets[4] }} ref={(el) => (destRefs.current[4] = el)} label="Onboarding" Icon={UserPlus} />
               </div>
             </div>
           </div>
@@ -157,10 +204,10 @@ export default function TerminalToTeam() {
                 <path
                   key={i}
                   d={d}
-                  className={`flow-line ${i === activeIdx ? 'flow-line-active' : ''}`}
+                  className={`flow-line ${i === activeArrowIdx ? 'flow-line-active' : ''}`}
                   fill="none"
                   stroke="currentColor"
-                  markerEnd={`url(#${i === activeIdx ? (isDark ? 'arrow-dash-active-dark' : 'arrow-dash-active-light') : (isDark ? 'arrow-dash-dark' : 'arrow-dash-light')})`}
+                  markerEnd={`url(#${i === activeArrowIdx ? (isDark ? 'arrow-dash-active-dark' : 'arrow-dash-active-light') : (isDark ? 'arrow-dash-dark' : 'arrow-dash-light')})`}
                 />
               ))}
             </svg>
@@ -185,12 +232,12 @@ export default function TerminalToTeam() {
 
             {/* Destinations in 2-column grid */}
             <div className="grid grid-cols-2 gap-3 w-full max-w-md">
-              <Destination active={activeIdx === 0} ref={(el) => (mobileLayout.destRefs.current[0] = el)} label="Pull Requests" Icon={GitPullRequest} />
-              <Destination active={activeIdx === 1} ref={(el) => (mobileLayout.destRefs.current[1] = el)} label="Documentation" Icon={FileText} />
-              <Destination active={activeIdx === 2} ref={(el) => (mobileLayout.destRefs.current[2] = el)} label="Scrum Tickets" Icon={Ticket} />
-              <Destination active={activeIdx === 3} ref={(el) => (mobileLayout.destRefs.current[3] = el)} label="Team Chats" Icon={MessageSquare} />
+              <Destination active={activeIdx === 0} index={0} visible={cardsVisible} ref={(el) => (mobileLayout.destRefs.current[0] = el)} label="Pull Requests" Icon={GitPullRequest} />
+              <Destination active={activeIdx === 1} index={1} visible={cardsVisible} ref={(el) => (mobileLayout.destRefs.current[1] = el)} label="Documentation" Icon={FileText} />
+              <Destination active={activeIdx === 2} index={2} visible={cardsVisible} ref={(el) => (mobileLayout.destRefs.current[2] = el)} label="Scrum Tickets" Icon={Ticket} />
+              <Destination active={activeIdx === 3} index={3} visible={cardsVisible} ref={(el) => (mobileLayout.destRefs.current[3] = el)} label="Team Chats" Icon={MessageSquare} />
               <div className="col-span-2 flex justify-center">
-                <Destination active={activeIdx === 4} ref={(el) => (mobileLayout.destRefs.current[4] = el)} label="Onboarding" Icon={UserPlus} className="w-full max-w-[calc(50%-0.375rem)]" />
+                <Destination active={activeIdx === 4} index={4} visible={cardsVisible} ref={(el) => (mobileLayout.destRefs.current[4] = el)} label="Onboarding" Icon={UserPlus} className="w-full max-w-[calc(50%-0.375rem)]" />
               </div>
             </div>
           </div>
@@ -229,24 +276,25 @@ export default function TerminalToTeam() {
         </div>
       </div>
       <style jsx>{`
-        .flow-line { stroke-width: 2; stroke-dasharray: 8 10; opacity: 0.9; animation: dash 2.6s linear infinite; color: rgba(100,116,139,0.8); }
+        .flow-line { stroke-width: 2; stroke-dasharray: 8 10; opacity: 1; animation: dash 2.6s linear infinite; color: rgba(100,116,139,0.9); }
         .flow-line-leading { opacity: 0.75; }
-        .flow-line-active { stroke-width: 3.4; color: rgba(59,130,246,0.98); filter: drop-shadow(0 0 8px rgba(59,130,246,0.35)); }
+        .flow-line-active { stroke-width: 3.4; color: rgba(59,130,246,0.98); filter: drop-shadow(0 0 8px rgba(59,130,246,0.35)); will-change: filter, stroke-width; }
         :global(html.dark) .flow-line { color: rgba(148,163,184,0.75); }
-        :global(html.dark) .flow-line-active { color: rgba(147,197,253,0.98); filter: drop-shadow(0 0 10px rgba(96,165,250,0.45)); }
+        :global(html.dark) .flow-line-active { color: rgba(147,197,253,0.98); filter: drop-shadow(0 0 10px rgba(96,165,250,0.45)); will-change: filter, stroke-width; }
         @keyframes dash { to { stroke-dashoffset: -80; } }
       `}</style>
     </section>
   );
 }
 
-const Destination = forwardRef(function Destination({ label, Icon, className = "", style, active = false }, ref) {
+const Destination = forwardRef(function Destination({ label, Icon, className = "", style, active = false, index = 0, visible = false }, ref) {
   return (
     <div
       ref={ref}
-      className={`flex items-center gap-3 rounded-xl border px-4 py-3 shadow-sm text-slate-700 dark:text-slate-300 transition-all duration-300 ease-out
+      className={`flex items-center gap-3 rounded-xl border px-4 py-3 shadow-sm text-slate-700 dark:text-slate-300 transition-all duration-300 ease-out hover:-translate-y-1 hover:shadow-lg hover:scale-[1.02] cursor-default
+        ${visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}
         ${active ? 'border-blue-400/60 bg-white/95 dark:bg-slate-900/95 ring-2 ring-blue-400/40 shadow-md' : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900'} ${className}`}
-      style={style}
+      style={{ ...style, transitionDelay: visible ? `${index * 100}ms` : '0ms' }}
     >
       <span className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 bg-slate-50 dark:border-slate-700 dark:bg-slate-800">
         <Icon className="h-5 w-5" />
